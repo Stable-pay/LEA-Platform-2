@@ -614,6 +614,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       message: "Connected to StablePay Blockchain Network",
       timestamp: new Date()
     }));
+
+    // Simulate periodic node confirmations
+    const nodeNames = ["LEA Central Node", "FIU Node 1", "IND Node", "I4C Node"];
+    const confirmationInterval = setInterval(() => {
+      const randomNode = nodeNames[Math.floor(Math.random() * nodeNames.length)];
+      ws.send(JSON.stringify({
+        type: "NODE_CONFIRMATION",
+        nodeName: randomNode,
+        timestamp: new Date().toISOString()
+      }));
+    }, 2000);
+
+    ws.on('close', () => {
+      clearInterval(confirmationInterval);
+    });
     
     ws.on('message', async (message) => {
       try {

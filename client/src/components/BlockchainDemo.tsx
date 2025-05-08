@@ -16,14 +16,80 @@ const BlockchainDemo = () => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isVerified, setIsVerified] = useState(false);
 
-  const blockchainNodes: BlockchainNodeProps[] = [
-    { name: "LEA Central Node", type: "Law Enforcement", status: "active", lastBlock: "1024" },
-    { name: "FIU Node 1", type: "Financial Intelligence", status: "active", lastBlock: "1024" },
-    { name: "IND Node", type: "Indian Nodal Dept", status: "active", lastBlock: "1024" },
-    { name: "I4C Node", type: "Cyber Crime Coord", status: "active", lastBlock: "1024" },
-    { name: "Exchange Node 1", type: "Financial Exchange", status: "active", lastBlock: "1023" },
-    { name: "Court Node", type: "Judiciary", status: "active", lastBlock: "1022" },
+  interface NodeConfirmation {
+  timestamp: string;
+  confirmationHash: string;
+  status: "pending" | "confirmed" | "rejected";
+}
+
+interface BlockchainNodeProps {
+  name: string;
+  type: string;
+  status: "active" | "pending" | "offline";
+  lastBlock: string;
+  confirmations?: NodeConfirmation[];
+}
+
+const blockchainNodes: BlockchainNodeProps[] = [
+    { 
+      name: "LEA Central Node", 
+      type: "Law Enforcement", 
+      status: "active", 
+      lastBlock: "1024",
+      confirmations: []
+    },
+    { 
+      name: "FIU Node 1", 
+      type: "Financial Intelligence", 
+      status: "active", 
+      lastBlock: "1024",
+      confirmations: []
+    },
+    { 
+      name: "IND Node", 
+      type: "Indian Nodal Dept", 
+      status: "active", 
+      lastBlock: "1024",
+      confirmations: []
+    },
+    { 
+      name: "I4C Node", 
+      type: "Cyber Crime Coord", 
+      status: "active", 
+      lastBlock: "1024",
+      confirmations: []
+    }
   ];
+
+  const [nodes, setNodes] = useState(blockchainNodes);
+  
+  useEffect(() => {
+    // Simulate real-time confirmations
+    const ws = new WebSocket(`wss://${window.location.hostname}/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "NODE_CONFIRMATION") {
+        setNodes(currentNodes => 
+          currentNodes.map(node => 
+            node.name === data.nodeName ? {
+              ...node,
+              confirmations: [
+                ...(node.confirmations || []),
+                {
+                  timestamp: new Date().toISOString(),
+                  confirmationHash: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                  status: "confirmed"
+                }
+              ]
+            } : node
+          )
+        );
+      }
+    };
+
+    return () => ws.close();
+  }, []);
 
   const verificationSteps = [
     { title: "Case submission", icon: <FileCheck className="h-6 w-6" /> },
@@ -81,29 +147,45 @@ const BlockchainDemo = () => {
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {blockchainNodes.map((node, index) => (
-                <div key={index} className="border rounded-lg p-4 flex items-start space-x-3">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                    node.status === 'active' ? 'bg-green-100' : 
-                    node.status === 'pending' ? 'bg-yellow-100' : 'bg-red-100'
-                  }`}>
-                    <ShieldCheck className={`h-5 w-5 ${
-                      node.status === 'active' ? 'text-green-600' : 
-                      node.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
-                    }`} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-neutral-dark">{node.name}</div>
-                    <div className="text-xs text-neutral-medium">{node.type}</div>
-                    <div className="mt-1 flex items-center">
-                      <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                        node.status === 'active' ? 'bg-green-500' : 
-                        node.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
-                      }`}></span>
-                      <span className="text-xs capitalize">{node.status}</span>
-                      <span className="mx-2 text-neutral-light">|</span>
-                      <span className="text-xs">Block: {node.lastBlock}</span>
+                <div key={index} className="border rounded-lg p-4 space-y-3">
+                  <div className="flex items-start space-x-3">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      node.status === 'active' ? 'bg-green-100' : 
+                      node.status === 'pending' ? 'bg-yellow-100' : 'bg-red-100'
+                    }`}>
+                      <ShieldCheck className={`h-5 w-5 ${
+                        node.status === 'active' ? 'text-green-600' : 
+                        node.status === 'pending' ? 'text-yellow-600' : 'text-red-600'
+                      }`} />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-neutral-dark">{node.name}</div>
+                      <div className="text-xs text-neutral-medium">{node.type}</div>
+                      <div className="mt-1 flex items-center">
+                        <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                          node.status === 'active' ? 'bg-green-500' : 
+                          node.status === 'pending' ? 'bg-yellow-500' : 'bg-red-500'
+                        }`}></span>
+                        <span className="text-xs capitalize">{node.status}</span>
+                        <span className="mx-2 text-neutral-light">|</span>
+                        <span className="text-xs">Block: {node.lastBlock}</span>
+                      </div>
                     </div>
                   </div>
+                  
+                  {node.confirmations && node.confirmations.length > 0 && (
+                    <div className="mt-2 border-t pt-2">
+                      <div className="text-xs font-medium mb-1">Recent Confirmations</div>
+                      <div className="space-y-1">
+                        {node.confirmations.slice(-3).map((conf, idx) => (
+                          <div key={idx} className="text-xs flex items-center justify-between">
+                            <span className="font-mono text-neutral-600">{conf.confirmationHash.slice(0, 12)}...</span>
+                            <span className="text-neutral-500">{new Date(conf.timestamp).toLocaleTimeString()}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
