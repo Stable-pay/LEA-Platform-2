@@ -200,7 +200,7 @@ const CaseFilingForm = () => {
     },
   });
 
-  // Mock case creation for demo
+  // Mock case creation for demo with department node integration
   const createCaseMutation = {
     mutate: (values: CaseFormValues) => {
       // Simulate API delay
@@ -212,7 +212,17 @@ const CaseFilingForm = () => {
         // Start mock blockchain verification
         setIsVerifying(true);
         setVerificationStage(0);
-        setTxHash(`0x${Math.random().toString(16).slice(2)}`)
+        setTxHash(`0x${Math.random().toString(16).slice(2)}`);
+        
+        // Dispatch event for Department Node Explorer
+        const newCaseEvent = new CustomEvent('new-case-filed', {
+          detail: {
+            ...values,
+            id: mockId.toString(),
+            attachments: attachments.map(file => file.name)
+          }
+        });
+        window.dispatchEvent(newCaseEvent);
         
         toast({
           title: "Case Created",

@@ -69,25 +69,32 @@ const BlockchainDemo = () => {
   });
 
   useEffect(() => {
-    // Load initial cases and counts
-    const initialCases: NodeCase[] = [
-      {
-        id: "CASE-001",
-        title: "Initial Case",
-        department: user?.department || "ED",
+    // Subscribe to case filing events
+    const handleNewCase = (e: CustomEvent) => {
+      const newCase: NodeCase = {
+        id: `CASE-${Date.now().toString().slice(-3)}`,
+        title: e.detail.title,
+        department: e.detail.initiatorDepartment,
         status: "initiated",
         timestamp: new Date().toISOString(),
-        details: "Sample case details",
-        attachments: [],
+        details: e.detail.description,
+        attachments: e.detail.attachments || [],
         responses: [],
-        assignedTo: "FIU",
-        initiator: "ED",
-        confirmer: "I4C"
-      }
-    ];
-    setCases(initialCases);
-    updateCaseCounts(initialCases);
-  }, [user]);
+        assignedTo: e.detail.assignedDepartment,
+        initiator: e.detail.initiatorDepartment,
+        confirmer: e.detail.confirmerDepartment
+      };
+
+      setCases(prev => {
+        const updated = [...prev, newCase];
+        updateCaseCounts(updated);
+        return updated;
+      });
+    };
+
+    window.addEventListener('new-case-filed', handleNewCase as EventListener);
+    return () => window.removeEventListener('new-case-filed', handleNewCase as EventListener);
+  }, []);
 
   const updateCaseCounts = (caseList: NodeCase[]) => {
     const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
