@@ -117,21 +117,21 @@ export const blockchainNodes = pgTable("blockchain_nodes", {
   id: serial("id").primaryKey(),
   nodeId: text("node_id").notNull().unique(),
   name: text("name").notNull(),
-  type: text("type").notNull(), // LEA, FIU-IND, I4C, Bank, Exchange, Court
+  nodeType: text("node_type").notNull(), // LEA, FIU, IND, I4C, Bank, Exchange, Court
   organization: text("organization").notNull(),
   ipAddress: text("ip_address"),
   port: integer("port"),
   publicKey: text("public_key"),
-  accessLevel: text("access_level").notNull(), // full, read-only, write-only
+  accessLevel: text("access_level").notNull().default("full"), // full, read-only, write-only
   status: text("status").notNull().default("active"), // active, inactive, maintenance
+  lastSyncTimestamp: timestamp("last_sync_timestamp").defaultNow(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Blockchain Transaction model for Hyperledger Fabric ledger
 export const blockchainTransactions = pgTable("blockchain_transactions", {
-  id: serial("id").primaryKey(),
-  txId: uuid("tx_id").defaultRandom().notNull().unique(),
+  txHash: text("tx_hash").notNull().primaryKey(), // Transaction hash is primary key
   blockHash: text("block_hash").notNull(),
   sourceNodeId: text("source_node_id").references(() => blockchainNodes.nodeId),
   entityType: text("entity_type").notNull(), // case, wallet, transaction, pattern, str, timeline
@@ -142,6 +142,8 @@ export const blockchainTransactions = pgTable("blockchain_transactions", {
   status: text("status").notNull().default("confirmed"), // pending, confirmed, rejected
   signatureHash: text("signature_hash"), // Hash of the digital signature
   previousTxHash: text("previous_tx_hash"), // Hash of the previous transaction (for chains)
+  stakeholderId: text("stakeholder_id"), // ID of stakeholder (LEA, FIU, etc.)
+  stakeholderType: text("stakeholder_type"), // Type of stakeholder (LEA, FIU, IND, I4C)
 });
 
 // KYC Information model for encrypted KYC data
@@ -155,6 +157,8 @@ export const kycInformation = pgTable("kyc_information", {
   verificationStatus: text("verification_status").notNull().default("pending"), // pending, verified, rejected
   uploadedAt: timestamp("uploaded_at").defaultNow(),
   verifiedAt: timestamp("verified_at"),
+  lastVerifiedAt: timestamp("last_verified_at"), // Last time the KYC was verified
+  createdAt: timestamp("created_at").defaultNow(),
 });
 
 // Court Export model for case exports to judiciary
@@ -167,7 +171,12 @@ export const courtExports = pgTable("court_exports", {
   signerNodeId: text("signer_node_id").references(() => blockchainNodes.nodeId),
   signerPublicKey: text("signer_public_key"),
   timestamp: timestamp("timestamp").defaultNow(),
-  blockchainTxId: uuid("blockchain_tx_id").references(() => blockchainTransactions.txId),
+  exportedAt: timestamp("exported_at").defaultNow(), // When the export was generated
+  status: text("status").notNull().default("pending"), // pending, complete, rejected
+  exportedBy: integer("exported_by").references(() => users.id),
+  documentHash: text("document_hash"), // Additional hash for verification
+  format: text("format").default("pdf"), // File format
+  blockchainTxHash: text("blockchain_tx_hash").references(() => blockchainTransactions.txHash),
 });
 
 // Define relations between tables
@@ -207,7 +216,47 @@ export const blockchainTransactionsRelations = relations(blockchainTransactions,
     references: [blockchainNodes.nodeId],
     relationName: "node_transactions",
   }),
-  courtExports: many(courtExports, { relationName: "transaction_court_exports" }),
+  courtExports: many(courtExports, { 
+    fields: [blockchainTransactions.txHash],
+    references: [courtExports.blockchainTxHash],
+    relationName: "transaction_court_exports" 
+  }),
+}));
+
+export const courtExportsRelations = relations(courtExports, ({ one }) => ({
+  relatedCase: one(cases, {
+    fields: [courtExports.caseId],
+    references: [cases.id],
+    relationName: "case_court_exports"
+  }),
+  signerNode: one(blockchainNodes, {
+    fields: [courtExports.signerNodeId],
+    references: [blockchainNodes.nodeId],
+    relationName: "node_court_exports"
+  }),
+  blockchainTransaction: one(blockchainTransactions, {
+    fields: [courtExports.blockchainTxHash],
+    references: [blockchainTransactions.txHash],
+    relationName: "transaction_court_exports"
+  }),
+  exportedByUser: one(users, {
+    fields: [courtExports.exportedBy],
+    references: [users.id],
+    relationName: "user_court_exports"
+  })
+}));
+
+export const kycInformationRelations = relations(kycInformation, ({ one }) => ({
+  wallet: one(wallets, {
+    fields: [kycInformation.walletId],
+    references: [wallets.id],
+    relationName: "wallet_kyc"
+  }),
+  exchangeNode: one(blockchainNodes, {
+    fields: [kycInformation.exchangeNodeId],
+    references: [blockchainNodes.nodeId],
+    relationName: "node_kyc_information"
+  })
 }));
 
 // Create insert schemas for each model

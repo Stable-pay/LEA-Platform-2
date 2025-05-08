@@ -470,16 +470,20 @@ export class MemStorage implements IStorage {
   // Blockchain operations
   async createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction> {
     // Generate a unique transaction hash for blockchain transactions
-    const txHash = `bct_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    const txHash = transaction.txHash || `bct_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
     
     const newTransaction: BlockchainTransaction = {
-      ...transaction,
       txHash,
+      blockHash: transaction.blockHash,
+      entityType: transaction.entityType,
+      entityId: transaction.entityId,
+      action: transaction.action,
       timestamp: transaction.timestamp || new Date(),
       status: transaction.status || 'pending',
       metadata: transaction.metadata || {},
-      entityId: transaction.entityId || '',
-      entityType: transaction.entityType || '',
+      sourceNodeId: transaction.sourceNodeId || null,
+      signatureHash: transaction.signatureHash || null,
+      previousTxHash: transaction.previousTxHash || null,
       stakeholderId: transaction.stakeholderId || null,
       stakeholderType: transaction.stakeholderType || null
     };
