@@ -216,47 +216,19 @@ export const blockchainTransactionsRelations = relations(blockchainTransactions,
     references: [blockchainNodes.nodeId],
     relationName: "node_transactions",
   }),
-  courtExports: many(courtExports, { 
-    fields: [blockchainTransactions.txHash],
-    references: [courtExports.blockchainTxHash],
-    relationName: "transaction_court_exports" 
-  }),
+  courtExports: many(courtExports, { relationName: "transaction_court_exports" }),
 }));
 
 export const courtExportsRelations = relations(courtExports, ({ one }) => ({
-  relatedCase: one(cases, {
-    fields: [courtExports.caseId],
-    references: [cases.id],
-    relationName: "case_court_exports"
-  }),
-  signerNode: one(blockchainNodes, {
-    fields: [courtExports.signerNodeId],
-    references: [blockchainNodes.nodeId],
-    relationName: "node_court_exports"
-  }),
-  blockchainTransaction: one(blockchainTransactions, {
-    fields: [courtExports.blockchainTxHash],
-    references: [blockchainTransactions.txHash],
-    relationName: "transaction_court_exports"
-  }),
-  exportedByUser: one(users, {
-    fields: [courtExports.exportedBy],
-    references: [users.id],
-    relationName: "user_court_exports"
-  })
+  relatedCase: one(cases, { relationName: "case_court_exports" }),
+  signerNode: one(blockchainNodes, { relationName: "node_court_exports" }),
+  blockchainTransaction: one(blockchainTransactions, { relationName: "transaction_court_exports" }),
+  exportedByUser: one(users, { relationName: "user_court_exports" })
 }));
 
 export const kycInformationRelations = relations(kycInformation, ({ one }) => ({
-  wallet: one(wallets, {
-    fields: [kycInformation.walletId],
-    references: [wallets.id],
-    relationName: "wallet_kyc"
-  }),
-  exchangeNode: one(blockchainNodes, {
-    fields: [kycInformation.exchangeNodeId],
-    references: [blockchainNodes.nodeId],
-    relationName: "node_kyc_information"
-  })
+  wallet: one(wallets, { relationName: "wallet_kyc" }),
+  exchangeNode: one(blockchainNodes, { relationName: "node_kyc_information" })
 }));
 
 // Create insert schemas for each model

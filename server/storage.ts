@@ -921,9 +921,31 @@ export class DatabaseStorage implements IStorage {
 
   // Blockchain-specific operations
   async createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction> {
+    // Generate txHash if not provided
+    if (!transaction.txHash) {
+      transaction.txHash = `bct_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    }
+    
+    // Set defaults for required fields to ensure schema compatibility
+    const transactionData = {
+      txHash: transaction.txHash,
+      blockHash: transaction.blockHash,
+      entityType: transaction.entityType,
+      entityId: transaction.entityId,
+      action: transaction.action,
+      status: transaction.status || 'pending',
+      timestamp: transaction.timestamp || new Date(),
+      sourceNodeId: transaction.sourceNodeId || null,
+      metadata: transaction.metadata || {},
+      signatureHash: transaction.signatureHash || null,
+      previousTxHash: transaction.previousTxHash || null,
+      stakeholderId: transaction.stakeholderId || null,
+      stakeholderType: transaction.stakeholderType || null
+    };
+    
     const [newTransaction] = await db
       .insert(blockchainTransactions)
-      .values(transaction)
+      .values(transactionData)
       .returning();
     
     return newTransaction;
@@ -955,7 +977,7 @@ export class DatabaseStorage implements IStorage {
     return await db
       .select()
       .from(blockchainNodes)
-      .where(eq(blockchainNodes.type, type));
+      .where(eq(blockchainNodes.nodeType, type));
   }
 
   async createKycInformation(kyc: InsertKycInformation): Promise<KycInformation> {
