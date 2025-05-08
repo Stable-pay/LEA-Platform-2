@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -75,7 +74,7 @@ const BlockchainDemo = () => {
   };
 
   const initiateNewCase = () => {
-    if (!newCaseDetails || !attachments.length) return;
+    if (!newCaseDetails || !attachments.length || !assignToDepartment) return;
 
     const newCase: NodeCase = {
       id: `CASE-${Date.now().toString().slice(-3)}`,
@@ -85,13 +84,15 @@ const BlockchainDemo = () => {
       timestamp: new Date().toISOString(),
       details: newCaseDetails,
       attachments: attachments.map(file => file.name),
-      responses: []
+      responses: [],
+      assignedTo: assignToDepartment
     };
 
     setCases(prev => [...prev, newCase]);
     setNewCaseDetails("");
     setAttachments([]);
-    
+    setAssignToDepartment("");
+
     toast({
       title: "Case Initiated",
       description: "New case has been added to the blockchain network",
@@ -109,8 +110,8 @@ const BlockchainDemo = () => {
       status: "confirmed"
     };
 
-    setCases(prev => prev.map(c => 
-      c.id === selectedCase.id 
+    setCases(prev => prev.map(c =>
+      c.id === selectedCase.id
         ? {
             ...c,
             status: "confirmed",
@@ -121,7 +122,7 @@ const BlockchainDemo = () => {
 
     setResponseDetails("");
     setAttachments([]);
-    
+
     toast({
       title: "Response Submitted",
       description: "Your response has been recorded on the blockchain",
@@ -151,7 +152,7 @@ const BlockchainDemo = () => {
                   {nodeCase.status}
                 </Badge>
               </div>
-              
+
               {canViewCaseDetails(nodeCase) ? (
                 <>
                   <p className="text-sm mt-2">{nodeCase.details}</p>
@@ -212,13 +213,30 @@ const BlockchainDemo = () => {
                         value={newCaseDetails}
                         onChange={(e) => setNewCaseDetails(e.target.value)}
                       />
+                      <Select
+                        value={assignToDepartment}
+                        onValueChange={setAssignToDepartment}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Assign to Department" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <div className="flex items-center gap-4">
                         <FileUploader
                           onFilesSelected={setAttachments}
                           maxFiles={5}
                           accept=".pdf,.doc,.docx,.jpg,.png"
                         />
-                        <Button onClick={initiateNewCase} disabled={!newCaseDetails || !attachments.length}>
+                        <Button
+                          onClick={initiateNewCase}
+                          disabled={!newCaseDetails || !attachments.length || !assignToDepartment}
+                        >
                           <Upload className="w-4 h-4 mr-2" />
                           Create Node
                         </Button>
@@ -260,7 +278,7 @@ const BlockchainDemo = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   {selectedCase.responses.length > 0 && (
                     <div>
                       <h4 className="font-semibold mb-2">Responses</h4>
