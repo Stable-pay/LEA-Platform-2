@@ -1,14 +1,19 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
+import { WebSocketServer, WebSocket } from "ws";
+import { log } from "./vite";
+import { setupAuth } from "./auth";
 import {
   insertCaseSchema,
   insertWalletSchema,
   insertTransactionSchema,
   insertSuspiciousPatternSchema,
   insertStrReportSchema,
-  insertCaseTimelineSchema
+  insertCaseTimelineSchema,
+  insertBlockchainTransactionSchema,
+  insertCourtExportSchema
 } from "@shared/schema";
 
 // Helper to validate request body against a Zod schema
@@ -443,6 +448,203 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Setup authentication routes
+  setupAuth(app);
+  
+  // Middleware to check if user is authenticated
+  const isAuthenticated = (req: Request, res: Response, next: NextFunction) => {
+    if (req.isAuthenticated()) {
+      return next();
+    }
+    res.status(401).json({ message: "Unauthorized" });
+  };
+  
+  // Blockchain API routes
+  app.get("/api/blockchain/nodes", async (req, res) => {
+    try {
+      const nodeType = req.query.type as string || "all";
+      const nodes = await storage.getBlockchainNodesByType(nodeType);
+      res.json(nodes);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch blockchain nodes" });
+    }
+  });
+  
+  app.post("/api/blockchain/verify", isAuthenticated, validateBody(insertBlockchainTransactionSchema), async (req, res) => {
+    try {
+      // Generate transaction hash
+      const timestamp = Date.now();
+      const txHash = `tx-${timestamp}-${Math.floor(Math.random() * 10000)}`;
+      const blockHash = `block-${Math.floor(timestamp / 10000)}-${Math.floor(Math.random() * 1000)}`;
+      
+      // Create transaction record
+      const transaction = await storage.createBlockchainTransaction({
+        ...req.body,
+        txHash,
+        blockHash,
+        status: "pending",
+        timestamp: new Date(),
+        metadata: req.body.metadata || {}
+      });
+      
+      res.status(201).json(transaction);
+      
+      // Simulate consensus process with delay
+      setTimeout(async () => {
+        try {
+          // Update transaction status to confirmed
+          // This would be done by the blockchain network in a real implementation
+          const updatedTransaction = {
+            ...transaction,
+            status: "confirmed",
+            signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+          };
+          
+          // Broadcast to WebSocket clients if connected
+          if (wss) {
+            wss.clients.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: "TRANSACTION_CONFIRMED",
+                  data: updatedTransaction
+                }));
+              }
+            });
+          }
+          
+          log("Blockchain transaction confirmed", "blockchain");
+        } catch (error) {
+          log(`Error confirming transaction: ${error}`, "blockchain");
+        }
+      }, 3000); // 3 second simulated consensus delay
+      
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify on blockchain", error });
+    }
+  });
+  
+  // Court export with blockchain verification
+  app.post("/api/court-exports", isAuthenticated, validateBody(insertCourtExportSchema), async (req, res) => {
+    try {
+      const exportData = await storage.createCourtExport({
+        ...req.body,
+        status: "pending",
+        exportedAt: new Date(),
+        timestamp: new Date()
+      });
+      
+      res.status(201).json(exportData);
+      
+      // Create blockchain transaction for court export verification
+      const timestamp = Date.now();
+      const txHash = `tx-${timestamp}-${Math.floor(Math.random() * 10000)}`;
+      
+      const blockchainTx = await storage.createBlockchainTransaction({
+        txHash,
+        blockHash: `block-${Math.floor(timestamp / 10000)}-${Math.floor(Math.random() * 1000)}`,
+        entityType: "court_export",
+        entityId: exportData.id.toString(),
+        action: "create",
+        sourceNodeId: req.body.signerNodeId || "stable-pay-node",
+        status: "pending",
+        metadata: {
+          exportType: exportData.exportType,
+          fileHash: exportData.fileHash
+        },
+        timestamp: new Date()
+      });
+      
+      // Simulate verification delay
+      setTimeout(async () => {
+        try {
+          // Update transaction status to confirmed
+          const updatedTx = {
+            ...blockchainTx,
+            status: "confirmed",
+            signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+          };
+          
+          // Update court export with transaction hash
+          await storage.updateCourtExport(exportData.id, {
+            blockchainTxHash: txHash,
+            status: "verified"
+          });
+          
+          // Broadcast to WebSocket clients
+          if (wss) {
+            wss.clients.forEach(client => {
+              if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({
+                  type: "COURT_EXPORT_VERIFIED",
+                  data: {
+                    exportId: exportData.id,
+                    transaction: updatedTx
+                  }
+                }));
+              }
+            });
+          }
+          
+          log("Court export verified on blockchain", "blockchain");
+        } catch (error) {
+          log(`Error verifying court export: ${error}`, "blockchain");
+        }
+      }, 5000); // 5 second simulated verification delay
+      
+    } catch (error) {
+      res.status(500).json({ message: "Failed to create court export", error });
+    }
+  });
+  
   const httpServer = createServer(app);
+  
+  // Setup WebSocket Server for real-time blockchain updates
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws'
+  });
+  
+  // WebSocket connection handling
+  wss.on('connection', (ws) => {
+    log("WebSocket client connected", "ws");
+    
+    // Send welcome message
+    ws.send(JSON.stringify({
+      type: "CONNECTED",
+      message: "Connected to StablePay Blockchain Network",
+      timestamp: new Date()
+    }));
+    
+    ws.on('message', async (message) => {
+      try {
+        const data = JSON.parse(message.toString());
+        
+        if (data.type === "SUBSCRIBE_BLOCKCHAIN") {
+          // Send recent blockchain transactions
+          const transactions = await storage.getBlockchainTransactionsByEntity(
+            data.entityType || "all",
+            data.entityId || "all"
+          );
+          
+          ws.send(JSON.stringify({
+            type: "BLOCKCHAIN_TRANSACTIONS",
+            data: transactions
+          }));
+        }
+        
+      } catch (error) {
+        log(`WebSocket error: ${error}`, "ws");
+        ws.send(JSON.stringify({
+          type: "ERROR",
+          message: "Failed to process message"
+        }));
+      }
+    });
+    
+    ws.on('close', () => {
+      log("WebSocket client disconnected", "ws");
+    });
+  });
+  
   return httpServer;
 }
