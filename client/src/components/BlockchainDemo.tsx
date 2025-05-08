@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +12,7 @@ interface BlockchainNodeProps {
   lastBlock: string;
 }
 
-const BlockchainDemo = () => {
-  const [showVerification, setShowVerification] = useState(false);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [isVerified, setIsVerified] = useState(false);
-
-  interface NodeConfirmation {
+interface NodeConfirmation {
   timestamp: string;
   confirmationHash: string;
   status: "pending" | "confirmed" | "rejected";
@@ -30,7 +26,12 @@ interface BlockchainNodeProps {
   confirmations?: NodeConfirmation[];
 }
 
-const blockchainNodes: BlockchainNodeProps[] = [
+const BlockchainDemo = () => {
+  const [showVerification, setShowVerification] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const [isVerified, setIsVerified] = useState(false);
+
+  const blockchainNodes: BlockchainNodeProps[] = [
     { 
       name: "LEA Central Node", 
       type: "Law Enforcement", 
@@ -64,8 +65,9 @@ const blockchainNodes: BlockchainNodeProps[] = [
   const [nodes, setNodes] = useState(blockchainNodes);
   
   useEffect(() => {
-    // Simulate real-time confirmations
-    const ws = new WebSocket(`wss://${window.location.hostname}/ws`);
+    // Connect to WebSocket
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws`);
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
@@ -104,7 +106,6 @@ const blockchainNodes: BlockchainNodeProps[] = [
     setCurrentStep(0);
     setIsVerified(false);
     
-    // Simulate the verification process steps
     const interval = setInterval(() => {
       setCurrentStep(prev => {
         const next = prev + 1;
@@ -146,7 +147,7 @@ const blockchainNodes: BlockchainNodeProps[] = [
         <TabsContent value="nodes" className="pt-2">
           <CardContent className="p-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {blockchainNodes.map((node, index) => (
+              {nodes.map((node, index) => (
                 <div key={index} className="border rounded-lg p-4 space-y-3">
                   <div className="flex items-start space-x-3">
                     <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
@@ -189,27 +190,6 @@ const blockchainNodes: BlockchainNodeProps[] = [
                 </div>
               ))}
             </div>
-            <div className="mt-4">
-              <h3 className="text-sm font-semibold mb-2">Network Stats</h3>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="border rounded-lg p-3">
-                  <div className="text-xs text-neutral-medium">Total Nodes</div>
-                  <div className="text-xl font-semibold">6</div>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <div className="text-xs text-neutral-medium">Active Channels</div>
-                  <div className="text-xl font-semibold">3</div>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <div className="text-xs text-neutral-medium">Smart Contracts</div>
-                  <div className="text-xl font-semibold">7</div>
-                </div>
-                <div className="border rounded-lg p-3">
-                  <div className="text-xs text-neutral-medium">Avg Response Time</div>
-                  <div className="text-xl font-semibold">240ms</div>
-                </div>
-              </div>
-            </div>
           </CardContent>
         </TabsContent>
 
@@ -250,10 +230,8 @@ const blockchainNodes: BlockchainNodeProps[] = [
                 </div>
 
                 <div className="relative">
-                  {/* Progress line */}
                   <div className="absolute left-4 top-0 bottom-0 w-0.5 bg-neutral-200"></div>
                   
-                  {/* Steps */}
                   {verificationSteps.map((step, index) => (
                     <div key={index} className="relative flex items-start mb-6">
                       <div className={`z-10 flex items-center justify-center w-8 h-8 rounded-full 
@@ -261,7 +239,9 @@ const blockchainNodes: BlockchainNodeProps[] = [
                         {step.icon}
                       </div>
                       <div className="ml-4">
-                        <h4 className={`font-medium ${index <= currentStep ? 'text-neutral-dark' : 'text-neutral-medium'}`}>{step.title}</h4>
+                        <h4 className={`font-medium ${index <= currentStep ? 'text-neutral-dark' : 'text-neutral-medium'}`}>
+                          {step.title}
+                        </h4>
                         {index === currentStep && !isVerified && (
                           <div className="mt-1 text-xs text-neutral-medium animate-pulse">Processing...</div>
                         )}
@@ -289,11 +269,6 @@ const blockchainNodes: BlockchainNodeProps[] = [
   "status": "VALID",
   "caseHash": "25f9e794323b4538a2c9d41a55c34231fb3b1e8e86d9b9c0cb639d4a"
 }`}</pre>
-                    </div>
-                    <div className="flex justify-end mt-2">
-                      <Button variant="outline" size="sm" className="h-8 text-xs">
-                        View on Blockchain Explorer
-                      </Button>
                     </div>
                   </div>
                 )}
