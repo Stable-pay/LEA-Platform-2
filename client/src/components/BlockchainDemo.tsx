@@ -25,6 +25,8 @@ interface NodeCase {
   attachments: string[];
   responses: NodeResponse[];
   assignedTo?: string;
+  initiator?: string;
+  confirmer?: string;
 }
 
 interface NodeResponse {
@@ -39,7 +41,9 @@ const DEPARTMENTS = {
   ED: "Enforcement Directorate",
   FIU: "Financial Intelligence Unit",
   I4C: "Indian Cybercrime Coordination Centre",
-  IT: "Income Tax Department"
+  IT: "Income Tax Department",
+  VASP: "Virtual Asset Service Provider",
+  BANK: "Banking Institution"
 };
 
 const BlockchainDemo = () => {
@@ -53,10 +57,18 @@ const BlockchainDemo = () => {
   const [assignToDepartment, setAssignToDepartment] = useState("");
   const [taskInitiator, setTaskInitiator] = useState("");
   const [taskConfirmer, setTaskConfirmer] = useState("");
+  const [caseCounts, setCaseCounts] = useState<{ [department: string]: number }>({
+    ED: 0,
+    FIU: 0,
+    I4C: 0,
+    IT: 0,
+    VASP: 0,
+    BANK: 0
+  });
 
   useEffect(() => {
     // Simulate loading initial cases
-    setCases([
+    const initialCases: NodeCase[] = [
       {
         id: "CASE-001",
         title: "Suspicious Transaction Pattern",
@@ -67,7 +79,22 @@ const BlockchainDemo = () => {
         attachments: ["report.pdf"],
         responses: []
       }
-    ]);
+    ];
+    setCases(initialCases);
+
+    // Initialize case counts based on initial cases
+    const initialCounts: { [department: string]: number } = {
+      ED: 0,
+      FIU: 0,
+      I4C: 0,
+      IT: 0,
+      VASP: 0,
+      BANK: 0
+    };
+    initialCases.forEach(c => {
+      initialCounts[c.department] = (initialCounts[c.department] || 0) + 1;
+    });
+    setCaseCounts(initialCounts);
   }, []);
 
   const canViewCaseDetails = (nodeCase: NodeCase) => {
@@ -76,7 +103,7 @@ const BlockchainDemo = () => {
   };
 
   const initiateNewCase = () => {
-    if (!newCaseDetails || !attachments.length || !assignToDepartment) return;
+    if (!newCaseDetails || !attachments.length || !assignToDepartment || !taskInitiator || !taskConfirmer) return;
 
     const newCase: NodeCase = {
       id: `CASE-${Date.now().toString().slice(-3)}`,
@@ -98,6 +125,12 @@ const BlockchainDemo = () => {
     setAssignToDepartment("");
     setTaskInitiator("");
     setTaskConfirmer("");
+
+    // Update case counts
+    setCaseCounts(prevCounts => ({
+      ...prevCounts,
+      [user?.department || "ED"]: (prevCounts[user?.department || "ED"] || 0) + 1
+    }));
 
     toast({
       title: "Case Initiated",
@@ -192,12 +225,14 @@ const BlockchainDemo = () => {
         <CardTitle>Department Node Explorer</CardTitle>
       </CardHeader>
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all">All Nodes</TabsTrigger>
           <TabsTrigger value="ED">ED</TabsTrigger>
           <TabsTrigger value="FIU">FIU</TabsTrigger>
           <TabsTrigger value="I4C">I4C</TabsTrigger>
           <TabsTrigger value="IT">Income Tax</TabsTrigger>
+          <TabsTrigger value="VASP">VASP</TabsTrigger>
+          <TabsTrigger value="BANK">BANK</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all">
@@ -231,6 +266,8 @@ const BlockchainDemo = () => {
                           <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
                           <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
                           <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
                         </SelectContent>
                       </Select>
                       <Select
@@ -246,6 +283,8 @@ const BlockchainDemo = () => {
                           <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
                           <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
                           <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
                         </SelectContent>
                       </Select>
                       <Select
@@ -261,6 +300,8 @@ const BlockchainDemo = () => {
                           <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
                           <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
                           <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
                         </SelectContent>
                       </Select>
                       <div className="flex items-center gap-4">
