@@ -14,6 +14,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
+runButton = "Dev Server"
 
 [[workflows.workflow]]
 name = "Project"
@@ -32,3 +33,16 @@ author = "agent"
 task = "shell.exec"
 args = "npm run dev"
 waitForPort = 5000
+
+[[workflows.workflow]]
+name = "Dev Server"
+author = 42453641
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "export DATABASE_URL=\"local:localdb\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
