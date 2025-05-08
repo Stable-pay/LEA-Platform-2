@@ -51,6 +51,8 @@ const BlockchainDemo = () => {
   const [responseDetails, setResponseDetails] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
   const [assignToDepartment, setAssignToDepartment] = useState("");
+  const [taskInitiator, setTaskInitiator] = useState("");
+  const [taskConfirmer, setTaskConfirmer] = useState("");
 
   useEffect(() => {
     // Simulate loading initial cases
@@ -85,13 +87,17 @@ const BlockchainDemo = () => {
       details: newCaseDetails,
       attachments: attachments.map(file => file.name),
       responses: [],
-      assignedTo: assignToDepartment
+      assignedTo: assignToDepartment,
+      initiator: taskInitiator,
+      confirmer: taskConfirmer
     };
 
     setCases(prev => [...prev, newCase]);
     setNewCaseDetails("");
     setAttachments([]);
     setAssignToDepartment("");
+    setTaskInitiator("");
+    setTaskConfirmer("");
 
     toast({
       title: "Case Initiated",
@@ -227,6 +233,36 @@ const BlockchainDemo = () => {
                           <SelectItem value="IT">Income Tax Department</SelectItem>
                         </SelectContent>
                       </Select>
+                      <Select
+                        value={taskInitiator}
+                        onValueChange={setTaskInitiator}
+                        className="mt-2"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Task Initiator" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select
+                        value={taskConfirmer}
+                        onValueChange={setTaskConfirmer}
+                        className="mt-2"
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Task Confirmer" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <div className="flex items-center gap-4">
                         <FileUploader
                           onFilesSelected={setAttachments}
@@ -235,7 +271,7 @@ const BlockchainDemo = () => {
                         />
                         <Button
                           onClick={initiateNewCase}
-                          disabled={!newCaseDetails || !attachments.length || !assignToDepartment}
+                          disabled={!newCaseDetails || !attachments.length || !assignToDepartment || !taskInitiator || !taskConfirmer}
                         >
                           <Upload className="w-4 h-4 mr-2" />
                           Create Node
