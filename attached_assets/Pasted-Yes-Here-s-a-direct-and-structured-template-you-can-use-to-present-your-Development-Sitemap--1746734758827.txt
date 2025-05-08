@@ -1,0 +1,62 @@
+Yes! Here's a **direct and structured template** you can use to present your **Development Sitemap** in a clean, stakeholder-friendly document or deck. This format is ideal for presentations to SP Cybercrime, I4C, FIU-IND, or judiciary coordination.
+
+---
+
+## 🔧 **Stable Pay – Development Sitemap v1.0**
+
+A cross-stakeholder platform for crypto-related case management, intelligence sharing, and judicial reporting.
+
+---
+
+### ✅ **1. Law Enforcement Interface (LEA Panel)**
+
+| Stage            | Description                                                                | Output                             |
+| ---------------- | -------------------------------------------------------------------------- | ---------------------------------- |
+| Case Intake      | Register crypto-related fraud complaints from victims or alerting agencies | Unique Case ID + Case Timeline     |
+| Wallet Check     | Validate wallet(s) against known scam clusters and behavior patterns       | Wallet Risk Score + Scam Linkage   |
+| KYC Verification | Pull identity info from partner exchanges or banks                         | KYC Match Status + Suspicious Tags |
+| Auto-Alert       | Triggered on pattern matches or flagged wallets                            | LEA Alert + Suggested Action       |
+| Case Closure     | Final resolution (Scam/False Positive/Ongoing)                             | Final Status + Evidence Snapshot   |
+
+---
+
+### 🔍 **2. FIU-IND Node (Surveillance & Reporting)**
+
+| Stage           | Description                                                        | Output                         |
+| --------------- | ------------------------------------------------------------------ | ------------------------------ |
+| Pattern Scan    | Monitor deposits/withdrawals for suspicious volume/frequency       | Wallet Clusters + Heat Zones   |
+| STR Auto-Draft  | Generate Suspicious Transaction Report with blockchain audit trail | STR Template + Case Summary    |
+| Exchange Review | Check if exchange complied with reporting and KYC obligations      | Compliance Score + Audit Trail |
+
+---
+
+### 🧠 **3. I4C Portal (National Intelligence)**
+
+| Stage           | Description                                                  | Output                      |
+| --------------- | ------------------------------------------------------------ | --------------------------- |
+| Scam Heatmap    | State-wise visualization of active frauds and escalations    | Real-time Map + Alert Zones |
+| Scam Graph      | Visual links between wallets, victims, and scammers          | Scam Network Graph          |
+| Case Escalation | Forwarding high-impact cases to MHA/I4C for further analysis | Escalation Tracker          |
+| Public Advisory | Trigger mass warnings on trends or repeat scam wallet IDs    | Alert Push + Web Advisory   |
+
+---
+
+### 🏦 **4. Bank & Exchange Node (Read-only + Compliant Response)**
+
+| Feature                    | Description                                                      | Output                         |
+| -------------------------- | ---------------------------------------------------------------- | ------------------------------ |
+| Read-only Transaction View | View wallet history, risk score, and LEA case link               | Limited Disclosure Panel       |
+| KYC/Response Submission    | Submit KYC and internal audit response securely                  | Encrypted KYC Upload + Log     |
+| No Central Storage         | Platform does not store exchange or bank customer data centrally | Privacy-Compliant Architecture |
+
+---
+
+### ⚖️ **5. Court Export API (Judicial Package)**
+
+| Export Type | Description                                                   | Output                     |
+| ----------- | ------------------------------------------------------------- | -------------------------- |
+| PDF Export  | Digitally signed case file summary with timeline and evidence | Court Submission-Ready PDF |
+| Hash Proof  | Blockchain hash of all exported documents                     | SHA256 Hash Link           |
+| JSON Export | Machine-readable structured case record for e-filing          | JSON File with Court Tags  |
+
+---
