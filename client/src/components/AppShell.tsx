@@ -12,9 +12,21 @@ import {
   Users, 
   Settings,
   Search,
-  Bell 
+  Bell,
+  LogOut,
+  FileCheck,
+  ChevronDown
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/hooks/use-auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface SidebarLinkProps {
   href: string;
@@ -96,15 +108,7 @@ const AppShell = ({ children }: AppShellProps) => {
         </div>
         
         {/* User Profile */}
-        <div className={cn("items-center space-x-3 p-4 border-b", isMobile ? "hidden" : "flex")}>
-          <div className="w-10 h-10 rounded-full bg-neutral-medium flex items-center justify-center">
-            <span className="text-white">JD</span>
-          </div>
-          <div>
-            <div className="text-sm font-medium text-neutral-dark">John Doe</div>
-            <div className="text-xs text-neutral-medium">Law Enforcement</div>
-          </div>
-        </div>
+        <UserProfileSection isMobile={isMobile} />
         
         {/* Navigation Links */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin">
@@ -123,6 +127,14 @@ const AppShell = ({ children }: AppShellProps) => {
                 href="/case-management" 
                 icon={<FileText className="h-5 w-5" />} 
                 label="Case Management" 
+                isMobile={isMobile} 
+              />
+            </li>
+            <li className="mb-1">
+              <SidebarLink 
+                href="/case-filing" 
+                icon={<FileCheck className="h-5 w-5" />} 
+                label="Case Filing" 
                 isMobile={isMobile} 
               />
             </li>
@@ -241,6 +253,59 @@ const AppShell = ({ children }: AppShellProps) => {
   );
 };
 
+// User Profile Component
+const UserProfileSection = ({ isMobile }: { isMobile: boolean }) => {
+  const { user, logoutMutation } = useAuth();
+  
+  if (!user) return null;
+  
+  const handleLogout = () => {
+    logoutMutation.mutate();
+  };
+  
+  const getUserInitials = () => {
+    if (!user.fullName) return "U";
+    return user.fullName
+      .split(" ")
+      .map(part => part[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
+  };
+  
+  return (
+    <div className={cn("items-center space-x-3 p-4 border-b", isMobile ? "hidden" : "flex")}>
+      <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
+        <span className="text-white">{getUserInitials()}</span>
+      </div>
+      <div className="flex-grow">
+        <div className="text-sm font-medium text-neutral-dark">{user.fullName}</div>
+        <div className="text-xs text-neutral-medium">{
+          user.role === "law_enforcement" ? "Law Enforcement" :
+          user.role === "fiu_ind" ? "FIU-IND" :
+          user.role === "i4c" ? "I4C" :
+          user.role === "bank_exchange" ? "Bank/Exchange" :
+          user.role === "court" ? "Judiciary" :
+          user.role
+        }</div>
+      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
+            <span>Logout</span>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
 function getPageTitle() {
   const [location] = useLocation();
   switch (location) {
@@ -248,6 +313,8 @@ function getPageTitle() {
       return "Dashboard";
     case "/case-management":
       return "Case Management";
+    case "/case-filing":
+      return "Case Filing";
     case "/analytics":
       return "Analytics";
     case "/wallet-check":

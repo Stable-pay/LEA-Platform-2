@@ -4,6 +4,10 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import AppShell from "@/components/AppShell";
+import { AuthProvider } from "@/hooks/use-auth";
+import { ProtectedRoute } from "@/lib/protected-route";
+
+// Pages
 import Dashboard from "@/pages/Dashboard";
 import CaseManagement from "@/pages/CaseManagement";
 import Analytics from "@/pages/Analytics";
@@ -12,19 +16,23 @@ import PatternScan from "@/pages/PatternScan";
 import StrGenerator from "@/pages/StrGenerator";
 import ScamHeatmap from "@/pages/ScamHeatmap";
 import NetworkGraph from "@/pages/NetworkGraph";
+import CaseFiling from "@/pages/case-filing";
+import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/case-management" component={CaseManagement} />
-      <Route path="/analytics" component={Analytics} />
-      <Route path="/wallet-check" component={WalletCheck} />
-      <Route path="/pattern-scan" component={PatternScan} />
-      <Route path="/str-generator" component={StrGenerator} />
-      <Route path="/scam-heatmap" component={ScamHeatmap} />
-      <Route path="/network-graph" component={NetworkGraph} />
+      <ProtectedRoute path="/" component={Dashboard} />
+      <ProtectedRoute path="/case-management" component={CaseManagement} />
+      <ProtectedRoute path="/case-filing" component={CaseFiling} />
+      <ProtectedRoute path="/analytics" component={Analytics} />
+      <ProtectedRoute path="/wallet-check" component={WalletCheck} />
+      <ProtectedRoute path="/pattern-scan" component={PatternScan} />
+      <ProtectedRoute path="/str-generator" component={StrGenerator} />
+      <ProtectedRoute path="/scam-heatmap" component={ScamHeatmap} />
+      <ProtectedRoute path="/network-graph" component={NetworkGraph} />
+      <Route path="/auth" component={AuthPage} />
       <Route component={NotFound} />
     </Switch>
   );
@@ -33,12 +41,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <AppShell>
-          <Router />
-        </AppShell>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <AppShell>
+            <Router />
+          </AppShell>
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
