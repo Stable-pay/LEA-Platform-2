@@ -23,10 +23,28 @@ const CaseFiling = () => {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Case Management</h1>
+        <h1 className="text-3xl font-bold mb-2">LEA Case Management</h1>
         <p className="text-neutral-600">
-          Create and manage cryptocurrency fraud cases with real-time blockchain verification
+          Create and manage cryptocurrency fraud cases with real-time blockchain verification and inter-department collaboration
         </p>
+        <div className="mt-4 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {Object.entries({
+            ED: "Enforcement Directorate",
+            FIU: "Financial Intelligence Unit",
+            I4C: "Indian Cybercrime Coordination Centre",
+            IT: "Income Tax Department",
+            VASP: "Virtual Asset Service Provider",
+            BANK: "Banking Institution"
+          }).map(([key, value]) => (
+            <div key={key} className="bg-white rounded-lg p-3 shadow-sm border flex items-center space-x-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div>
+                <div className="text-sm font-medium">{key}</div>
+                <div className="text-xs text-neutral-500">{value}</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">

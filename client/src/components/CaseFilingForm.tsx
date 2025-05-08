@@ -55,7 +55,7 @@ const BlockchainVerification = ({
     { label: "Consensus Building", icon: <AlertTriangle className="h-4 w-4" /> },
     { label: "Transaction Confirmed", icon: <CheckCircle className="h-4 w-4" /> }
   ];
-  
+
   return (
     <div className="mt-6 border rounded-md p-4 bg-neutral-50">
       <div className="flex justify-between items-center mb-2">
@@ -66,9 +66,9 @@ const BlockchainVerification = ({
           {isVerifying ? "In Progress" : "Complete"}
         </div>
       </div>
-      
+
       <Progress value={verificationStage * 25} className="h-2 mb-4" />
-      
+
       <div className="space-y-3">
         {stages.map((stage, index) => (
           <div 
@@ -92,7 +92,7 @@ const BlockchainVerification = ({
           </div>
         ))}
       </div>
-      
+
       {txHash && (
         <div className="mt-4 p-3 bg-neutral-100 rounded border text-xs">
           <div className="mb-1 font-medium">Transaction Hash</div>
@@ -117,30 +117,30 @@ const CaseFilingForm = () => {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [confirmations, setConfirmations] = useState(0);
   const [caseId, setCaseId] = useState<string | null>(null);
-  
+
   // Setup WebSocket connection for blockchain verification
   useEffect(() => {
     if (!isVerifying) return;
-    
+
     // Connect to WebSocket for real-time updates
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.host}/ws`;
     const socket = new WebSocket(wsUrl);
-    
+
     socket.onopen = () => {
       console.log("WebSocket connected");
     };
-    
+
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         console.log("WebSocket message:", data);
-        
+
         if (data.type === "TRANSACTION_CONFIRMED" && data.data.entityType === "case" && data.data.entityId === caseId) {
           setVerificationStage(3); // Final stage
           setConfirmations(1);
           setIsVerifying(false);
-          
+
           toast({
             title: "Case Verified on Blockchain",
             description: "Your case has been successfully verified by all network nodes.",
@@ -151,26 +151,26 @@ const CaseFilingForm = () => {
         console.error("WebSocket error:", error);
       }
     };
-    
+
     socket.onclose = () => {
       console.log("WebSocket disconnected");
     };
-    
+
     return () => {
       socket.close();
     };
   }, [isVerifying, caseId, toast]);
-  
+
   // Get nodes for dropdown
   const { data: nodes = [] } = useQuery({
     queryKey: ["/api/blockchain/nodes"],
     enabled: !!user,
   });
-  
+
   // Simulate blockchain verification progress
   useEffect(() => {
     if (!isVerifying) return;
-    
+
     const interval = setInterval(() => {
       setVerificationStage((stage) => {
         const next = stage + 1;
@@ -180,10 +180,10 @@ const CaseFilingForm = () => {
         return next < 3 ? next : 2;
       });
     }, 2500);
-    
+
     return () => clearInterval(interval);
   }, [isVerifying]);
-  
+
   // Form definition
   const form = useForm<CaseFormValues>({
     resolver: zodResolver(caseFormSchema),
@@ -196,7 +196,7 @@ const CaseFilingForm = () => {
       estimatedLoss: 0,
     },
   });
-  
+
   // Case creation mutation
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
@@ -207,15 +207,15 @@ const CaseFilingForm = () => {
       // Update UI
       setIsSubmitting(false);
       setCaseId(data.id.toString());
-      
+
       // Start blockchain verification
       startBlockchainVerification(data.id);
-      
+
       toast({
         title: "Case Created",
         description: `Case ${data.caseId} has been created successfully.`,
       });
-      
+
       // Invalidate queries
       queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
     },
@@ -228,19 +228,19 @@ const CaseFilingForm = () => {
       });
     },
   });
-  
+
   // Function to handle form submission
   const onSubmit = (data: CaseFormValues) => {
     setIsSubmitting(true);
     createCaseMutation.mutate(data);
   };
-  
+
   // Function to start blockchain verification
   const startBlockchainVerification = async (caseId: number) => {
     try {
       setIsVerifying(true);
       setVerificationStage(0);
-      
+
       // Create a blockchain transaction for verification
       const res = await apiRequest("POST", "/api/blockchain/verify", {
         entityType: "case",
@@ -253,10 +253,10 @@ const CaseFilingForm = () => {
           timestamp: new Date().toISOString()
         }
       });
-      
+
       const txData = await res.json();
       setTxHash(txData.txHash);
-      
+
     } catch (error) {
       console.error("Blockchain verification error:", error);
       toast({
@@ -267,7 +267,7 @@ const CaseFilingForm = () => {
       setIsVerifying(false);
     }
   };
-  
+
   // Reset the form
   const handleReset = () => {
     form.reset();
@@ -277,7 +277,7 @@ const CaseFilingForm = () => {
     setConfirmations(0);
     setCaseId(null);
   };
-  
+
   return (
     <Card className="w-full shadow-md">
       <CardHeader>
@@ -302,7 +302,7 @@ const CaseFilingForm = () => {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="description"
@@ -320,7 +320,7 @@ const CaseFilingForm = () => {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -335,7 +335,7 @@ const CaseFilingForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="estimatedLoss"
@@ -354,12 +354,90 @@ const CaseFilingForm = () => {
                 )}
               />
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
+                <FormField
+                  control={form.control}
+                  name="assignedDepartment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Assign to Department</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select department" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="initiatorDepartment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Task Initiator</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select initiator" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="confirmerDepartment"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Task Confirmer</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select confirmer" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                          <SelectItem value="IT">Income Tax Department</SelectItem>
+                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
@@ -379,7 +457,7 @@ const CaseFilingForm = () => {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="status"
@@ -403,7 +481,7 @@ const CaseFilingForm = () => {
                 )}
               />
             </div>
-            
+
             <div className="flex justify-end space-x-2 mt-6">
               <Button 
                 type="button" 
@@ -431,7 +509,7 @@ const CaseFilingForm = () => {
             </div>
           </form>
         </Form>
-        
+
         {/* Blockchain Verification Section */}
         {(isVerifying || confirmations > 0) && (
           <BlockchainVerification 
