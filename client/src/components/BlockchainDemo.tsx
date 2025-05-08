@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,6 +28,7 @@ interface NodeCase {
   assignedTo?: string;
   initiator?: string;
   confirmer?: string;
+  caseCounts?: { [key: string]: number };
 }
 
 interface NodeResponse {
@@ -67,39 +69,39 @@ const BlockchainDemo = () => {
   });
 
   useEffect(() => {
-    // Simulate loading initial cases
+    // Load initial cases and counts
     const initialCases: NodeCase[] = [
       {
         id: "CASE-001",
-        title: "Suspicious Transaction Pattern",
-        department: "ED",
+        title: "Initial Case",
+        department: user?.department || "ED",
         status: "initiated",
         timestamp: new Date().toISOString(),
-        details: "Multiple high-value transactions detected",
-        attachments: ["report.pdf"],
-        responses: []
+        details: "Sample case details",
+        attachments: [],
+        responses: [],
+        assignedTo: "FIU",
+        initiator: "ED",
+        confirmer: "I4C"
       }
     ];
     setCases(initialCases);
+    updateCaseCounts(initialCases);
+  }, [user]);
 
-    // Initialize case counts based on initial cases
-    const initialCounts: { [department: string]: number } = {
-      ED: 0,
-      FIU: 0,
-      I4C: 0,
-      IT: 0,
-      VASP: 0,
-      BANK: 0
-    };
-    initialCases.forEach(c => {
-      initialCounts[c.department] = (initialCounts[c.department] || 0) + 1;
+  const updateCaseCounts = (caseList: NodeCase[]) => {
+    const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
+    caseList.forEach(c => {
+      counts[c.department] = (counts[c.department] || 0) + 1;
     });
-    setCaseCounts(initialCounts);
-  }, []);
+    setCaseCounts(counts);
+  };
 
   const canViewCaseDetails = (nodeCase: NodeCase) => {
-    const userDept = user?.department;
-    return userDept === nodeCase.department || userDept === nodeCase.assignedTo;
+    return user?.department === nodeCase.department || 
+           user?.department === nodeCase.assignedTo ||
+           user?.department === nodeCase.initiator ||
+           user?.department === nodeCase.confirmer;
   };
 
   const initiateNewCase = () => {
@@ -119,18 +121,17 @@ const BlockchainDemo = () => {
       confirmer: taskConfirmer
     };
 
-    setCases(prev => [...prev, newCase]);
+    setCases(prev => {
+      const updated = [...prev, newCase];
+      updateCaseCounts(updated);
+      return updated;
+    });
+
     setNewCaseDetails("");
     setAttachments([]);
     setAssignToDepartment("");
     setTaskInitiator("");
     setTaskConfirmer("");
-
-    // Update case counts
-    setCaseCounts(prevCounts => ({
-      ...prevCounts,
-      [user?.department || "ED"]: (prevCounts[user?.department || "ED"] || 0) + 1
-    }));
 
     toast({
       title: "Case Initiated",
@@ -171,7 +172,13 @@ const BlockchainDemo = () => {
   const renderCaseList = (department: string) => (
     <ScrollArea className="h-[400px]">
       <div className="space-y-4 p-4">
-        {cases.filter(c => department === "all" || c.department === department).map((nodeCase) => (
+        {cases
+          .filter(c => department === "all" || 
+                      c.department === department || 
+                      c.assignedTo === department ||
+                      c.initiator === department ||
+                      c.confirmer === department)
+          .map((nodeCase) => (
           <Card
             key={nodeCase.id}
             className={`cursor-pointer ${
@@ -203,6 +210,18 @@ const BlockchainDemo = () => {
                       </Badge>
                     ))}
                   </div>
+                  <div className="mt-2 text-sm">
+                    <span className="text-muted-foreground">Assigned to: </span>
+                    <Badge variant="outline">{DEPARTMENTS[nodeCase.assignedTo as keyof typeof DEPARTMENTS]}</Badge>
+                  </div>
+                  <div className="mt-1 text-sm">
+                    <span className="text-muted-foreground">Initiator: </span>
+                    <Badge variant="outline">{DEPARTMENTS[nodeCase.initiator as keyof typeof DEPARTMENTS]}</Badge>
+                  </div>
+                  <div className="mt-1 text-sm">
+                    <span className="text-muted-foreground">Confirmer: </span>
+                    <Badge variant="outline">{DEPARTMENTS[nodeCase.confirmer as keyof typeof DEPARTMENTS]}</Badge>
+                  </div>
                 </>
               ) : (
                 <Alert className="mt-2">
@@ -225,7 +244,7 @@ const BlockchainDemo = () => {
         <CardTitle>Department Node Explorer</CardTitle>
       </CardHeader>
       <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="all">All Nodes</TabsTrigger>
           <TabsTrigger value="ED">ED</TabsTrigger>
           <TabsTrigger value="FIU">FIU</TabsTrigger>
@@ -262,46 +281,35 @@ const BlockchainDemo = () => {
                           <SelectValue placeholder="Assign to Department" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>{value}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <Select
                         value={taskInitiator}
                         onValueChange={setTaskInitiator}
-                        className="mt-2"
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select Task Initiator" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>{value}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <Select
                         value={taskConfirmer}
                         onValueChange={setTaskConfirmer}
-                        className="mt-2"
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Select Task Confirmer" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
+                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
+                            <SelectItem key={key} value={key}>{value}</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                       <div className="flex items-center gap-4">
