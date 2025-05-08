@@ -6,10 +6,15 @@ import {
   suspiciousPatterns, type SuspiciousPattern, type InsertSuspiciousPattern,
   strReports, type StrReport, type InsertStrReport,
   caseTimeline, type CaseTimeline, type InsertCaseTimeline,
-  stateFraudStats, type StateFraudStat, type InsertStateFraudStat
+  stateFraudStats, type StateFraudStat, type InsertStateFraudStat,
+  blockchainNodes, type BlockchainNode, type InsertBlockchainNode,
+  blockchainTransactions, type BlockchainTransaction, type InsertBlockchainTransaction,
+  kycInformation, type KycInformation, type InsertKycInformation,
+  courtExports, type CourtExport, type InsertCourtExport
 } from "@shared/schema";
 
 // Interface for storage operations
+
 export interface IStorage {
   // User operations
   getUser(id: number): Promise<User | undefined>;
@@ -63,6 +68,14 @@ export interface IStorage {
   getStateFraudStatByState(state: string): Promise<StateFraudStat | undefined>;
   updateStateFraudStat(id: number, stat: Partial<InsertStateFraudStat>): Promise<StateFraudStat | undefined>;
   createStateFraudStat(stat: InsertStateFraudStat): Promise<StateFraudStat>;
+  
+  // Blockchain operations
+  createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction>;
+  getBlockchainTransactionsByEntity(entityType: string, entityId: string): Promise<BlockchainTransaction[]>;
+  createBlockchainNode(node: InsertBlockchainNode): Promise<BlockchainNode>;
+  getBlockchainNodesByType(type: string): Promise<BlockchainNode[]>;
+  createKycInformation(kyc: InsertKycInformation): Promise<KycInformation>;
+  createCourtExport(export_data: InsertCourtExport): Promise<CourtExport>;
 }
 
 export class MemStorage implements IStorage {
@@ -74,6 +87,10 @@ export class MemStorage implements IStorage {
   private strReports: Map<number, StrReport>;
   private caseTimelines: Map<number, CaseTimeline>;
   private stateFraudStats: Map<number, StateFraudStat>;
+  private blockchainNodes: Map<number, BlockchainNode>;
+  private blockchainTransactions: Map<string, BlockchainTransaction>;
+  private kycInformation: Map<number, KycInformation>;
+  private courtExports: Map<number, CourtExport>;
   
   // Track the current ID for each entity
   private userId = 1;
@@ -84,6 +101,9 @@ export class MemStorage implements IStorage {
   private strReportId = 1;
   private caseTimelineId = 1;
   private stateFraudStatId = 1;
+  private blockchainNodeId = 1;
+  private kycInformationId = 1;
+  private courtExportId = 1;
   
   constructor() {
     this.users = new Map();
@@ -94,6 +114,10 @@ export class MemStorage implements IStorage {
     this.strReports = new Map();
     this.caseTimelines = new Map();
     this.stateFraudStats = new Map();
+    this.blockchainNodes = new Map();
+    this.blockchainTransactions = new Map();
+    this.kycInformation = new Map();
+    this.courtExports = new Map();
     
     // Initialize with some sample data for development
     this.initializeData();
@@ -125,6 +149,28 @@ export class MemStorage implements IStorage {
         estimatedLoss: state.estimatedLoss,
         riskLevel: state.riskLevel,
         dateRecorded: new Date()
+      });
+    });
+    
+    // Initialize blockchain nodes for each stakeholder
+    const nodes = [
+      { nodeType: "LEA", nodeId: "LEA_NODE_001", name: "Delhi Police Node", organization: "Delhi Police", ipAddress: "10.0.1.1", port: 7051, status: "active" },
+      { nodeType: "LEA", nodeId: "LEA_NODE_002", name: "Mumbai Police Node", organization: "Mumbai Police", ipAddress: "10.0.1.2", port: 7051, status: "active" },
+      { nodeType: "FIU", nodeId: "FIU_NODE_001", name: "FIU Central Node", organization: "Financial Intelligence Unit", ipAddress: "10.0.2.1", port: 7052, status: "active" },
+      { nodeType: "IND", nodeId: "IND_NODE_001", name: "Indian Nodal Department", organization: "Ministry of Finance", ipAddress: "10.0.3.1", port: 7053, status: "active" },
+      { nodeType: "I4C", nodeId: "I4C_NODE_001", name: "Cyber Crime Coordination Centre", organization: "I4C", ipAddress: "10.0.4.1", port: 7054, status: "active" }
+    ];
+    
+    nodes.forEach(node => {
+      this.createBlockchainNode({
+        nodeId: node.nodeId,
+        nodeType: node.nodeType,
+        name: node.name,
+        organization: node.organization,
+        ipAddress: node.ipAddress,
+        port: node.port,
+        status: node.status,
+        lastSyncTimestamp: new Date()
       });
     });
   }
@@ -419,6 +465,84 @@ export class MemStorage implements IStorage {
     };
     this.stateFraudStats.set(id, newStat);
     return newStat;
+  }
+  
+  // Blockchain operations
+  async createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction> {
+    // Generate a unique transaction hash for blockchain transactions
+    const txHash = `bct_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
+    
+    const newTransaction: BlockchainTransaction = {
+      ...transaction,
+      txHash,
+      timestamp: transaction.timestamp || new Date(),
+      status: transaction.status || 'pending',
+      metadata: transaction.metadata || {},
+      entityId: transaction.entityId || '',
+      entityType: transaction.entityType || '',
+      stakeholderId: transaction.stakeholderId || null,
+      stakeholderType: transaction.stakeholderType || null
+    };
+    
+    this.blockchainTransactions.set(txHash, newTransaction);
+    return newTransaction;
+  }
+  
+  async getBlockchainTransactionsByEntity(entityType: string, entityId: string): Promise<BlockchainTransaction[]> {
+    return Array.from(this.blockchainTransactions.values())
+      .filter(tx => tx.entityType === entityType && tx.entityId === entityId)
+      .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+  }
+  
+  async createBlockchainNode(node: InsertBlockchainNode): Promise<BlockchainNode> {
+    const id = this.blockchainNodeId++;
+    const newNode: BlockchainNode = {
+      ...node,
+      id,
+      status: node.status || 'active',
+      lastSyncTimestamp: node.lastSyncTimestamp || new Date(),
+      createdAt: new Date()
+    };
+    
+    this.blockchainNodes.set(id, newNode);
+    return newNode;
+  }
+  
+  async getBlockchainNodesByType(type: string): Promise<BlockchainNode[]> {
+    return Array.from(this.blockchainNodes.values())
+      .filter(node => node.nodeType === type)
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }
+  
+  async createKycInformation(kyc: InsertKycInformation): Promise<KycInformation> {
+    const id = this.kycInformationId++;
+    const newKyc: KycInformation = {
+      ...kyc,
+      id,
+      createdAt: new Date(),
+      lastVerifiedAt: kyc.lastVerifiedAt || new Date(),
+      verificationStatus: kyc.verificationStatus || 'pending'
+    };
+    
+    this.kycInformation.set(id, newKyc);
+    return newKyc;
+  }
+  
+  async createCourtExport(exportData: InsertCourtExport): Promise<CourtExport> {
+    const id = this.courtExportId++;
+    const newExport: CourtExport = {
+      ...exportData,
+      id,
+      exportedAt: new Date(),
+      status: exportData.status || 'pending',
+      caseId: exportData.caseId || null,
+      exportedBy: exportData.exportedBy || null,
+      documentHash: exportData.documentHash || null,
+      format: exportData.format || 'pdf'
+    };
+    
+    this.courtExports.set(id, newExport);
+    return newExport;
   }
 }
 
