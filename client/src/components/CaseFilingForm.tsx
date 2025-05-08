@@ -162,10 +162,13 @@ const CaseFilingForm = () => {
   }, [isVerifying, caseId, toast]);
 
   // Get nodes for dropdown
-  const { data: nodes = [] } = useQuery({
-    queryKey: ["/api/blockchain/nodes"],
-    enabled: !!user,
-  });
+  // Mock nodes data for demo
+  const nodes = [
+    { id: "ED", name: "Enforcement Directorate" },
+    { id: "FIU", name: "Financial Intelligence Unit" },
+    { id: "I4C", name: "Indian Cybercrime Coordination Centre" },
+    { id: "IT", name: "Income Tax Department" }
+  ];
 
   // Simulate blockchain verification progress
   useEffect(() => {
@@ -197,37 +200,27 @@ const CaseFilingForm = () => {
     },
   });
 
-  // Case creation mutation
-  const createCaseMutation = useMutation({
-    mutationFn: async (values: CaseFormValues) => {
-      const res = await apiRequest("POST", "/api/cases", values);
-      return await res.json();
-    },
-    onSuccess: (data) => {
-      // Update UI
-      setIsSubmitting(false);
-      setCaseId(data.id.toString());
-
-      // Start blockchain verification
-      startBlockchainVerification(data.id);
-
-      toast({
-        title: "Case Created",
-        description: `Case ${data.caseId} has been created successfully.`,
-      });
-
-      // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
-    },
-    onError: (error: Error) => {
-      setIsSubmitting(false);
-      toast({
-        title: "Failed to create case",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  // Mock case creation for demo
+  const createCaseMutation = {
+    mutate: (values: CaseFormValues) => {
+      // Simulate API delay
+      setTimeout(() => {
+        setIsSubmitting(false);
+        const mockId = Math.floor(Math.random() * 1000);
+        setCaseId(mockId.toString());
+        
+        // Start mock blockchain verification
+        setIsVerifying(true);
+        setVerificationStage(0);
+        setTxHash(`0x${Math.random().toString(16).slice(2)}`)
+        
+        toast({
+          title: "Case Created",
+          description: `Case ${mockId} has been created successfully.`,
+        });
+      }, 1000);
+    }
+  };
 
   // Function to handle form submission
   const onSubmit = (data: CaseFormValues) => {
