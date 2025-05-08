@@ -1,0 +1,91 @@
+Absolutely — let’s map it **explicitly to blockchain nodes** so all stakeholders (LEAs, FIU-IND, I4C, Banks, Exchanges, Courts) understand **where data resides**, **what is logged immutably**, and **how each action becomes a tamper-proof event** on the blockchain. Here's the **revised version** with **blockchain node annotations**:
+
+---
+
+## 🔧 **Stable Pay Blockchain-Based Development Sitemap (Hyperledger Fabric Nodes)**
+
+This layout defines **which stakeholder runs a blockchain node**, **what data is logged on-chain**, and **how it benefits investigations and compliance**.
+
+---
+
+### ✅ **1. Law Enforcement Interface (LEA Node) – 🔗 On-Chain Logged**
+
+| Stage            | Description                                                 | Blockchain Action                                 |
+| ---------------- | ----------------------------------------------------------- | ------------------------------------------------- |
+| Case Intake      | Register crypto-related complaint (victim, wallet, details) | ✔ TX logged: Case ID, timestamp, IP, officer hash |
+| Wallet Check     | Forensic scan of wallet vs scam DB                          | ✔ Wallet risk + result hash recorded              |
+| KYC Verification | Pull KYC via exchange/bank (off-chain), hash stored         | ✔ KYC hash stored immutably with exchange ID      |
+| Auto-Alert       | Detect reuse of flagged wallet in multiple cases            | ✔ Alert tx generated + sent to other LEA nodes    |
+| Case Closure     | Final outcome (e.g. Scam, False Positive) logged            | ✔ Outcome + timestamp locked in chain             |
+
+🟢 **Node Operator:** Each State Police Cyber Cell / EOW has its own permissioned LEA node
+🔐 **Access Level:** Role-based (SHO, SP, DCP)
+
+---
+
+### 🔍 **2. FIU-IND Node – 🔗 On-Chain & Off-Chain Hybrid**
+
+| Stage           | Description                                                    | Blockchain Action                                  |
+| --------------- | -------------------------------------------------------------- | -------------------------------------------------- |
+| Pattern Scan    | Detect wallet clustering & abnormal P2P flows                  | ✔ Metadata logged (wallet score + STR trigger tag) |
+| STR Auto-Draft  | Draft STRs using case timeline, KYC hash, and wallet risk      | ✔ STR tx hash recorded for audit trail             |
+| Exchange Review | Track whether VASPs/banks responded in time to law enforcement | ✔ Compliance flag logged per VASP                  |
+
+🟢 **Node Operator:** FIU-IND as full node participant
+🔐 **Access Level:** Analyst and compliance officers only
+
+---
+
+### 🧠 **3. I4C Portal Node – 🔗 On-Chain Aggregator Node**
+
+| Stage           | Description                                           | Blockchain Action                              |
+| --------------- | ----------------------------------------------------- | ---------------------------------------------- |
+| Scam Heatmap    | Live mapping of fraud cases by state, wallet clusters | ✔ Case metadata logs auto-synced for I4C node  |
+| Scam Graph      | Graph of wallet-to-victim-to-scammer networks         | ✔ Linkage hashes stored in DAG-style reference |
+| Case Escalation | Escalation path tagged (local to I4C to MHA)          | ✔ Escalation request + approver hash on-chain  |
+| Public Advisory | Push alerts for known scam wallets/exchanges          | ✔ Alert ID + issued by + timestamp sealed      |
+
+🟢 **Node Operator:** National I4C node (MHA) with read-write sync from state nodes
+🔐 **Access Level:** I4C + CERT-In + select MHA depts
+
+---
+
+### 🏦 **4. Bank & Exchange Node – 🟠 Read-Only Participation Node**
+
+| Feature               | Description                                         | Blockchain Action                         |
+| --------------------- | --------------------------------------------------- | ----------------------------------------- |
+| View Transaction Logs | Can view verified wallet cases tagged by LEAs       | 🔍 Query chain via read-only interface    |
+| KYC/Response Upload   | Upload KYC and proof documents (hashed + encrypted) | ✔ KYC hash stored; data not held on-chain |
+| Privacy by Design     | No full data replication                            | ✔ Metadata view only; no central copy     |
+
+🟠 **Node Type:** Light Node or API Gateway (Not full node)
+🔐 **Access Level:** Designated AML/KYC team via secured interface
+
+---
+
+### ⚖️ **5. Court Export API – 🔗 On-Chain to Off-Chain Bridge**
+
+| Export Type | Description                                      | Blockchain Action                            |
+| ----------- | ------------------------------------------------ | -------------------------------------------- |
+| PDF Export  | Auto-generated court-ready document (case file)  | ✔ PDF hash + signer hash logged in chain     |
+| Hash Proof  | SHA256 hash that confirms document is untampered | ✔ Issued from LEA node or Court Gateway node |
+| JSON Export | e-Filing ready JSON for court systems            | ✔ Export event and hash logged               |
+
+🟢 **Node Operator:** Court Gateway Node or Trusted Escrow Notary
+🔐 **Access Level:** Judiciary, Public Prosecutors
+
+---
+
+## ✅ Blockchain Assurance Summary
+
+| Stakeholder     | Runs Node?   | Sees All Data?    | Logs Actions?    | Benefits                         |
+| --------------- | ------------ | ----------------- | ---------------- | -------------------------------- |
+| LEA (Police)    | Yes          | Jurisdiction-only | Yes              | Real-time traceable workflow     |
+| FIU-IND         | Yes          | Pattern-level     | Yes              | Instant STRs + compliance view   |
+| I4C (MHA)       | Yes          | National metadata | Yes              | National dashboard + graph view  |
+| Banks/Exchanges | Light Node   | View-only         | Upload only      | Safe cooperation, no data breach |
+| Courts          | No (via API) | No                | Export logs only | Admissible evidence trail        |
+
+---
+
+Would you like this version as a **PDF diagram**, **interactive deck**, or **in Notion/Google Doc format** to share with agencies?

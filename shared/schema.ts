@@ -1,6 +1,7 @@
-import { pgTable, text, serial, integer, boolean, timestamp, jsonb, real } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb, real, uuid } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
+import { relations } from "drizzle-orm";
 
 // User model for authentication
 export const users = pgTable("users", {
@@ -111,6 +112,104 @@ export const stateFraudStats = pgTable("state_fraud_stats", {
   dateRecorded: timestamp("date_recorded").defaultNow(),
 });
 
+// Blockchain Node model for Hyperledger Fabric network
+export const blockchainNodes = pgTable("blockchain_nodes", {
+  id: serial("id").primaryKey(),
+  nodeId: text("node_id").notNull().unique(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // LEA, FIU-IND, I4C, Bank, Exchange, Court
+  organization: text("organization").notNull(),
+  ipAddress: text("ip_address"),
+  port: integer("port"),
+  publicKey: text("public_key"),
+  accessLevel: text("access_level").notNull(), // full, read-only, write-only
+  status: text("status").notNull().default("active"), // active, inactive, maintenance
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Blockchain Transaction model for Hyperledger Fabric ledger
+export const blockchainTransactions = pgTable("blockchain_transactions", {
+  id: serial("id").primaryKey(),
+  txId: uuid("tx_id").defaultRandom().notNull().unique(),
+  blockHash: text("block_hash").notNull(),
+  sourceNodeId: text("source_node_id").references(() => blockchainNodes.nodeId),
+  entityType: text("entity_type").notNull(), // case, wallet, transaction, pattern, str, timeline
+  entityId: text("entity_id").notNull(), // ID of the entity being logged
+  action: text("action").notNull(), // create, update, delete, verify, escalate
+  metadata: jsonb("metadata"), // Additional information about the transaction
+  timestamp: timestamp("timestamp").defaultNow(),
+  status: text("status").notNull().default("confirmed"), // pending, confirmed, rejected
+  signatureHash: text("signature_hash"), // Hash of the digital signature
+  previousTxHash: text("previous_tx_hash"), // Hash of the previous transaction (for chains)
+});
+
+// KYC Information model for encrypted KYC data
+export const kycInformation = pgTable("kyc_information", {
+  id: serial("id").primaryKey(),
+  walletId: integer("wallet_id").references(() => wallets.id),
+  exchangeNodeId: text("exchange_node_id").references(() => blockchainNodes.nodeId),
+  kycHash: text("kyc_hash").notNull(), // Hash of the KYC information
+  dataEncrypted: boolean("data_encrypted").default(true),
+  encryptedData: text("encrypted_data"), // Encrypted KYC data
+  verificationStatus: text("verification_status").notNull().default("pending"), // pending, verified, rejected
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  verifiedAt: timestamp("verified_at"),
+});
+
+// Court Export model for case exports to judiciary
+export const courtExports = pgTable("court_exports", {
+  id: serial("id").primaryKey(),
+  caseId: integer("case_id").references(() => cases.id),
+  exportType: text("export_type").notNull(), // pdf, json, hash-proof
+  fileName: text("file_name"),
+  fileHash: text("file_hash").notNull(), // Hash of the exported file
+  signerNodeId: text("signer_node_id").references(() => blockchainNodes.nodeId),
+  signerPublicKey: text("signer_public_key"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  blockchainTxId: uuid("blockchain_tx_id").references(() => blockchainTransactions.txId),
+});
+
+// Define relations between tables
+export const usersRelations = relations(users, ({ many }) => ({
+  cases: many(cases, { relationName: "user_cases" }),
+  strReports: many(strReports, { relationName: "user_str_reports" }),
+  caseTimelines: many(caseTimeline, { relationName: "user_case_timelines" }),
+}));
+
+export const casesRelations = relations(cases, ({ one, many }) => ({
+  assignedUser: one(users, {
+    fields: [cases.assignedTo],
+    references: [users.id],
+    relationName: "user_cases",
+  }),
+  transactions: many(transactions, { relationName: "case_transactions" }),
+  caseTimelines: many(caseTimeline, { relationName: "case_timelines" }),
+  strReports: many(strReports, { relationName: "case_str_reports" }),
+  courtExports: many(courtExports, { relationName: "case_court_exports" }),
+}));
+
+export const walletsRelations = relations(wallets, ({ many }) => ({
+  suspiciousPatterns: many(suspiciousPatterns, { relationName: "wallet_patterns" }),
+  strReports: many(strReports, { relationName: "wallet_str_reports" }),
+  kycInformation: many(kycInformation, { relationName: "wallet_kyc" }),
+}));
+
+export const blockchainNodesRelations = relations(blockchainNodes, ({ many }) => ({
+  blockchainTransactions: many(blockchainTransactions, { relationName: "node_transactions" }),
+  kycInformation: many(kycInformation, { relationName: "node_kyc_information" }),
+  courtExports: many(courtExports, { relationName: "node_court_exports" }),
+}));
+
+export const blockchainTransactionsRelations = relations(blockchainTransactions, ({ one, many }) => ({
+  sourceNode: one(blockchainNodes, {
+    fields: [blockchainTransactions.sourceNodeId],
+    references: [blockchainNodes.nodeId],
+    relationName: "node_transactions",
+  }),
+  courtExports: many(courtExports, { relationName: "transaction_court_exports" }),
+}));
+
 // Create insert schemas for each model
 export const insertUserSchema = createInsertSchema(users).omit({ id: true });
 export const insertCaseSchema = createInsertSchema(cases).omit({ id: true });
@@ -120,6 +219,10 @@ export const insertSuspiciousPatternSchema = createInsertSchema(suspiciousPatter
 export const insertStrReportSchema = createInsertSchema(strReports).omit({ id: true });
 export const insertCaseTimelineSchema = createInsertSchema(caseTimeline).omit({ id: true });
 export const insertStateFraudStatSchema = createInsertSchema(stateFraudStats).omit({ id: true });
+export const insertBlockchainNodeSchema = createInsertSchema(blockchainNodes).omit({ id: true });
+export const insertBlockchainTransactionSchema = createInsertSchema(blockchainTransactions).omit({ id: true });
+export const insertKycInformationSchema = createInsertSchema(kycInformation).omit({ id: true });
+export const insertCourtExportSchema = createInsertSchema(courtExports).omit({ id: true });
 
 // Define types for insert operations
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -130,6 +233,10 @@ export type InsertSuspiciousPattern = z.infer<typeof insertSuspiciousPatternSche
 export type InsertStrReport = z.infer<typeof insertStrReportSchema>;
 export type InsertCaseTimeline = z.infer<typeof insertCaseTimelineSchema>;
 export type InsertStateFraudStat = z.infer<typeof insertStateFraudStatSchema>;
+export type InsertBlockchainNode = z.infer<typeof insertBlockchainNodeSchema>;
+export type InsertBlockchainTransaction = z.infer<typeof insertBlockchainTransactionSchema>;
+export type InsertKycInformation = z.infer<typeof insertKycInformationSchema>;
+export type InsertCourtExport = z.infer<typeof insertCourtExportSchema>;
 
 // Define types for select operations
 export type User = typeof users.$inferSelect;
@@ -140,3 +247,7 @@ export type SuspiciousPattern = typeof suspiciousPatterns.$inferSelect;
 export type StrReport = typeof strReports.$inferSelect;
 export type CaseTimeline = typeof caseTimeline.$inferSelect;
 export type StateFraudStat = typeof stateFraudStats.$inferSelect;
+export type BlockchainNode = typeof blockchainNodes.$inferSelect;
+export type BlockchainTransaction = typeof blockchainTransactions.$inferSelect;
+export type KycInformation = typeof kycInformation.$inferSelect;
+export type CourtExport = typeof courtExports.$inferSelect;
