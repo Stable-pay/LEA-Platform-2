@@ -29,7 +29,7 @@ const SidebarLink = ({ href, icon, label, isMobile }: SidebarLinkProps) => {
   
   return (
     <Link href={href}>
-      <a className={cn(
+      <div className={cn(
         "flex items-center p-2 md:px-4 rounded-md",
         isActive 
           ? "bg-primary-light text-white" 
@@ -37,7 +37,7 @@ const SidebarLink = ({ href, icon, label, isMobile }: SidebarLinkProps) => {
       )}>
         {icon}
         <span className={cn("ml-3", isMobile ? "hidden" : "block")}>{label}</span>
-      </a>
+      </div>
     </Link>
   );
 };
@@ -188,10 +188,10 @@ const AppShell = ({ children }: AppShellProps) => {
         {/* Bottom Actions */}
         <div className="p-4 border-t">
           <Link href="/settings">
-            <a className="flex items-center text-neutral-medium hover:text-neutral-dark">
+            <div className="flex items-center text-neutral-medium hover:text-neutral-dark">
               <Settings className="h-5 w-5" />
               <span className={cn("ml-3", isMobile ? "hidden" : "block")}>Settings</span>
-            </a>
+            </div>
           </Link>
         </div>
       </aside>
