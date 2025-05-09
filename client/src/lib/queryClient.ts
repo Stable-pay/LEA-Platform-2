@@ -1,7 +1,7 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 5 * 60 * 1000,
@@ -43,8 +43,6 @@ export const fetchApi = async (path: string, init?: RequestInit) => {
 
   return response.json();
 };
-
-export default queryClient;
 
 export const api = {
   get: (path: string) => fetchApi(path),
