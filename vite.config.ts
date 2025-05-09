@@ -1,18 +1,9 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import path from "path";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 export default defineConfig({
-  server: {
-    host: '0.0.0.0',
-    port: 5000,
-    hmr: {
-      host: '0.0.0.0',
-      clientPort: 443,
-      protocol: 'wss'
-    }
-  },
   plugins: [
     react(),
     runtimeErrorOverlay(),
@@ -25,12 +16,22 @@ export default defineConfig({
         ]
       : []),
   ],
+  server: {
+    host: '0.0.0.0',
+    port: 5000,
+    hmr: {
+      port: 443,
+      protocol: 'wss',
+      clientPort: 443,
+      host: `${process.env.REPL_SLUG}.${process.env.REPL_OWNER}.repl.co`
+    }
+  },
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
+      '@': path.resolve(__dirname, './client/src'),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
-    },
+    }
   },
   root: path.resolve(import.meta.dirname, "client"),
   build: {
