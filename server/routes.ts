@@ -97,19 +97,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const cases = await storage.getCases();
       const caseCount = Array.isArray(cases) ? cases.length : 0;
       const caseId = generateReferenceId("LEA", caseCount + 1);
+      const dateReported = new Date();
       
       // Create case with validated data
       const newCase = await storage.createCase({
+        caseId,
         title: req.body.title,
         description: req.body.description,
-        reportedBy: req.body.reportedBy,
         status: req.body.status || "active",
-        priority: req.body.priority || "medium",
-        estimatedLoss: req.body.estimatedLoss,
+        dateReported,
+        reportedBy: req.body.reportedBy,
+        estimatedLoss: Number(req.body.estimatedLoss),
         assignedTo: req.body.assignedDepartment,
-        caseId,
+        priority: req.body.priority || "medium",
         walletAddress: req.body.walletAddress,
-        transactionHash: req.body.transactionHash
+        transactionHash: req.body.transactionHash,
+        createdAt: dateReported,
+        updatedAt: dateReported
       });
 
       // Create blockchain transaction for verification
