@@ -6,12 +6,22 @@ import RecentCaseActivity from "./RecentCaseActivity";
 import QuickActions from "./QuickActions";
 import PriorityQueue from "./PriorityQueue";
 import BlockchainDemo from "./BlockchainDemo";
+import { useAuth } from "@/hooks/use-auth";
 
 const Dashboard = () => {
+  const { user } = useAuth();
   return (
     <div className="space-y-6 p-4">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-neutral-900 mb-2">Law Enforcement Intelligence Dashboard</h1>
+        <h1 className="text-3xl font-bold text-neutral-900 mb-2">
+          {user?.department === 'FIU' && 'Financial Intelligence Unit Dashboard'}
+          {user?.department === 'ED' && 'Enforcement Directorate Dashboard'}
+          {user?.department === 'I4C' && 'Indian Cybercrime Coordination Centre Dashboard'}
+          {user?.department === 'IT' && 'Income Tax Department Dashboard'}
+          {user?.department === 'VASP' && 'Virtual Asset Service Provider Dashboard'}
+          {user?.department === 'BANK' && 'Banking Institution Dashboard'}
+          {!user?.department && 'Law Enforcement Intelligence Dashboard'}
+        </h1>
         <p className="text-neutral-600">Cryptocurrency Crime Investigation & Analysis Platform</p>
       </div>
 
