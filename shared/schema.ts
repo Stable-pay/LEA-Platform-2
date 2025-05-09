@@ -190,12 +190,7 @@ export const usersRelations = relations(users, ({ many }) => ({
   caseTimelines: many(caseTimeline, { relationName: "user_case_timelines" }),
 }));
 
-export const casesRelations = relations(cases, ({ one, many }) => ({
-  assignedUser: one(users, {
-    fields: [cases.assignedTo],
-    references: [users.id],
-    relationName: "user_cases",
-  }),
+export const casesRelations = relations(cases, ({ many }) => ({
   transactions: many(transactions, { relationName: "case_transactions" }),
   caseTimelines: many(caseTimeline, { relationName: "case_timelines" }),
   strReports: many(strReports, { relationName: "case_str_reports" }),
