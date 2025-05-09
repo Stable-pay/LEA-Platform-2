@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { 
   AlertTriangle, 
   Search, 
@@ -33,15 +34,78 @@ const WalletCheck = () => {
   const [riskLevel, setRiskLevel] = useState("");
   const [analysis, setAnalysis] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recentWallets, setRecentWallets] = useState<any[]>([]);
+  const { toast } = useToast();
+  
+  // Fetch recent wallets on component mount
+  useState(() => {
+    fetchRecentWallets();
+  }, []);
+
+  const fetchRecentWallets = async () => {
+    try {
+      const response = await fetch('/api/wallets?limit=5');
+      if (!response.ok) throw new Error('Failed to fetch recent wallets');
+      const data = await response.json();
+      setRecentWallets(data);
+    } catch (error) {
+      console.error('Error fetching wallets:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch recent wallets",
+        variant: "destructive"
+      });
+    }
+  };
   
   const handleSubmit = async () => {
     if (!walletAddress || !network || !riskLevel) return;
     
     setIsSubmitting(true);
-    // TODO: API integration for wallet patch submission
-    setTimeout(() => {
+    try {
+      const response = await fetch('/api/wallets', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          address: walletAddress,
+          riskLevel: riskLevel.toLowerCase(),
+          riskScore: riskLevel === 'High' ? 80 : riskLevel === 'Medium' ? 50 : 20,
+          scamPatterns: analysis ? [analysis] : [],
+          exchanges: [network],
+          caseIds: []
+        })
+      });
+
+      if (!response.ok) throw new Error('Failed to submit wallet');
+
+      toast({
+        title: "Success",
+        description: "Wallet information has been submitted",
+      });
+
+      // Clear form
+      setWalletAddress("");
+      setCoin("");
+      setNetwork("");
+      setHashId("");
+      setRiskLevel("");
+      setAnalysis("");
+
+      // Refresh recent wallets
+      await fetchRecentWallets();
+
+    } catch (error) {
+      console.error('Error submitting wallet:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit wallet information",
+        variant: "destructive"
+      });
+    } finally {
       setIsSubmitting(false);
-    }, 1500);
+    }
   };
   
   return (
@@ -180,36 +244,29 @@ const WalletCheck = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {/* Example Activity Items */}
-              <div className="border rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-start">
-                  <code className="font-mono text-sm">
-                    0x7fD23e7d8e2D8b6a3c589a32310B374F32e592a8
-                  </code>
-                  <Badge variant="destructive">High Risk</Badge>
+              {recentWallets.map((wallet) => (
+                <div key={wallet.address} className="border rounded-lg p-4 space-y-2">
+                  <div className="flex justify-between items-start">
+                    <code className="font-mono text-sm">
+                      {wallet.address}
+                    </code>
+                    <Badge variant={
+                      wallet.riskLevel === 'high' ? 'destructive' : 
+                      wallet.riskLevel === 'medium' ? 'warning' : 'info'
+                    }>
+                      {wallet.riskLevel.charAt(0).toUpperCase() + wallet.riskLevel.slice(1)} Risk
+                    </Badge>
+                  </div>
+                  <div className="text-sm text-muted-foreground">
+                    Network: {wallet.exchanges?.[0] || 'Unknown'}
+                  </div>
+                  {wallet.scamPatterns?.[0] && (
+                    <p className="text-sm mt-2">
+                      {wallet.scamPatterns[0]}
+                    </p>
+                  )}
                 </div>
-                <div className="text-sm text-muted-foreground">
-                  Network: Ethereum • Coin: ETH
-                </div>
-                <p className="text-sm mt-2">
-                  Multiple connections to known scam patterns. High-velocity transactions with mixing services.
-                </p>
-              </div>
-
-              <div className="border rounded-lg p-4 space-y-2">
-                <div className="flex justify-between items-start">
-                  <code className="font-mono text-sm">
-                    bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
-                  </code>
-                  <Badge variant="warning">Medium Risk</Badge>
-                </div>
-                <div className="text-sm text-muted-foreground">
-                  Network: Bitcoin • Coin: BTC
-                </div>
-                <p className="text-sm mt-2">
-                  Unusual transaction patterns detected. Multiple small transfers to unverified addresses.
-                </p>
-              </div>
+              ))}
             </div>
           </CardContent>
         </Card>
