@@ -1,5 +1,4 @@
 import { createContext, useContext } from 'react';
-import { useLocation } from 'wouter';
 
 interface User {
   username: string;
@@ -22,20 +21,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 export const useAuth = () => useContext(AuthContext);
-
-// Example component demonstrating the fix
-const LoginComponent = () => {
-  const [, setLocation] = useLocation();
-
-  const handleLogin = () => {
-    setLocation('/auth');
-  };
-
-  return (
-    <button onClick={handleLogin}>
-      Login
-    </button>
-  );
-};
-
-export default LoginComponent;
