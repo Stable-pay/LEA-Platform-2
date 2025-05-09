@@ -64,7 +64,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export REPL_ID=winter-water-28073687"
+args = "export DATABASE_URL=\"postgresql://winter-water-28073687.replit.co\""
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
