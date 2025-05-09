@@ -54,7 +54,7 @@ const BlockchainDemo = () => {
   const [wsConnected, setWsConnected] = useState(false);
   
   useEffect(() => {
-    const ws = new WebSocket(`wss://${window.location.host}/ws`);
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
     
     ws.onopen = () => {
       setWsConnected(true);
