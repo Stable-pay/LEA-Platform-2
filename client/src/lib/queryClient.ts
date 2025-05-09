@@ -1,3 +1,4 @@
+
 import { QueryClient } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -41,13 +42,6 @@ export const fetchApi = async (path: string, init?: RequestInit) => {
   }
 
   return response.json();
-};
-
-export const getQueryFn = () => {
-  return async ({ queryKey }: { queryKey: string[] }) => {
-    const [path] = queryKey;
-    return fetchApi(path);
-  };
 };
 
 export default queryClient;
