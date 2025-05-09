@@ -202,22 +202,6 @@ const CaseFilingForm = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      const response = await fetch('/api/cases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(values)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create case');
-      }
-      
-      return response.json();
-    },
-
       const caseData = {
         title: values.title,
         description: values.description,
@@ -233,6 +217,22 @@ const CaseFilingForm = () => {
       };
 
       console.log("Submitting case:", caseData);
+
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(caseData)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create case');
+      }
+      
+      return response.json();
+    },
 
       const apiResponse = await fetch("/api/cases", {
         method: "POST",
