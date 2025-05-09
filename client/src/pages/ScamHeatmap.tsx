@@ -7,8 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, Filter, Share2 } from "lucide-react";
 
-// Replace with your Mapbox token from environment variable
-mapboxgl.accessToken = 'pk.eyJ1IjoiYWRpdHlhZGV2IiwiYSI6ImNsa3g2OWxmbzBjcW0zcXBpODRxaXgwbTQifQ.mb7h50X10Y4oFngkBwqHGw';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'YOUR_MAPBOX_TOKEN';
 
 const fraudData = [
   {
