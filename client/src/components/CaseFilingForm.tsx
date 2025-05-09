@@ -467,6 +467,51 @@ const CaseFilingForm = () => {
 
                 <FormField
                   control={form.control}
+                  name="attachments"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Case Attachments</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="file" 
+                          multiple
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files || []);
+                            field.onChange(files);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="bg-secondary/50 rounded-lg p-4 mb-4">
+                  <h3 className="text-sm font-medium mb-2">Department Assignment Status</h3>
+                  <div className="space-y-2">
+                    {form.watch("assignedDepartment") && (
+                      <div className="flex items-center text-xs">
+                        <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                        <span>Assigned to: {form.watch("assignedDepartment")}</span>
+                      </div>
+                    )}
+                    {form.watch("initiatorDepartment") && (
+                      <div className="flex items-center text-xs">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                        <span>Initiated by: {form.watch("initiatorDepartment")}</span>
+                      </div>
+                    )}
+                    {form.watch("confirmerDepartment") && (
+                      <div className="flex items-center text-xs">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full mr-2"></div>
+                        <span>To be confirmed by: {form.watch("confirmerDepartment")}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <FormField
+                  control={form.control}
                   name="priority"
                   render={({ field }) => (
                   <FormItem>
