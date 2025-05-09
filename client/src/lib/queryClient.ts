@@ -1,6 +1,31 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
+export const apiRequest = async (method: string, path: string, body?: any) => {
+  const response = await fetch(path, {
+    method,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+
+  if (!response.ok) {
+    throw new Error('API request failed');
+  }
+
+  return response;
+};
+
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

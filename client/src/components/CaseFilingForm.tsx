@@ -33,6 +33,9 @@ const caseFormSchema = z.object({
   status: z.string().default("active"),
   priority: z.string().default("medium"),
   estimatedLoss: z.coerce.number().min(0, "Estimated loss must be a positive number"),
+  assignedDepartment: z.string().min(1, "Department assignment is required"),
+  initiatorDepartment: z.string().min(1, "Task initiator is required"), 
+  confirmerDepartment: z.string().min(1, "Task confirmer is required"),
 });
 
 type CaseFormValues = z.infer<typeof caseFormSchema>;
@@ -203,17 +206,13 @@ const CaseFilingForm = () => {
   // Case creation with department and management integration
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      const response = await fetch('/api/cases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...values,
-          assignedDepartment: values.assignedDepartment,
-          initiatorDepartment: values.initiatorDepartment,
-          confirmerDepartment: values.confirmerDepartment,
-        }),
+      const response = await apiRequest("POST", "/api/cases", {
+        ...values,
+        caseId: `CASE-${Date.now().toString().slice(-6)}`,
+        dateReported: new Date().toISOString(),
+        assignedTo: values.assignedDepartment,
+        status: values.status || "active",
+        reportedBy: user?.fullName || values.reportedBy,
       });
 
       if (!response.ok) {
