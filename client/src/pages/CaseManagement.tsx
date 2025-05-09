@@ -17,10 +17,36 @@ interface Case {
 
 const CaseManagement = () => {
   const [managementCases, setManagementCases] = useState<Case[]>([]);
+  const { user } = useAuth();
 
+  // Fetch cases assigned to user's department
+  useEffect(() => {
+    const fetchDepartmentCases = async () => {
+      try {
+        const response = await fetch(`/api/cases?department=${user?.department}`);
+        if (response.ok) {
+          const cases = await response.json();
+          setManagementCases(cases);
+        }
+      } catch (error) {
+        console.error('Failed to fetch department cases:', error);
+      }
+    };
+
+    if (user?.department) {
+      fetchDepartmentCases();
+    }
+  }, [user?.department]);
+
+  // Handle real-time case updates
   useEffect(() => {
     const handleCaseUpdate = (e: CustomEvent) => {
-      setManagementCases(prev => [...prev, e.detail]);
+      const newCase = e.detail;
+      if (newCase.assignedDepartment === user?.department ||
+          newCase.initiatorDepartment === user?.department ||
+          newCase.confirmerDepartment === user?.department) {
+        setManagementCases(prev => [...prev, newCase]);
+      }
     };
     
     window.addEventListener('case-management-update', handleCaseUpdate as EventListener);

@@ -92,9 +92,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const caseCount = (await storage.getCases()).length;
       const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);
+      
+      // Create case with department assignment
       const newCase = await storage.createCase({
         ...req.body,
-        caseId
+        caseId,
+        departmentAssignment: {
+          assigned: req.body.assignedDepartment,
+          initiator: req.body.initiatorDepartment,
+          confirmer: req.body.confirmerDepartment
+        }
+      });
+
+      // Create blockchain transaction for verification
+      const blockchainTx = await storage.createBlockchainTransaction({
+        txHash: `tx-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+        entityType: "case",
+        entityId: newCase.id.toString(),
+        action: "create",
+        sourceNodeId: req.body.initiatorDepartment,
+        status: "pending",
+        metadata: {
+          caseId: newCase.caseId,
+          assignedTo: req.body.assignedDepartment
+        }
       });
       
       // Create initial timeline event

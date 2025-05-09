@@ -201,13 +201,35 @@ const CaseFilingForm = () => {
   });
 
   // Case creation with department and management integration
-  const createCaseMutation = {
-    mutate: (values: CaseFormValues) => {
-      // Integrate with case management
-      setTimeout(() => {
-        setIsSubmitting(false);
-        const mockId = Math.floor(Math.random() * 1000);
-        setCaseId(mockId.toString());
+  const createCaseMutation = useMutation({
+    mutationFn: async (values: CaseFormValues) => {
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...values,
+          assignedDepartment: values.assignedDepartment,
+          initiatorDepartment: values.initiatorDepartment,
+          confirmerDepartment: values.confirmerDepartment,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create case');
+      }
+
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setIsSubmitting(false);
+      setCaseId(data.id.toString());
+      
+      // Start blockchain verification
+      setIsVerifying(true);
+      setVerificationStage(0);
+      setTxHash(data.blockchainTx?.txHash);
         
         // Start blockchain verification
         setIsVerifying(true);
