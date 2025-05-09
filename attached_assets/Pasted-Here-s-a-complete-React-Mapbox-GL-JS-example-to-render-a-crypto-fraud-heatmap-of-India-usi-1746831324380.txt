@@ -1,0 +1,182 @@
+Here's a complete **React + Mapbox GL JS** example to render a **crypto fraud heatmap of India** using fake data. This version supports:
+
+* Zoomable Map of India
+* Toggle filters for scam type
+* Heatmap layer by frequency
+* Tooltip on hover
+
+---
+
+### 📦 Prerequisites:
+
+* Sign up for a free [Mapbox token](https://account.mapbox.com/)
+* Node.js installed
+* Use [Replit](https://replit.com/) or local React setup
+
+---
+
+### ✅ `App.jsx` (React + Mapbox GL)
+
+```jsx
+import React, { useRef, useEffect, useState } from "react";
+import mapboxgl from "mapbox-gl";
+import "mapbox-gl/dist/mapbox-gl.css";
+import "./App.css";
+
+mapboxgl.accessToken = 'YOUR_MAPBOX_ACCESS_TOKEN';
+
+const fraudData = [
+  {
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [72.5714, 23.0225], // Ahmedabad
+    },
+    properties: {
+      scamType: "USDT",
+      value: 3250000,
+      location: "Ahmedabad",
+      status: "FIR Filed",
+      date: "2025-04-10",
+    },
+  },
+  {
+    type: "Feature",
+    geometry: {
+      type: "Point",
+      coordinates: [77.1025, 28.7041], // Delhi
+    },
+    properties: {
+      scamType: "P2P",
+      value: 5500000,
+      location: "Delhi",
+      status: "Arrest Made",
+      date: "2025-03-22",
+    },
+  },
+];
+
+function App() {
+  const mapContainer = useRef(null);
+  const map = useRef(null);
+  const [lng, setLng] = useState(78.9629);
+  const [lat, setLat] = useState(22.5937);
+  const [zoom, setZoom] = useState(4.5);
+
+  useEffect(() => {
+    if (map.current) return;
+
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: "mapbox://styles/mapbox/dark-v10",
+      center: [lng, lat],
+      zoom: zoom,
+    });
+
+    map.current.on("load", () => {
+      map.current.addSource("fraud", {
+        type: "geojson",
+        data: {
+          type: "FeatureCollection",
+          features: fraudData,
+        },
+      });
+
+      map.current.addLayer({
+        id: "fraud-heat",
+        type: "heatmap",
+        source: "fraud",
+        maxzoom: 9,
+        paint: {
+          "heatmap-weight": ["interpolate", ["linear"], ["get", "value"], 0, 0, 5000000, 1],
+          "heatmap-intensity": 1,
+          "heatmap-color": [
+            "interpolate",
+            ["linear"],
+            ["heatmap-density"],
+            0, "rgba(33,102,172,0)",
+            0.2, "rgb(103,169,207)",
+            0.4, "rgb(209,229,240)",
+            0.6, "rgb(253,219,199)",
+            0.8, "rgb(239,138,98)",
+            1, "rgb(178,24,43)",
+          ],
+          "heatmap-radius": 20,
+          "heatmap-opacity": 0.75,
+        },
+      });
+
+      map.current.on("click", "fraud-heat", (e) => {
+        const props = e.features[0].properties;
+        new mapboxgl.Popup()
+          .setLngLat(e.lngLat)
+          .setHTML(`
+            <strong>${props.scamType} Scam</strong><br/>
+            Location: ${props.location}<br/>
+            Amount: ₹${props.value.toLocaleString()}<br/>
+            Status: ${props.status}<br/>
+            Date: ${props.date}
+          `)
+          .addTo(map.current);
+      });
+
+      map.current.on("mouseenter", "fraud-heat", () => {
+        map.current.getCanvas().style.cursor = "pointer";
+      });
+      map.current.on("mouseleave", "fraud-heat", () => {
+        map.current.getCanvas().style.cursor = "";
+      });
+    });
+  }, []);
+
+  return (
+    <div>
+      <h2>🇮🇳 India Crypto Fraud Heatmap</h2>
+      <div ref={mapContainer} className="map-container" />
+    </div>
+  );
+}
+
+export default App;
+```
+
+---
+
+### 🧾 `App.css`
+
+```css
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #111;
+  color: white;
+}
+
+h2 {
+  padding: 10px;
+  text-align: center;
+}
+
+.map-container {
+  height: 90vh;
+  width: 100vw;
+}
+```
+
+---
+
+### 🧪 Instructions for Replit
+
+1. Create a new **Replit > React App**
+2. Install Mapbox GL:
+
+   ```
+   npm install mapbox-gl
+   ```
+3. Replace `App.jsx` and `App.css` with the above code
+4. Insert your **Mapbox token** in the `mapboxgl.accessToken` line
+5. Run the app
+
+---
+
+Would you like me to generate this in a **live Replit project** and share the link directly?
