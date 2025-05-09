@@ -69,7 +69,7 @@ const BlockchainDemo = () => {
   });
 
   useEffect(() => {
-    // Subscribe to case filing events
+    // Subscribe to case filing and management events
     const handleNewCase = (e: CustomEvent) => {
       const newCase: NodeCase = {
         id: `CASE-${Date.now().toString().slice(-3)}`,

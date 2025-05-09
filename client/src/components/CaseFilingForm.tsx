@@ -200,29 +200,37 @@ const CaseFilingForm = () => {
     },
   });
 
-  // Mock case creation for demo with department node integration
+  // Case creation with department and management integration
   const createCaseMutation = {
     mutate: (values: CaseFormValues) => {
-      // Simulate API delay
+      // Integrate with case management
       setTimeout(() => {
         setIsSubmitting(false);
         const mockId = Math.floor(Math.random() * 1000);
         setCaseId(mockId.toString());
         
-        // Start mock blockchain verification
+        // Start blockchain verification
         setIsVerifying(true);
         setVerificationStage(0);
         setTxHash(`0x${Math.random().toString(16).slice(2)}`);
         
-        // Dispatch event for Department Node Explorer
-        const newCaseEvent = new CustomEvent('new-case-filed', {
-          detail: {
-            ...values,
-            id: mockId.toString(),
-            attachments: attachments.map(file => file.name)
-          }
-        });
+        // Dispatch events for both Department Node Explorer and Case Management
+        const caseData = {
+          ...values,
+          id: mockId.toString(),
+          caseId: `CASE-${mockId}`,
+          attachments: attachments.map(file => file.name),
+          createdAt: new Date().toISOString(),
+          verifiedOnBlockchain: true,
+          department: values.assignedDepartment,
+          status: values.status || "active"
+        };
+        
+        const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
+        const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
+        
         window.dispatchEvent(newCaseEvent);
+        window.dispatchEvent(caseManagementEvent);
         
         toast({
           title: "Case Created",

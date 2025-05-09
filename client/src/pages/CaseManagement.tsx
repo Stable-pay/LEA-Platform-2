@@ -16,6 +16,17 @@ interface Case {
 }
 
 const CaseManagement = () => {
+  const [managementCases, setManagementCases] = useState<Case[]>([]);
+
+  useEffect(() => {
+    const handleCaseUpdate = (e: CustomEvent) => {
+      setManagementCases(prev => [...prev, e.detail]);
+    };
+    
+    window.addEventListener('case-management-update', handleCaseUpdate as EventListener);
+    return () => window.removeEventListener('case-management-update', handleCaseUpdate as EventListener);
+  }, []);
+
   const columns: ColumnDef<Case>[] = [
     {
       accessorKey: "id",
