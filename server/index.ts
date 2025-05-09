@@ -1,14 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { WebSocketServer } from 'ws';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Setup WebSocket server
-import { WebSocket, WebSocketServer } from 'ws';
-const wss = new WebSocket.Server({ noServer: true });
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected');
