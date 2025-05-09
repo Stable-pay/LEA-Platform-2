@@ -134,7 +134,7 @@ const BlockchainDemo = () => {
                      user?.department === nodeCase.assignedTo ||
                      user?.department === nodeCase.initiator ||
                      user?.department === nodeCase.confirmer;
-    
+
     // Log access attempt for auditing
     console.log(`Department ${user?.department} ${hasAccess ? 'granted' : 'denied'} access to case ${nodeCase.id}`);
     return hasAccess;
@@ -149,6 +149,14 @@ const BlockchainDemo = () => {
       c.confirmer === dept
     );
   };
+
+    const getDepartmentRoleInCase = (nodeCase: NodeCase, department: string): string => {
+        if (nodeCase.department === department) return "Originator";
+        if (nodeCase.assignedTo === department) return "Assigned";
+        if (nodeCase.initiator === department) return "Initiator";
+        if (nodeCase.confirmer === department) return "Confirmer";
+        return "Participant";
+    };
 
   const initiateNewCase = () => {
     if (!newCaseDetails || !attachments.length || !assignToDepartment || !taskInitiator || !taskConfirmer) return;
@@ -247,16 +255,36 @@ const BlockchainDemo = () => {
 
               {canViewCaseDetails(nodeCase) ? (
                 <>
-                  <p className="text-sm mt-2">{nodeCase.details}</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {nodeCase.attachments.map((file, idx) => (
-                      <div key={idx} className="flex items-center">
-                        <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
-                          <FileCheck className="w-4 h-4 mr-1" />
-                          {file.name}
-                        </Badge>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold mb-2">Participating Departments</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {[nodeCase.department, nodeCase.assignedTo, nodeCase.initiator, nodeCase.confirmer]
+                          .filter((dept, index, self) => dept && self.indexOf(dept) === index)
+                          .map((dept) => (
+                            <Badge key={dept} variant="secondary" className="flex items-center gap-1">
+                              {DEPARTMENTS[dept as keyof typeof DEPARTMENTS]}
+                              <span className="text-xs opacity-70">({getDepartmentRoleInCase(nodeCase, dept)})</span>
+                            </Badge>
+                          ))}
                       </div>
-                    ))}
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold">Case Details</h4>
+                      <p>{nodeCase.details}</p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {nodeCase.attachments.map((file, idx) => (
+                          <div key={idx} className="flex items-center">
+                            <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
+                              <FileCheck className="w-4 h-4 mr-1" />
+                              {file.name}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  
                   </div>
                   <div className="mt-2 text-sm">
                     <span className="text-muted-foreground">Assigned to: </span>
