@@ -32,6 +32,8 @@ const caseFormSchema = z.object({
   assignedDepartment: z.string().min(1, "Department assignment is required"),
   initiatorDepartment: z.string().min(1, "Task initiator is required"),
   confirmerDepartment: z.string().min(1, "Task confirmer is required"),
+  walletAddress: z.string().min(1, "Wallet Address is required"),
+  transactionHash: z.string().min(1, "Transaction Hash is required"),
 });
 
 type CaseFormValues = z.infer<typeof caseFormSchema>;
@@ -107,7 +109,7 @@ const BlockchainVerification = ({
 };
 
 const CaseFilingForm = () => {
-  const { user } = useAuth();
+  const { user, login } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -190,6 +192,11 @@ const CaseFilingForm = () => {
       status: "active",
       priority: "medium",
       estimatedLoss: 0,
+      assignedDepartment: "ED",
+      initiatorDepartment: "ED",
+      confirmerDepartment: "ED",
+      walletAddress: "",
+      transactionHash: ""
     },
   });
 
@@ -212,6 +219,8 @@ const CaseFilingForm = () => {
         priority: values.priority || "medium",
         initiatorDepartment: values.initiatorDepartment,
         confirmerDepartment: values.confirmerDepartment,
+        walletAddress: values.walletAddress,
+        transactionHash: values.transactionHash,
       };
 
       console.log("Submitting case:", caseData);
@@ -344,7 +353,7 @@ const CaseFilingForm = () => {
                 <FormItem>
                   <FormLabel>Case Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter case title" {...field} />
+                    <Input placeholder="Enter case title" {...field} disabled={isSubmitting || isVerifying}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -362,6 +371,7 @@ const CaseFilingForm = () => {
                       placeholder="Describe the case in detail"
                       className="min-h-[120px]"
                       {...field}
+                      disabled={isSubmitting || isVerifying}
                     />
                   </FormControl>
                   <FormMessage />
@@ -377,7 +387,7 @@ const CaseFilingForm = () => {
                   <FormItem>
                     <FormLabel>Reported By</FormLabel>
                     <FormControl>
-                      <Input placeholder="Name of reporter" {...field} />
+                      <Input placeholder="Name of reporter" {...field} disabled={isSubmitting || isVerifying}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -395,6 +405,7 @@ const CaseFilingForm = () => {
                         type="number"
                         placeholder="Amount in INR"
                         {...field}
+                        disabled={isSubmitting || isVerifying}
                       />
                     </FormControl>
                     <FormMessage />
@@ -410,7 +421,7 @@ const CaseFilingForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Assign to Department</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select department" />
@@ -436,7 +447,7 @@ const CaseFilingForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Task Initiator</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select initiator" />
@@ -462,7 +473,7 @@ const CaseFilingForm = () => {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Task Confirmer</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
                         <FormControl>
                           <SelectTrigger>
                             <SelectValue placeholder="Select confirmer" />
@@ -488,7 +499,7 @@ const CaseFilingForm = () => {
                   render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -512,7 +523,7 @@ const CaseFilingForm = () => {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Initial Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select status" />
@@ -529,6 +540,34 @@ const CaseFilingForm = () => {
                 )}
               />
             </div>
+
+            <FormField
+              control={form.control}
+              name="walletAddress"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Wallet Address</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter wallet address" {...field} disabled={isSubmitting || isVerifying}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="transactionHash"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Transaction Hash</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Enter transaction hash" {...field} disabled={isSubmitting || isVerifying}/>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <div className="flex justify-end space-x-2 mt-6">
               <Button

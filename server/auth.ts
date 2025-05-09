@@ -53,25 +53,21 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   app.get("/api/user", (req: Request, res: Response) => {
-    // Get user data from session if authenticated
-    if (req.isAuthenticated() && req.user) {
-      const { password: _, ...userWithoutPassword } = req.user;
-      return res.json(userWithoutPassword);
+    const userId = req.headers["x-replit-user-id"];
+    const userName = req.headers["x-replit-user-name"];
+    
+    if (!userId || !userName) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
 
-    // Fallback to Replit headers
     const userData = {
-      id: req.headers["x-replit-user-id"],
-      name: req.headers["x-replit-user-name"],
+      id: userId,
+      name: userName,
       bio: req.headers["x-replit-user-bio"],
       url: req.headers["x-replit-user-url"],
       profileImage: req.headers["x-replit-user-profile-image"],
-      role: "law_enforcement" // Default role for Replit auth
+      role: "law_enforcement"
     };
-
-    if (!userData.id) {
-      return res.status(401).json({ message: "Not authenticated" });
-    }
 
     res.json(userData);
   });
