@@ -143,17 +143,18 @@ const BlockchainDemo = () => {
     const fetchCases = async () => {
       try {
         const response = await fetch('/api/cases');
-        if (response.ok) {
-          const data = await response.json();
-          setCases(data || []);
-          updateCaseCounts(data || []);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
+        const data = await response.json();
+        setCases(data || []);
+        updateCaseCounts(data || []);
       } catch (error) {
         console.error('Error fetching cases:', error);
         setCases([]);
         toast({
           title: "Error",
-          description: "Failed to fetch cases",
+          description: "Failed to fetch cases. Please try again later.",
           variant: "destructive"
         });
       }
