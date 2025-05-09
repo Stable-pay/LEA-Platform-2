@@ -1,0 +1,30 @@
+BlockchainDemo.tsx:105 Error fetching departments: TypeError: Cannot read properties of undefined (reading 'toLowerCase')
+    at BlockchainDemo.tsx:96:31
+    at Array.map (<anonymous>)
+    at fetchDepartments (BlockchainDemo.tsx:94:39)
+fetchDepartments	@	BlockchainDemo.tsx:105
+2
+WalletCheck.tsx:42 Uncaught ReferenceError: Cannot access 'fetchRecentWallets' before initialization
+    at WalletCheck.tsx:42:5
+    at WalletCheck (WalletCheck.tsx:41:3)
+react-dom.development.js:18704 The above error occurred in the <WalletCheck> component:
+
+    at WalletCheck (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/pages/WalletCheck.tsx:40:45)
+    at Route (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=39d70ad2:338:16)
+    at Switch (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=39d70ad2:394:17)
+    at main
+    at div
+    at div
+    at AppShell (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/AppShell.tsx:96:21)
+    at Provider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…unner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=39d70ad2:38:15)
+    at TooltipProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=39d70ad2:63:5)
+    at AuthProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/hooks/use-auth.tsx:27:32)
+    at QueryClientProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=39d70ad2:2805:3)
+    at App
+    at ThemeProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ThemeProvider.tsx:25:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+react-dom.development.js:12056 Uncaught ReferenceError: Cannot access 'fetchRecentWallets' before initialization
+    at WalletCheck.tsx:42:5
+    at WalletCheck (WalletCheck.tsx:41:3)
