@@ -129,10 +129,25 @@ const BlockchainDemo = () => {
   };
 
   const canViewCaseDetails = (nodeCase: NodeCase) => {
-    return user?.department === nodeCase.department || 
-           user?.department === nodeCase.assignedTo ||
-           user?.department === nodeCase.initiator ||
-           user?.department === nodeCase.confirmer;
+    // Department can view if they are involved in any way
+    const hasAccess = user?.department === nodeCase.department || 
+                     user?.department === nodeCase.assignedTo ||
+                     user?.department === nodeCase.initiator ||
+                     user?.department === nodeCase.confirmer;
+    
+    // Log access attempt for auditing
+    console.log(`Department ${user?.department} ${hasAccess ? 'granted' : 'denied'} access to case ${nodeCase.id}`);
+    return hasAccess;
+  };
+
+  const getDepartmentCases = (dept: string) => {
+    return cases.filter(c => 
+      dept === "all" || 
+      c.department === dept ||
+      c.assignedTo === dept ||
+      c.initiator === dept ||
+      c.confirmer === dept
+    );
   };
 
   const initiateNewCase = () => {
