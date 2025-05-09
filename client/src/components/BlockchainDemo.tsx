@@ -405,14 +405,62 @@ const BlockchainDemo = () => {
                       </div>
                     )}
 
-                    {canRespondToCase(selectedCase) && (
-                      <div className="space-y-4 bg-muted/30 p-4 rounded-lg">
-                        <div className="flex items-center gap-2 mb-4">
-                          <h4 className="font-semibold">Submit Department Response</h4>
-                          <Badge variant="outline">
-                            {getDepartmentRole(selectedCase)}
-                          </Badge>
-                        </div>
+{selectedCase.responses && selectedCase.responses.length > 0 && (
+  <div className="space-y-4">
+    <div className="flex items-center gap-2">
+      <h4 className="font-semibold">Department Responses</h4>
+      <Badge variant="outline">Chain of Custody</Badge>
+    </div>
+    <div className="grid gap-4">
+      {/* Initiator Response */}
+      <Card className="bg-muted/30">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Badge>Initiator</Badge>
+            {DEPARTMENTS[selectedCase.initiator as keyof typeof DEPARTMENTS]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {selectedCase.responses.find(r => r.department === selectedCase.initiator) ? (
+            <div className="text-sm">
+              {selectedCase.responses.find(r => r.department === selectedCase.initiator)?.message}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Awaiting response...</div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Confirmer Response */}
+      <Card className="bg-muted/30">
+        <CardHeader>
+          <CardTitle className="text-sm flex items-center gap-2">
+            <Badge>Confirmer</Badge>
+            {DEPARTMENTS[selectedCase.confirmer as keyof typeof DEPARTMENTS]}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {selectedCase.responses.find(r => r.department === selectedCase.confirmer) ? (
+            <div className="text-sm">
+              {selectedCase.responses.find(r => r.department === selectedCase.confirmer)?.message}
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">Awaiting response...</div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  </div>
+)}
+
+{canRespondToCase(selectedCase) && (
+  <div className="space-y-4 bg-muted/30 p-4 rounded-lg mt-4">
+    <div className="flex items-center gap-2 mb-4">
+      <h4 className="font-semibold">Submit Department Response</h4>
+      <Badge variant="outline">
+        {getDepartmentRole(selectedCase)}
+      </Badge>
+    </div>
                         <Textarea
                           placeholder="Enter your department's official response..."
                           value={responseDetails}
