@@ -7,6 +7,23 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { ComposableMap, Geographies, Geography } from "react-simple-maps";
+import { scaleLinear } from "d3-scale";
+
+const stateStats = [
+  { state: "Maharashtra", caseCount: 78, estimatedLoss: 48000000 },
+  { state: "Karnataka", caseCount: 42, estimatedLoss: 32000000 },
+  { state: "Delhi", caseCount: 38, estimatedLoss: 29000000 },
+  { state: "Gujarat", caseCount: 25, estimatedLoss: 18000000 },
+  { state: "Tamil Nadu", caseCount: 22, estimatedLoss: 15000000 },
+  { state: "Uttar Pradesh", caseCount: 15, estimatedLoss: 12000000 },
+  { state: "Telangana", caseCount: 12, estimatedLoss: 9000000 },
+  { state: "West Bengal", caseCount: 10, estimatedLoss: 7500000 }
+];
+
+const colorScale = scaleLinear()
+  .domain([0, 80])
+  .range(["#ffedea", "#ff5233"]);
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Download, Filter, Share2 } from "lucide-react";
@@ -58,14 +75,39 @@ const ScamHeatmap = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="heatmap h-[500px] flex items-center justify-center">
-                <div className="text-neutral-medium text-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2 text-neutral-medium opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-                  </svg>
-                  <p>National Crypto Fraud Heatmap</p>
-                  <p className="text-xs mt-2">Showing concentration of crypto fraud cases across India</p>
-                </div>
+              <div className="heatmap h-[500px]">
+                <ComposableMap
+                  projection="geoMercator"
+                  projectionConfig={{
+                    scale: 1000,
+                    center: [78.9629, 22.5937]
+                  }}
+                >
+                  <Geographies geography={"/india.json"}>
+                    {({ geographies }) =>
+                      geographies.map((geo) => {
+                        const stateName = geo.properties.name;
+                        const stateData = stateStats.find(s => s.state === stateName);
+                        const intensity = stateData ? colorScale(stateData.caseCount) : "#F5F5F5";
+                        
+                        return (
+                          <Geography
+                            key={geo.rsmKey}
+                            geography={geo}
+                            fill={intensity}
+                            stroke="#FFFFFF"
+                            strokeWidth={0.5}
+                            style={{
+                              default: { outline: "none" },
+                              hover: { fill: "#666", outline: "none" },
+                              pressed: { outline: "none" }
+                            }}
+                          />
+                        );
+                      })
+                    }
+                  </Geographies>
+                </ComposableMap>
               </div>
               
               <div className="mt-4 flex justify-between text-xs">
