@@ -11,15 +11,19 @@ export const queryClient = new QueryClient({
   },
 });
 
-export const apiRequest = async (method: string, path: string, body?: any) => {
-  return fetchApi(path, { method, body: body ? JSON.stringify(body) : undefined });
-};
-
-export const getQueryFn = () => {
+export const getQueryFn = (options?: { on401?: 'returnNull' }) => {
   return async ({ queryKey }: { queryKey: string[] }) => {
     const [path] = queryKey;
-    return fetchApi(path);
+    const response = await fetchApi(path);
+    if (response === null && options?.on401 === 'returnNull') {
+      return null;
+    }
+    return response;
   };
+};
+
+export const apiRequest = async (method: string, path: string, body?: any) => {
+  return fetchApi(path, { method, body: body ? JSON.stringify(body) : undefined });
 };
 
 export const fetchApi = async (path: string, init?: RequestInit) => {
