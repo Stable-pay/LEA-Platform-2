@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { 
   Card, 
@@ -10,196 +11,208 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { 
   AlertTriangle, 
   Search, 
   Shield, 
   Clock, 
-  User
+  User,
+  Plus
 } from "lucide-react";
+
+const riskLevels = ["High", "Medium", "Low"];
+const networks = ["Bitcoin", "Ethereum", "Binance Smart Chain", "Polygon", "Solana"];
 
 const WalletCheck = () => {
   const [walletAddress, setWalletAddress] = useState("");
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchComplete, setSearchComplete] = useState(false);
+  const [coin, setCoin] = useState("");
+  const [network, setNetwork] = useState("");
+  const [hashId, setHashId] = useState("");
+  const [riskLevel, setRiskLevel] = useState("");
+  const [analysis, setAnalysis] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const handleSearch = () => {
-    if (!walletAddress) return;
+  const handleSubmit = async () => {
+    if (!walletAddress || !network || !riskLevel) return;
     
-    setIsSearching(true);
-    
-    // Simulate an API call
+    setIsSubmitting(true);
+    // TODO: API integration for wallet patch submission
     setTimeout(() => {
-      setIsSearching(false);
-      setSearchComplete(true);
+      setIsSubmitting(false);
     }, 1500);
-  };
-  
-  const handleReset = () => {
-    setWalletAddress("");
-    setSearchComplete(false);
   };
   
   return (
     <div className="container mx-auto py-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Wallet Check</h1>
+        <h1 className="text-2xl font-bold mb-2">Wallet Address Patch</h1>
         <p className="text-muted-foreground">
-          Validate cryptocurrency wallets against known scam patterns and behaviors
+          Add and update wallet information across departments
         </p>
       </div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1">
-          <Card className="shadow">
-            <CardHeader>
-              <CardTitle>Wallet Validator</CardTitle>
-              <CardDescription>
-                Enter a wallet address to check its risk profile
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card className="shadow">
+          <CardHeader>
+            <CardTitle>Add Wallet Information</CardTitle>
+            <CardDescription>
+              Submit new wallet details for cross-department analysis
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium leading-none mb-2 block">
+                  Wallet Address*
+                </label>
+                <Input
+                  placeholder="Enter wallet address..."
+                  value={walletAddress}
+                  onChange={(e) => setWalletAddress(e.target.value)}
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium leading-none mb-2 block">
-                    Wallet Address
+                    Coin/Token*
                   </label>
-                  <div className="relative">
-                    <Input
-                      placeholder="Enter wallet address..."
-                      value={walletAddress}
-                      onChange={(e) => setWalletAddress(e.target.value)}
-                      className="pl-10"
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <Search className="h-4 w-4 text-neutral-medium" />
-                    </div>
-                  </div>
+                  <Input
+                    placeholder="Enter coin/token..."
+                    value={coin}
+                    onChange={(e) => setCoin(e.target.value)}
+                  />
                 </div>
                 
-                <div className="flex gap-3">
-                  <Button 
-                    onClick={handleSearch} 
-                    disabled={!walletAddress || isSearching}
-                    className="flex-1"
-                  >
-                    {isSearching ? "Searching..." : "Check Wallet"}
-                  </Button>
-                  {searchComplete && (
-                    <Button 
-                      variant="outline" 
-                      onClick={handleReset}
-                    >
-                      Reset
-                    </Button>
-                  )}
+                <div>
+                  <label className="text-sm font-medium leading-none mb-2 block">
+                    Network*
+                  </label>
+                  <Select value={network} onValueChange={setNetwork}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select network" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {networks.map((net) => (
+                        <SelectItem key={net} value={net.toLowerCase()}>
+                          {net}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
-            </CardContent>
-            <CardFooter className="border-t border-gray-100 flex flex-col items-start">
-              <p className="text-sm text-muted-foreground mb-2">
-                This tool checks wallet addresses against:
-              </p>
-              <ul className="text-xs space-y-1 text-muted-foreground">
-                <li className="flex items-center">
-                  <AlertTriangle className="h-3 w-3 mr-2 text-status-warning" />
-                  Known scam clusters
-                </li>
-                <li className="flex items-center">
-                  <Clock className="h-3 w-3 mr-2 text-status-info" />
-                  Transaction pattern analysis
-                </li>
-                <li className="flex items-center">
-                  <Shield className="h-3 w-3 mr-2 text-status-success" />
-                  Security vulnerabilities
-                </li>
-              </ul>
-            </CardFooter>
-          </Card>
-        </div>
-        
-        <div className="lg:col-span-2">
-          {searchComplete ? (
-            <Card className="shadow h-full">
-              <CardHeader className="border-b border-gray-100">
-                <div className="flex justify-between items-center">
-                  <CardTitle>Wallet Analysis Results</CardTitle>
-                  <Badge variant="error">High Risk</Badge>
-                </div>
-                <CardDescription>
-                  <code className="font-mono bg-neutral-light px-2 py-1 rounded text-sm">
-                    {walletAddress}
+              
+              <div>
+                <label className="text-sm font-medium leading-none mb-2 block">
+                  Transaction Hash ID (Optional)
+                </label>
+                <Input
+                  placeholder="Enter transaction hash..."
+                  value={hashId}
+                  onChange={(e) => setHashId(e.target.value)}
+                />
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium leading-none mb-2 block">
+                  Risk Level*
+                </label>
+                <Select value={riskLevel} onValueChange={setRiskLevel}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select risk level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {riskLevels.map((level) => (
+                      <SelectItem key={level} value={level.toLowerCase()}>
+                        {level}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium leading-none mb-2 block">
+                  Risk Analysis*
+                </label>
+                <Textarea
+                  placeholder="Provide detailed risk analysis..."
+                  value={analysis}
+                  onChange={(e) => setAnalysis(e.target.value)}
+                  className="min-h-[120px]"
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex justify-end space-x-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setWalletAddress("");
+                setCoin("");
+                setNetwork("");
+                setHashId("");
+                setRiskLevel("");
+                setAnalysis("");
+              }}
+            >
+              Clear
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              disabled={!walletAddress || !network || !riskLevel || isSubmitting}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              {isSubmitting ? "Submitting..." : "Add Wallet"}
+            </Button>
+          </CardFooter>
+        </Card>
+
+        <Card className="shadow">
+          <CardHeader>
+            <CardTitle>Recent Wallet Activity</CardTitle>
+            <CardDescription>
+              Latest wallet submissions and updates
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {/* Example Activity Items */}
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-start">
+                  <code className="font-mono text-sm">
+                    0x7fD23e7d8e2D8b6a3c589a32310B374F32e592a8
                   </code>
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-6">
-                <div className="space-y-6">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-status-error/10 rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-status-error">87</div>
-                      <div className="text-xs font-medium text-neutral-dark mt-1">Risk Score</div>
-                    </div>
-                    <div className="bg-secondary rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-neutral-dark">12</div>
-                      <div className="text-xs font-medium text-neutral-dark mt-1">Cases Linked</div>
-                    </div>
-                    <div className="bg-secondary rounded-lg p-4 text-center">
-                      <div className="text-2xl font-bold text-neutral-dark">5</div>
-                      <div className="text-xs font-medium text-neutral-dark mt-1">Connected Wallets</div>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-neutral-dark mb-2">Risk Factors</h3>
-                    <ul className="space-y-2">
-                      <li className="flex items-center text-sm bg-status-error/5 rounded-md p-2">
-                        <AlertTriangle className="h-4 w-4 mr-2 text-status-error" />
-                        <span>Linked to known scam pattern "Fake Exchange Exit"</span>
-                      </li>
-                      <li className="flex items-center text-sm bg-status-warning/5 rounded-md p-2">
-                        <Clock className="h-4 w-4 mr-2 text-status-warning" />
-                        <span>Unusual transaction pattern - Mixing service detected</span>
-                      </li>
-                      <li className="flex items-center text-sm bg-status-warning/5 rounded-md p-2">
-                        <User className="h-4 w-4 mr-2 text-status-warning" />
-                        <span>KYC verification failure on 2 exchanges</span>
-                      </li>
-                    </ul>
-                  </div>
-                  
-                  <div>
-                    <h3 className="font-medium text-neutral-dark mb-2">Recommendation</h3>
-                    <div className="bg-status-error/5 border border-status-error/20 rounded-md p-3 text-sm">
-                      <p className="font-medium text-status-error mb-1">Action Required</p>
-                      <p className="text-neutral-dark">This wallet shows strong indicators of fraudulent activity. 
-                      Recommend immediate case escalation and KYC verification requests to all associated exchanges.</p>
-                    </div>
-                  </div>
+                  <Badge variant="destructive">High Risk</Badge>
                 </div>
-              </CardContent>
-              <CardFooter className="border-t border-gray-100 flex justify-between">
-                <Button variant="outline">Export Report</Button>
-                <Button>Create Case</Button>
-              </CardFooter>
-            </Card>
-          ) : (
-            <Card className="shadow h-full">
-              <CardContent className="p-0">
-                <div className="h-full flex items-center justify-center p-12">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-neutral-light rounded-full mx-auto flex items-center justify-center mb-4">
-                      <Search className="h-8 w-8 text-neutral-medium" />
-                    </div>
-                    <h3 className="text-lg font-medium text-neutral-dark mb-2">No Wallet Analysis</h3>
-                    <p className="text-sm text-muted-foreground mb-6 max-w-md">
-                      Enter a wallet address to check against known scam patterns, transaction behaviors, and KYC verification status.
-                    </p>
-                  </div>
+                <div className="text-sm text-muted-foreground">
+                  Network: Ethereum • Coin: ETH
                 </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
+                <p className="text-sm mt-2">
+                  Multiple connections to known scam patterns. High-velocity transactions with mixing services.
+                </p>
+              </div>
+
+              <div className="border rounded-lg p-4 space-y-2">
+                <div className="flex justify-between items-start">
+                  <code className="font-mono text-sm">
+                    bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh
+                  </code>
+                  <Badge variant="warning">Medium Risk</Badge>
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  Network: Bitcoin • Coin: BTC
+                </div>
+                <p className="text-sm mt-2">
+                  Unusual transaction patterns detected. Multiple small transfers to unverified addresses.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
