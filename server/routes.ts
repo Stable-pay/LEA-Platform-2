@@ -92,7 +92,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCaseSchema.parse(req.body);
       req.body = validatedData;
-    try {
+      
       const caseCount = (await storage.getCases()).length;
       const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);
       
