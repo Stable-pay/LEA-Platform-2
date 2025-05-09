@@ -12,7 +12,14 @@ import {
   Lock,
   AlertTriangle,
   AlertCircle,
-  Bell
+  Bell,
+  Home,
+  Settings,
+  Search,
+  ChevronDown,
+  LogOut,
+  Database,
+  SmilePlus
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
