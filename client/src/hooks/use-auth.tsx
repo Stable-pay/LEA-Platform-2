@@ -23,13 +23,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   } = useQuery<User | null, Error>({
     queryKey: ["/api/user"],
     queryFn: getQueryFn({ on401: "returnNull" }),
-    refetchInterval: false,
-    refetchOnMount: false,
-    refetchOnWindowFocus: false,
-    staleTime: Infinity,
-    cacheTime: Infinity,
-    retry: false,
-    enabled: true
   });
 
   const login = () => {

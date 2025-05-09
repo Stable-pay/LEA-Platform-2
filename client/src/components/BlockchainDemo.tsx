@@ -54,25 +54,15 @@ const BlockchainDemo = () => {
   const [wsConnected, setWsConnected] = useState(false);
   
   useEffect(() => {
-    let ws: WebSocket | null = null;
+    const ws = new WebSocket(`wss://${window.location.host}/ws`);
     
-    const connectWs = () => {
-      if (ws?.readyState !== WebSocket.OPEN) {
-        ws = new WebSocket(`wss://${window.location.host}/ws`);
-        
-        ws.onopen = () => {
-          setWsConnected(true);
-          toast({
-            title: "Connected to blockchain network",
-            description: "Receiving real-time updates"
-          });
-        };
-      }
+    ws.onopen = () => {
+      setWsConnected(true);
+      toast({
+        title: "Connected to blockchain network",
+        description: "Receiving real-time updates"
+      });
     };
-
-    if (user) {
-      connectWs();
-    }
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
