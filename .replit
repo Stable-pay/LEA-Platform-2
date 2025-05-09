@@ -64,7 +64,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export DATABASE_URL=\"postgresql://user:pass@winter-water-28073687.replit.co/neondb\""
+args = "export DATABASE_URL=\"postgresql://neondb_owner:npg_n0EhFVLTo9kU@ep-bold-mud-a4i9z7eg.us-east-1.aws.neon.tech/neondb?sslmode=require\""
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
