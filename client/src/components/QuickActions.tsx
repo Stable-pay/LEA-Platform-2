@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FilePlus, Upload, Search, FilePlus2 } from "lucide-react";
+import { useLocation } from "wouter";
 
 interface QuickActionButtonProps {
   icon: React.ReactNode;
@@ -22,24 +23,22 @@ const QuickActionButton = ({ icon, label, onClick }: QuickActionButtonProps) => 
 };
 
 const QuickActions = () => {
+  const [, navigate] = useLocation();
+
   const handleNewCase = () => {
-    console.log("New case action clicked");
-    // Add implementation for creating a new case
+    navigate("/case-filing");
   };
   
   const handleUpload = () => {
-    console.log("Upload action clicked");
-    // Add implementation for file upload
+    navigate("/case-management");
   };
   
   const handleScanWallet = () => {
-    console.log("Scan wallet action clicked");
-    // Add implementation for wallet scanning
+    navigate("/wallet-check");
   };
   
   const handleGenerateStr = () => {
-    console.log("Generate STR action clicked");
-    // Add implementation for STR generation
+    navigate("/str-generator");
   };
   
   return (
