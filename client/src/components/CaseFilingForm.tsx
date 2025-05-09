@@ -206,14 +206,25 @@ const CaseFilingForm = () => {
   // Case creation with department and management integration
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      const response = await apiRequest("POST", "/api/cases", {
+      // Prepare case data according to schema
+      const caseData = {
         ...values,
         caseId: `CASE-${Date.now().toString().slice(-6)}`,
         dateReported: new Date().toISOString(),
         assignedTo: values.assignedDepartment,
         status: values.status || "active",
         reportedBy: user?.fullName || values.reportedBy,
-      });
+        // Ensure required fields from schema
+        title: values.title,
+        description: values.description,
+        priority: values.priority || "medium",
+        initiatorDepartment: values.initiatorDepartment,
+        confirmerDepartment: values.confirmerDepartment,
+      };
+
+      console.log("Submitting case:", caseData);
+      
+      const response = await apiRequest("POST", "/api/cases", caseData);
 
       if (!response.ok) {
         throw new Error('Failed to create case');

@@ -1,4 +1,3 @@
-
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
 import passport from "passport";
@@ -54,18 +53,26 @@ export function setupAuth(app: Express) {
   app.use(passport.session());
 
   app.get("/api/user", (req: Request, res: Response) => {
+    // Get user data from session if authenticated
+    if (req.isAuthenticated() && req.user) {
+      const { password: _, ...userWithoutPassword } = req.user;
+      return res.json(userWithoutPassword);
+    }
+
+    // Fallback to Replit headers
     const userData = {
       id: req.headers["x-replit-user-id"],
       name: req.headers["x-replit-user-name"],
       bio: req.headers["x-replit-user-bio"],
       url: req.headers["x-replit-user-url"],
-      profileImage: req.headers["x-replit-user-profile-image"]
+      profileImage: req.headers["x-replit-user-profile-image"],
+      role: "law_enforcement" // Default role for Replit auth
     };
-    
+
     if (!userData.id) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     res.json(userData);
   });
 
@@ -74,17 +81,17 @@ export function setupAuth(app: Express) {
     new LocalStrategy(async (username, password, done) => {
       try {
         const user = await storage.getUserByUsername(username);
-        
+
         if (!user) {
           return done(null, false, { message: "Invalid username or password" });
         }
-        
+
         const isPasswordValid = await comparePasswords(password, user.password);
-        
+
         if (!isPasswordValid) {
           return done(null, false, { message: "Invalid username or password" });
         }
-        
+
         return done(null, user);
       } catch (error) {
         return done(error);
@@ -109,16 +116,16 @@ export function setupAuth(app: Express) {
   app.post("/api/register", async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { username, password, fullName, role, organization } = req.body;
-      
+
       // Check if the user already exists
       const existingUser = await storage.getUserByUsername(username);
       if (existingUser) {
         return res.status(400).json({ message: "Username already exists" });
       }
-      
+
       // Hash the password
       const hashedPassword = await hashPassword(password);
-      
+
       // Create the user
       const user = await storage.createUser({
         username,
@@ -130,7 +137,7 @@ export function setupAuth(app: Express) {
 
       // Remove password from response
       const { password: _, ...userWithoutPassword } = user;
-      
+
       // Log in the new user
       req.login(user, (err) => {
         if (err) return next(err);
@@ -149,10 +156,10 @@ export function setupAuth(app: Express) {
 
       req.login(user, (err) => {
         if (err) return next(err);
-        
+
         // Remove password from response
         const { password: _, ...userWithoutPassword } = user;
-        
+
         res.status(200).json(userWithoutPassword);
       });
     })(req, res, next);
@@ -174,13 +181,13 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Not authenticated" });
     }
-    
+
     // Remove password from response
     const { password: _, ...userWithoutPassword } = req.user as User;
-    
+
     res.status(200).json(userWithoutPassword);
   });
-  
+
   // Middleware to check if user is authenticated
   app.use("/api/*", (req: Request, res: Response, next: NextFunction) => {
     // Skip auth check for login, logout, register, and user endpoints
@@ -192,11 +199,11 @@ export function setupAuth(app: Express) {
     ) {
       return next();
     }
-    
+
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Authentication required" });
     }
-    
+
     next();
   });
 }

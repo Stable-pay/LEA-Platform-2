@@ -14,10 +14,15 @@ export const apiRequest = async (method: string, path: string, body?: any) => {
     method,
     headers: {
       'Content-Type': 'application/json',
+      'Accept': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
-    credentials: 'include'
+    credentials: 'include' // Important for session cookies
   });
+
+  if (response.status === 401) {
+    throw new Error('Unauthorized - Please login');
+  }
 
   if (!response.ok) {
     throw new Error('API request failed');
