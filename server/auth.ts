@@ -1,7 +1,14 @@
+
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
+import passport from "passport";
+import { Strategy as LocalStrategy } from "passport-local";
+import { randomBytes, scrypt as _scrypt, timingSafeEqual } from "crypto";
+import { promisify } from "util";
 import { User } from "@shared/schema";
 import MemoryStore from "memorystore";
+
+const scryptAsync = promisify(_scrypt);
 
 // Type augmentation for Express.User
 declare global {
@@ -30,6 +37,22 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
+  // Setup session middleware
+  app.use(
+    session({
+      secret: process.env.SESSION_SECRET || "keyboard cat",
+      resave: false,
+      saveUninitialized: false,
+      store: new (MemoryStore(session))({
+        checkPeriod: 86400000 // 24 hours
+      })
+    })
+  );
+
+  // Initialize passport
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   app.get("/api/user", (req: Request, res: Response) => {
     const userData = {
       id: req.headers["x-replit-user-id"],
