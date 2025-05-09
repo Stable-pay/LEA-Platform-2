@@ -100,6 +100,13 @@ const BlockchainDemo = () => {
            nodeCase.status !== "closed";
   };
 
+  const getDepartmentRole = (nodeCase: NodeCase) => {
+    if (user?.department === nodeCase.assignedTo) return "Assigned Department";
+    if (user?.department === nodeCase.initiator) return "Initiator Department";
+    if (user?.department === nodeCase.confirmer) return "Confirmer Department";
+    return null;
+  };
+
   const updateCaseCounts = (caseList: NodeCase[]) => {
     const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
     caseList.forEach(c => {
@@ -293,9 +300,14 @@ const BlockchainDemo = () => {
 
                     {canRespondToCase(selectedCase) && (
                       <div className="space-y-4">
-                        <h4 className="font-semibold">Submit Response</h4>
+                        <div className="flex items-center gap-2 mb-4">
+                          <h4 className="font-semibold">Submit Response</h4>
+                          <Badge variant="outline">
+                            {getDepartmentRole(selectedCase)}
+                          </Badge>
+                        </div>
                         <Textarea
-                          placeholder="Enter your response..."
+                          placeholder="Enter your response as department..."
                           value={responseDetails}
                           onChange={(e) => setResponseDetails(e.target.value)}
                         />
