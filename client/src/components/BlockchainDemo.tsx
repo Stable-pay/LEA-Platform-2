@@ -60,6 +60,7 @@ const BlockchainDemo = () => {
   const [selectedCase, setSelectedCase] = useState<NodeCase | null>(null);
   const [responseDetails, setResponseDetails] = useState("");
   const [attachments, setAttachments] = useState<File[]>([]);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [caseCounts, setCaseCounts] = useState<{ [department: string]: number }>({
     ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0
   });
@@ -228,8 +229,11 @@ const BlockchainDemo = () => {
                 {cases.map((nodeCase) => (
                   <Card
                     key={nodeCase.id}
-                    className="cursor-pointer"
-                    onClick={() => setSelectedCase(nodeCase)}
+                    className="cursor-pointer hover:bg-accent/5"
+                    onClick={() => {
+                      setSelectedCase(nodeCase);
+                      setIsDetailsOpen(true);
+                    }}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
