@@ -552,54 +552,7 @@ export class MemStorage implements IStorage {
 
 // Change to DatabaseStorage for production
 import { db } from './db';
-import { eq } from 'drizzle-orm';
-import * as schema from '@shared/schema';
-
-export const storage = {
-  async createCase(data: any) {
-    try {
-      const result = await db.insert(schema.cases).values(data).returning();
-      return result[0];
-    } catch (error) {
-      console.error('Failed to create case:', error);
-      throw new Error('Failed to create case');
-    }
-  },
-
-  async getCases(limit = 20, offset = 0) {
-    try {
-      return await db.select().from(schema.cases).limit(limit).offset(offset);
-    } catch (error) {
-      console.error('Failed to fetch cases:', error);
-      throw new Error('Failed to fetch cases');
-    }
-  },
-
-  async getCaseByReferenceId(id: string) {
-    try {
-      const results = await db.select().from(schema.cases).where(eq(schema.cases.caseId, id));
-      return results[0];
-    } catch (error) {
-      console.error('Failed to fetch case:', error);
-      throw new Error('Failed to fetch case');
-    }
-  },
-
-  async updateCase(id: number, data: any) {
-    try {
-      const result = await db.update(schema.cases).set(data).where(eq(schema.cases.id, id)).returning();
-      return result[0];
-    } catch (error) {
-      console.error('Failed to update case:', error);
-      throw new Error('Failed to update case');
-    }
-  }
-};
-```
-
-```
-import { db } from './db';
-import { eq, desc, and, or } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import * as schema from '@shared/schema';
 import type { 
   Case, InsertCase,
@@ -608,8 +561,7 @@ import type {
   SuspiciousPattern, InsertSuspiciousPattern,
   StrReport, InsertStrReport,
   CaseTimeline, InsertCaseTimeline,
-  BlockchainTransaction, InsertBlockchainTransaction,
-  CourtExport, InsertCourtExport
+  BlockchainTransaction, InsertBlockchainTransaction
 } from '@shared/schema';
 
 export const storage = {
@@ -722,74 +674,3 @@ export const storage = {
     }
   }
 };
-```
-
-```typescript
-import {
-  users, type User, type InsertUser,
-  cases, type Case, type InsertCase,
-  wallets, type Wallet, type InsertWallet,
-  transactions, type Transaction, type InsertTransaction,
-  suspiciousPatterns, type SuspiciousPattern, type InsertSuspiciousPattern,
-  strReports, type StrReport, type InsertStrReport,
-  caseTimeline, type CaseTimeline, type InsertCaseTimeline,
-  stateFraudStats, type StateFraudStat, type InsertStateFraudStat,
-  blockchainNodes, type BlockchainNode, type InsertBlockchainNode,
-  blockchainTransactions, type BlockchainTransaction, type InsertBlockchainTransaction,
-  kycInformation, type KycInformation, type InsertKycInformation,
-  courtExports, type CourtExport, type InsertCourtExport
-} from "@shared/schema";
-
-// Interface for storage operations
-
-export interface IStorage {
-  // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
-  
-  // Case operations
-  getCase(id: number): Promise<Case | undefined>;
-  getCaseByReferenceId(caseId: string): Promise<Case | undefined>;
-  getCases(limit?: number, offset?: number): Promise<Case[]>;
-  getCasesByStatus(status: string): Promise<Case[]>;
-  getCasesByPriority(priority: string): Promise<Case[]>;
-  createCase(caseData: InsertCase): Promise<Case>;
-  updateCase(id: number, caseData: Partial<InsertCase>): Promise<Case | undefined>;
-  
-  // Wallet operations
-  getWallet(id: number): Promise<Wallet | undefined>;
-  getWalletByAddress(address: string): Promise<Wallet | undefined>;
-  getWallets(limit?: number, offset?: number): Promise<Wallet[]>;
-  getWalletsByRiskLevel(riskLevel: string): Promise<Wallet[]>;
-  createWallet(wallet: InsertWallet): Promise<Wallet>;
-  updateWallet(id: number, wallet: Partial<InsertWallet>): Promise<Wallet | undefined>;
-  
-  // Transaction operations
-  getTransaction(id: number): Promise<Transaction | undefined>;
-  getTransactionsByWallet(walletAddress: string): Promise<Transaction[]>;
-  getTransactionsByCase(caseId: number): Promise<Transaction[]>;
-  createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  
-  // Suspicious Pattern operations
-  getSuspiciousPattern(id: number): Promise<SuspiciousPattern | undefined>;
-  getSuspiciousPatternByReferenceId(patternId: string): Promise<SuspiciousPattern | undefined>;
-  getSuspiciousPatterns(limit?: number, offset?: number): Promise<SuspiciousPattern[]>;
-  getSuspiciousPatternsByRiskLevel(riskLevel: string): Promise<SuspiciousPattern[]>;
-  createSuspiciousPattern(pattern: InsertSuspiciousPattern): Promise<SuspiciousPattern>;
-  
-  // STR Report operations
-  getStrReport(id: number): Promise<StrReport | undefined>;
-  getStrReportByReferenceId(strId: string): Promise<StrReport | undefined>;
-  getStrReports(limit?: number, offset?: number): Promise<StrReport[]>;
-  getStrReportsByStatus(status: string): Promise<StrReport[]>;
-  createStrReport(report: InsertStrReport): Promise<StrReport>;
-  updateStrReport(id: number, report: Partial<InsertStrReport>): Promise<StrReport | undefined>;
-  
-  // Case Timeline operations
-  getCaseTimelineEvents(caseId: number): Promise<CaseTimeline[]>;
-  createCaseTimelineEvent(event: InsertCaseTimeline): Promise<CaseTimeline>;
-  
-  // State Fraud Stats operations
-  getStateFraudStats(): Promise<StateFraudStat[]>;
-  getStateFraudStatByState(state: string): Promise<StateFraudStat | undefined>;
