@@ -15,16 +15,18 @@ import { Loader2, ArrowRight } from "lucide-react";
 const caseFormSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  reportedBy: z.string().min(2, "Reporter name is required"),
-  type: z.string().min(1, "Case type is required"),
-  priority: z.string().default("medium"),
+  caseType: z.enum(["task", "story", "bug", "epic"]).default("task"),
   sprint: z.string().optional(),
   storyPoints: z.coerce.number().min(0).max(13),
-  assignedDepartment: z.string().min(1, "Department assignment is required"),
-  labels: z.array(z.string()).default([]),
-  components: z.array(z.string()).default([]),
-  linkedIssues: z.array(z.string()).default([]),
+  reportedBy: z.string().min(2, "Reporter name is required"),
   estimatedLoss: z.coerce.number().min(0),
+  priority: z.enum(["blocker", "critical", "high", "medium", "low"]).default("medium"),
+  assignedDepartment: z.string().min(1, "Department assignment is required"),
+  status: z.enum(["backlog", "todo", "in_progress", "review", "done"]).default("backlog"),
+  components: z.array(z.string()).default([]),
+  labels: z.array(z.string()).default([]),
+  linkedIssues: z.array(z.string()).default([]),
+  epicLink: z.string().optional(),
   walletAddress: z.string().min(1, "Wallet Address is required"),
   transactionHash: z.string().min(1, "Transaction Hash is required")
 });
@@ -41,16 +43,18 @@ const CaseFilingForm = () => {
     defaultValues: {
       title: "",
       description: "",
-      reportedBy: "",
-      type: "task",
-      priority: "medium",
+      caseType: "task",
       sprint: "current",
       storyPoints: 3,
-      assignedDepartment: "",
-      labels: [],
-      components: [],
-      linkedIssues: [],
+      reportedBy: "",
       estimatedLoss: 0,
+      priority: "medium",
+      assignedDepartment: "",
+      status: "backlog",
+      components: [],
+      labels: [],
+      linkedIssues: [],
+      epicLink: "",
       walletAddress: "",
       transactionHash: ""
     },
@@ -105,7 +109,7 @@ const CaseFilingForm = () => {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
-              name="type"
+              name="caseType"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Case Type</FormLabel>
@@ -174,11 +178,36 @@ const CaseFilingForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="highest">Highest</SelectItem>
+                        <SelectItem value="blocker">Blocker</SelectItem>
+                        <SelectItem value="critical">Critical</SelectItem>
                         <SelectItem value="high">High</SelectItem>
                         <SelectItem value="medium">Medium</SelectItem>
                         <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="lowest">Lowest</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="backlog">Backlog</SelectItem>
+                        <SelectItem value="todo">To Do</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="review">Review</SelectItem>
+                        <SelectItem value="done">Done</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
