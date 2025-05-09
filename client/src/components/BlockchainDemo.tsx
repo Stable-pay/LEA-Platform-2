@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,7 +22,7 @@ interface NodeCase {
   status: "initiated" | "pending" | "confirmed" | "rejected";
   timestamp: string;
   details: string;
-  attachments: string[];
+  attachments: { name: string; url: string }[];
   responses: NodeResponse[];
   assignedTo?: string;
   initiator?: string;
@@ -34,7 +33,7 @@ interface NodeCase {
 interface NodeResponse {
   department: string;
   details: string;
-  attachments: string[];
+  attachments: { name: string; url: string }[];
   timestamp: string;
   status: "confirmed" | "rejected";
 }
@@ -52,10 +51,10 @@ const BlockchainDemo = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [wsConnected, setWsConnected] = useState(false);
-  
+
   useEffect(() => {
     const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
-    
+
     ws.onopen = () => {
       setWsConnected(true);
       toast({
@@ -63,7 +62,7 @@ const BlockchainDemo = () => {
         description: "Receiving real-time updates"
       });
     };
-    
+
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === "NODE_CONFIRMATION") {
@@ -146,7 +145,7 @@ const BlockchainDemo = () => {
       status: "initiated",
       timestamp: new Date().toISOString(),
       details: newCaseDetails,
-      attachments: attachments.map(file => file.name),
+      attachments: attachments.map(file => ({ name: file.name, url: URL.createObjectURL(file) })),
       responses: [],
       assignedTo: assignToDepartment,
       initiator: taskInitiator,
@@ -177,7 +176,7 @@ const BlockchainDemo = () => {
     const response: NodeResponse = {
       department: user?.department || "ED",
       details: responseDetails,
-      attachments: attachments.map(file => file.name),
+      attachments: attachments.map(file => ({ name: file.name, url: URL.createObjectURL(file) })),
       timestamp: new Date().toISOString(),
       status: "confirmed"
     };
@@ -234,12 +233,14 @@ const BlockchainDemo = () => {
               {canViewCaseDetails(nodeCase) ? (
                 <>
                   <p className="text-sm mt-2">{nodeCase.details}</p>
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex flex-wrap gap-2 mt-2">
                     {nodeCase.attachments.map((file, idx) => (
-                      <Badge key={idx} variant="outline">
-                        <FileCheck className="w-4 h-4 mr-1" />
-                        {file}
-                      </Badge>
+                      <div key={idx} className="flex items-center">
+                        <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
+                          <FileCheck className="w-4 h-4 mr-1" />
+                          {file.name}
+                        </Badge>
+                      </div>
                     ))}
                   </div>
                   <div className="mt-2 text-sm">
@@ -386,12 +387,14 @@ const BlockchainDemo = () => {
                   <div className="space-y-2">
                     <h4 className="font-semibold">Details</h4>
                     <p>{selectedCase.details}</p>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap gap-2">
                       {selectedCase.attachments.map((file, idx) => (
-                        <Badge key={idx} variant="outline">
-                          <FileCheck className="w-4 h-4 mr-1" />
-                          {file}
-                        </Badge>
+                        <div key={idx} className="flex items-center">
+                          <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
+                            <FileCheck className="w-4 h-4 mr-1" />
+                            {file.name}
+                          </Badge>
+                        </div>
                       ))}
                     </div>
                   </div>
@@ -408,12 +411,14 @@ const BlockchainDemo = () => {
                                 <Badge>{response.status}</Badge>
                               </div>
                               <p className="text-sm">{response.details}</p>
-                              <div className="flex gap-2 mt-2">
+                              <div className="flex flex-wrap gap-2 mt-2">
                                 {response.attachments.map((file, fileIdx) => (
-                                  <Badge key={fileIdx} variant="outline">
-                                    <FileCheck className="w-4 h-4 mr-1" />
-                                    {file}
-                                  </Badge>
+                                  <div key={fileIdx} className="flex items-center">
+                                    <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
+                                      <FileCheck className="w-4 h-4 mr-1" />
+                                      {file.name}
+                                    </Badge>
+                                  </div>
                                 ))}
                               </div>
                             </CardContent>
