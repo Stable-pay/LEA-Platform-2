@@ -1,3 +1,4 @@
+
 import { QueryClient } from '@tanstack/react-query';
 
 const queryClient = new QueryClient({
@@ -8,6 +9,25 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+export const getQueryFn = ({ on401 = "throw" } = {}) => {
+  return async ({ queryKey }: { queryKey: string[] }) => {
+    const [url] = queryKey;
+    const res = await fetch(url, {
+      credentials: 'include'
+    });
+    
+    if (res.status === 401 && on401 === "returnNull") {
+      return null;
+    }
+    
+    if (!res.ok) {
+      throw new Error(`API Error: ${res.status}`);
+    }
+    
+    return res.json();
+  };
+};
 
 export const apiRequest = async (
   method: string,
