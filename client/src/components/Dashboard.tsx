@@ -1,13 +1,11 @@
-typescript blocks. The edited code provides a clean and correct version of the Dashboard.tsx file. Therefore, I will replace the entire original code with the edited code.
 
-```typescript
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import BlockchainDemo from "./BlockchainDemo";
 import StatsCard from "./StatsCard";
 import RecentCaseActivity from "./RecentCaseActivity";
 import QuickActions from "./QuickActions";
 import PriorityQueue from "./PriorityQueue";
+import BlockchainDemo from "./BlockchainDemo";
 
 const Dashboard = () => {
   return (
