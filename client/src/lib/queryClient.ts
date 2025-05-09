@@ -16,3 +16,22 @@ export const apiRequest = axios.create({
   baseURL: '/api',
   withCredentials: true
 });
+
+type QueryFnOptions = {
+  on401?: 'throw' | 'returnNull';
+};
+
+export const getQueryFn = (options: QueryFnOptions = {}) => {
+  return async ({ queryKey }: { queryKey: string[] }) => {
+    try {
+      const [url] = queryKey;
+      const response = await apiRequest.get(url);
+      return response.data;
+    } catch (error: any) {
+      if (error.response?.status === 401 && options.on401 === 'returnNull') {
+        return null;
+      }
+      throw error;
+    }
+  };
+};
