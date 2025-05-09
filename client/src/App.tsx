@@ -27,6 +27,7 @@ export default function App() {
           <AppShell>
             <Switch>
               <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
               <Route path="/login" component={DepartmentLogin} />
               <Route path="/case-management" component={CaseManagement} />
               <Route path="/case-filing" component={CaseFiling} />
