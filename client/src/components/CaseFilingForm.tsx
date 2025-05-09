@@ -204,24 +204,21 @@ const CaseFilingForm = () => {
   // Case creation with department and management integration
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      const response = await fetch('/api/cases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...values,
-          assignedDepartment: values.assignedDepartment,
-          initiatorDepartment: values.initiatorDepartment,
-          confirmerDepartment: values.confirmerDepartment,
-        }),
+      const response = await apiRequest.post('/api/cases', {
+        ...values,
+        assignedDepartment: values.assignedDepartment,
+        initiatorDepartment: values.initiatorDepartment,
+        confirmerDepartment: values.confirmerDepartment,
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create case');
-      }
-
-      return response.json();
+      
+      return response.data;
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error Creating Case",
+        description: error.response?.data?.message || "Failed to create case",
+        variant: "destructive",
+      });
     },
     onSuccess: (data, values) => {
       setIsSubmitting(false);
