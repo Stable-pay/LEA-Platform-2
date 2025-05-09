@@ -6,11 +6,16 @@ import * as schema from '@shared/schema';
 
 neonConfig.webSocketConstructor = ws;
 
-const sql = neon(process.env.DATABASE_URL || 'local:localdb');
+if (!process.env.DATABASE_URL) {
+  throw new Error('DATABASE_URL environment variable is required');
+}
+
+// Create connection pool
+const sql = neon(process.env.DATABASE_URL);
 export const db = drizzle(sql, { schema });
 
 // Test database connection
-export async function testConnection() {
+async function testConnection() {
   try {
     await sql`SELECT 1`;
     console.log('✅ Database connected successfully');
@@ -19,3 +24,5 @@ export async function testConnection() {
     throw error;
   }
 }
+
+testConnection();
