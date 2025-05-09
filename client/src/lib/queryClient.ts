@@ -14,14 +14,29 @@ export async function apiRequest(
 ): Promise<Response> {
   const res = await fetch(url, {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: {
+      "Content-Type": "application/json",
+      "Accept": "application/json",
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   });
 
-  await throwIfResNotOk(res);
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({}));
+    throw new Error(errorData.message || `API Error: ${res.status}`);
+  }
+
   return res;
 }
+
+// Add convenience methods
+export const api = {
+  get: (url: string) => apiRequest("GET", url),
+  post: (url: string, data: unknown) => apiRequest("POST", url, data),
+  put: (url: string, data: unknown) => apiRequest("PUT", url, data),
+  delete: (url: string) => apiRequest("DELETE", url),
+};
 
 type UnauthorizedBehavior = "returnNull" | "throw";
 export const getQueryFn: <T>(options: {
