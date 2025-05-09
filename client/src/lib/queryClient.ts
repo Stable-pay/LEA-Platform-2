@@ -2,35 +2,46 @@
 import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
+// Create base axios instance
+export const apiRequest = axios.create({
+  baseURL: '/',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+// Add response interceptors
+apiRequest.interceptors.response.use(
+  response => response,
+  error => {
+    // Handle auth errors
+    if (error.response?.status === 401) {
+      if (error.response?.data?.redirectTo) {
+        window.location.href = error.response.data.redirectTo;
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+// Configure Query Client
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 60 * 1000,
+      staleTime: 60 * 1000, // 1 minute
       retry: 1,
       refetchOnWindowFocus: false,
     }
   }
 });
 
-export const apiRequest = axios.create({
-  baseURL: '/',
-  withCredentials: true, // Important for session cookies
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
+// Type for query function options
+type QueryFnOptions = {
+  on401?: 'throw' | 'returnNull';
+};
 
-// Add response interceptor for handling auth redirects
-apiRequest.interceptors.response.use(
-  response => response,
-  error => {
-    if (error.response?.status === 401 && error.response?.data?.redirectTo) {
-      window.location.href = error.response.data.redirectTo;
-    }
-    return Promise.reject(error);
-  }
-);
-
+// Create reusable query function
 export const getQueryFn = (options: QueryFnOptions = {}) => {
   return async ({ queryKey }: { queryKey: string[] }) => {
     try {
