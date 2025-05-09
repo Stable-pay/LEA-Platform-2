@@ -12,13 +12,14 @@ import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatWalletAddress } from "@/lib/utils";
+import { Textarea } from "@/components/ui/textarea";
 
 const WalletCheck = () => {
   const [walletAddress, setWalletAddress] = useState("");
   const [network, setNetwork] = useState("");
   const [transactionVolume, setTransactionVolume] = useState("");
   const [riskLevel, setRiskLevel] = useState("");
-  const [analysis, setAnalysis] = useState("");
+  const [analysisNotes, setAnalysisNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentWallets, setRecentWallets] = useState<any[]>([]);
   const { toast } = useToast();
@@ -77,7 +78,10 @@ const WalletCheck = () => {
           network,
           transactionVolume: parseFloat(transactionVolume) || 0,
           riskLevel,
-          analysis
+          analysisNotes,
+          lastChecked: new Date().toISOString(),
+          watchlistStatus: 'none',
+          firstSeen: new Date().toISOString()
         })
       });
 
@@ -91,7 +95,7 @@ const WalletCheck = () => {
         setNetwork("");
         setTransactionVolume("");
         setRiskLevel("");
-        setAnalysis("");
+        setAnalysisNotes("");
       } else {
         throw new Error('Failed to submit wallet check');
       }
@@ -142,8 +146,8 @@ const WalletCheck = () => {
                     <SelectValue placeholder="Select network" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bitcoin">Bitcoin</SelectItem>
                     <SelectItem value="ethereum">Ethereum</SelectItem>
+                    <SelectItem value="bitcoin">Bitcoin</SelectItem>
                     <SelectItem value="binance">Binance Smart Chain</SelectItem>
                     <SelectItem value="polygon">Polygon</SelectItem>
                     <SelectItem value="solana">Solana</SelectItem>
@@ -172,10 +176,11 @@ const WalletCheck = () => {
                     <SelectValue placeholder="Select risk level" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="critical">Critical Risk</SelectItem>
                     <SelectItem value="high">High Risk</SelectItem>
                     <SelectItem value="medium">Medium Risk</SelectItem>
                     <SelectItem value="low">Low Risk</SelectItem>
-                    <SelectItem value="none">No Risk</SelectItem>
+                    <SelectItem value="safe">Safe</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -184,10 +189,10 @@ const WalletCheck = () => {
                 <label className="text-sm font-medium leading-none mb-2 block">
                   Analysis Notes
                 </label>
-                <Input 
+                <Textarea 
                   placeholder="Enter analysis notes"
-                  value={analysis}
-                  onChange={(e) => setAnalysis(e.target.value)}
+                  value={analysisNotes}
+                  onChange={(e) => setAnalysisNotes(e.target.value)}
                 />
               </div>
 
@@ -223,14 +228,14 @@ const WalletCheck = () => {
                 <div key={index} className="p-4 border rounded">
                   <div className="flex justify-between items-start mb-2">
                     <code className="text-sm">{formatWalletAddress(wallet.address)}</code>
-                    <Badge variant={wallet.riskLevel === 'high' ? 'destructive' : 'secondary'}>
-                      {wallet.riskLevel} Risk
+                    <Badge variant={wallet.riskLevel === 'critical' ? 'destructive' : 'secondary'}>
+                      {wallet.riskLevel.charAt(0).toUpperCase() + wallet.riskLevel.slice(1)} Risk
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     <p>Network: {wallet.network}</p>
                     <p>Volume: {wallet.transactionVolume}</p>
-                    <p>Date: {new Date(wallet.timestamp).toLocaleDateString()}</p>
+                    <p>Last Checked: {new Date(wallet.lastChecked).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
