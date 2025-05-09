@@ -2,13 +2,11 @@ import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { insertCaseSchema } from "@shared/schema";
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,7 +14,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -25,7 +22,6 @@ import {
 import { Loader2, CheckCircle, Clock, AlertTriangle, ArrowRight, FileCheck } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
-// Define form schema extending the insert schema
 const caseFormSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters"),
   description: z.string().min(10, "Description must be at least 10 characters"),
@@ -34,20 +30,19 @@ const caseFormSchema = z.object({
   priority: z.string().default("medium"),
   estimatedLoss: z.coerce.number().min(0, "Estimated loss must be a positive number"),
   assignedDepartment: z.string().min(1, "Department assignment is required"),
-  initiatorDepartment: z.string().min(1, "Task initiator is required"), 
+  initiatorDepartment: z.string().min(1, "Task initiator is required"),
   confirmerDepartment: z.string().min(1, "Task confirmer is required"),
 });
 
 type CaseFormValues = z.infer<typeof caseFormSchema>;
 
-// Component for real-time blockchain verification display
-const BlockchainVerification = ({ 
-  isVerifying, 
-  verificationStage, 
+const BlockchainVerification = ({
+  isVerifying,
+  verificationStage,
   txHash,
   confirmations
-}: { 
-  isVerifying: boolean; 
+}: {
+  isVerifying: boolean;
   verificationStage: number;
   txHash: string | null;
   confirmations: number;
@@ -74,8 +69,8 @@ const BlockchainVerification = ({
 
       <div className="space-y-3">
         {stages.map((stage, index) => (
-          <div 
-            key={index} 
+          <div
+            key={index}
             className="flex items-center text-sm"
           >
             <div className={`w-6 h-6 rounded-full flex items-center justify-center mr-3 ${
@@ -114,6 +109,7 @@ const BlockchainVerification = ({
 const CaseFilingForm = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStage, setVerificationStage] = useState(0);
@@ -121,11 +117,9 @@ const CaseFilingForm = () => {
   const [confirmations, setConfirmations] = useState(0);
   const [caseId, setCaseId] = useState<string | null>(null);
 
-  // Setup WebSocket connection for blockchain verification
   useEffect(() => {
     if (!isVerifying) return;
 
-    // Connect to WebSocket for real-time updates
     const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
     const wsUrl = `${protocol}//${window.location.hostname}/ws`;
     const socket = new WebSocket(wsUrl);
@@ -140,7 +134,7 @@ const CaseFilingForm = () => {
         console.log("WebSocket message:", data);
 
         if (data.type === "TRANSACTION_CONFIRMED" && data.data.entityType === "case" && data.data.entityId === caseId) {
-          setVerificationStage(3); // Final stage
+          setVerificationStage(3);
           setConfirmations(1);
           setIsVerifying(false);
 
@@ -164,8 +158,6 @@ const CaseFilingForm = () => {
     };
   }, [isVerifying, caseId, toast]);
 
-  // Get nodes for dropdown
-  // Mock nodes data for demo
   const nodes = [
     { id: "ED", name: "Enforcement Directorate" },
     { id: "FIU", name: "Financial Intelligence Unit" },
@@ -173,14 +165,13 @@ const CaseFilingForm = () => {
     { id: "IT", name: "Income Tax Department" }
   ];
 
-  // Simulate blockchain verification progress
   useEffect(() => {
     if (!isVerifying) return;
 
     const interval = setInterval(() => {
       setVerificationStage((stage) => {
         const next = stage + 1;
-        if (next >= 3) { // Stop at stage 3, waiting for confirmation
+        if (next >= 3) {
           clearInterval(interval);
         }
         return next < 3 ? next : 2;
@@ -190,7 +181,6 @@ const CaseFilingForm = () => {
     return () => clearInterval(interval);
   }, [isVerifying]);
 
-  // Form definition
   const form = useForm<CaseFormValues>({
     resolver: zodResolver(caseFormSchema),
     defaultValues: {
@@ -203,10 +193,8 @@ const CaseFilingForm = () => {
     },
   });
 
-  // Case creation with department and management integration
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      // Prepare case data according to schema
       const caseData = {
         ...values,
         caseId: `CASE-${Date.now().toString().slice(-6)}`,
@@ -214,7 +202,6 @@ const CaseFilingForm = () => {
         assignedTo: values.assignedDepartment,
         status: values.status || "active",
         reportedBy: user?.fullName || values.reportedBy,
-        // Ensure required fields from schema
         title: values.title,
         description: values.description,
         priority: values.priority || "medium",
@@ -223,8 +210,14 @@ const CaseFilingForm = () => {
       };
 
       console.log("Submitting case:", caseData);
-      
-      const response = await apiRequest("POST", "/api/cases", caseData);
+
+      const response = await fetch("/api/cases", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(caseData),
+      });
 
       if (!response.ok) {
         throw new Error('Failed to create case');
@@ -235,63 +228,72 @@ const CaseFilingForm = () => {
     onSuccess: (data, values) => {
       setIsSubmitting(false);
       setCaseId(data.id.toString());
-      
-      // Start blockchain verification
+
       setIsVerifying(true);
       setVerificationStage(0);
-      
-      // Generate mock transaction hash
+
       const mockId = Date.now().toString().slice(-4);
       setTxHash(`0x${Math.random().toString(16).slice(2)}`);
-      
-      // Dispatch events for both Department Node Explorer and Case Management
+
       const caseData = {
         ...values,
         id: mockId,
         caseId: `CASE-${mockId}`,
-        attachments: attachments.map(file => file.name),
         createdAt: new Date().toISOString(),
         verifiedOnBlockchain: true,
         department: values.assignedDepartment,
         status: values.status || "active"
       };
-      
+
       const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
       const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
-      
+
       window.dispatchEvent(newCaseEvent);
       window.dispatchEvent(caseManagementEvent);
-      
+
+      queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
       toast({
         title: "Case Created",
         description: `Case ${mockId} has been created successfully.`,
       });
-    }
+      form.reset();
+    },
+    onError: (error) => {
+      setIsSubmitting(false);
+      toast({
+        title: "Error",
+        description: "Failed to create case. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
-  // Function to handle form submission
   const onSubmit = (data: CaseFormValues) => {
     setIsSubmitting(true);
     createCaseMutation.mutate(data);
   };
 
-  // Function to start blockchain verification
   const startBlockchainVerification = async (caseId: number) => {
     try {
       setIsVerifying(true);
       setVerificationStage(0);
 
-      // Create a blockchain transaction for verification
-      const res = await apiRequest("POST", "/api/blockchain/verify", {
-        entityType: "case",
-        entityId: caseId.toString(),
-        action: "create",
-        sourceNodeId: "stable-pay-node",
-        metadata: {
-          verifiedBy: user?.fullName,
-          role: user?.role,
-          timestamp: new Date().toISOString()
-        }
+      const res = await fetch("/api/blockchain/verify", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          entityType: "case",
+          entityId: caseId.toString(),
+          action: "create",
+          sourceNodeId: "stable-pay-node",
+          metadata: {
+            verifiedBy: user?.fullName,
+            role: user?.role,
+            timestamp: new Date().toISOString()
+          }
+        }),
       });
 
       const txData = await res.json();
@@ -308,7 +310,6 @@ const CaseFilingForm = () => {
     }
   };
 
-  // Reset the form
   const handleReset = () => {
     form.reset();
     setIsVerifying(false);
@@ -350,10 +351,10 @@ const CaseFilingForm = () => {
                 <FormItem>
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Describe the case in detail" 
-                      className="min-h-[120px]" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Describe the case in detail"
+                      className="min-h-[120px]"
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -383,9 +384,9 @@ const CaseFilingForm = () => {
                   <FormItem>
                     <FormLabel>Estimated Loss (INR)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="Amount in INR" 
+                      <Input
+                        type="number"
+                        placeholder="Amount in INR"
                         {...field}
                       />
                     </FormControl>
@@ -523,21 +524,21 @@ const CaseFilingForm = () => {
             </div>
 
             <div className="flex justify-end space-x-2 mt-6">
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleReset}
                 disabled={isSubmitting || isVerifying}
               >
                 Reset
               </Button>
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 disabled={isSubmitting || isVerifying}
               >
                 {isSubmitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Submitting...
                   </>
                 ) : (
@@ -550,9 +551,8 @@ const CaseFilingForm = () => {
           </form>
         </Form>
 
-        {/* Blockchain Verification Section */}
         {(isVerifying || confirmations > 0) && (
-          <BlockchainVerification 
+          <BlockchainVerification
             isVerifying={isVerifying}
             verificationStage={verificationStage}
             txHash={txHash}
