@@ -68,4 +68,4 @@ args = "export DATABASE_URL=\"postgresql://neondb_owner:npg_n0EhFVLTo9kU@ep-bold
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run dev"
+args = "NODE_ENV=development npm run dev"
