@@ -100,7 +100,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create a new case
   app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
-    if (!req.isAuthenticated()) {
+    const userId = req.headers["x-replit-user-id"];
+    if (!userId) {
       return res.status(401).json({ message: "Authentication required" });
     }
     
