@@ -7,67 +7,148 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
-import { ComposableMap, Geographies, Geography } from "react-simple-maps";
-import { scaleLinear } from "d3-scale";
-
-const stateStats = [
-  { state: "Maharashtra", caseCount: 78, estimatedLoss: 48000000 },
-  { state: "Karnataka", caseCount: 42, estimatedLoss: 32000000 },
-  { state: "Delhi", caseCount: 38, estimatedLoss: 29000000 },
-  { state: "Gujarat", caseCount: 25, estimatedLoss: 18000000 },
-  { state: "Tamil Nadu", caseCount: 22, estimatedLoss: 15000000 },
-  { state: "Uttar Pradesh", caseCount: 15, estimatedLoss: 12000000 },
-  { state: "Telangana", caseCount: 12, estimatedLoss: 9000000 },
-  { state: "West Bengal", caseCount: 10, estimatedLoss: 7500000 }
-];
-
-const colorScale = scaleLinear()
-  .domain([0, 80])
-  .range(["#ffedea", "#ff5233"]);
+import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
+import { scaleQuantize } from "d3-scale";
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Download, Filter, Share2 } from "lucide-react";
+import { Download, Filter, Share2, Layers } from "lucide-react";
+import ReactTooltip from "react-tooltip";
+
+const fraudData = {
+  "Maharashtra": { 
+    caseCount: 78, 
+    estimatedLoss: 48000000,
+    cryptoTypes: ["Bitcoin", "Ethereum"],
+    fraudTypes: ["Exchange Scam", "Ponzi Scheme"]
+  },
+  "Karnataka": {
+    caseCount: 42,
+    estimatedLoss: 32000000,
+    cryptoTypes: ["Bitcoin", "USDT"],
+    fraudTypes: ["Fake ICO", "Wallet Hack"]
+  },
+  "Delhi": {
+    caseCount: 38,
+    estimatedLoss: 29000000,
+    cryptoTypes: ["Ethereum", "USDT"],
+    fraudTypes: ["Phishing", "Ransomware"]
+  },
+  "Gujarat": {
+    caseCount: 25,
+    estimatedLoss: 18000000,
+    cryptoTypes: ["Bitcoin"],
+    fraudTypes: ["Mining Scam"]
+  },
+  "Tamil Nadu": {
+    caseCount: 22,
+    estimatedLoss: 15000000,
+    cryptoTypes: ["Ethereum"],
+    fraudTypes: ["DeFi Rug Pull"]
+  }
+};
+
+const colorScale = scaleQuantize()
+  .domain([0, 80])
+  .range([
+    "#ffedea",
+    "#ffcec5",
+    "#ffad9f",
+    "#ff8a75",
+    "#ff5533",
+    "#e2492d",
+    "#be3d26",
+    "#9a311f",
+    "#782618"
+  ]);
 
 const ScamHeatmap = () => {
+  const [tooltipContent, setTooltipContent] = useState("");
+  const [position, setPosition] = useState({ coordinates: [78.9629, 22.5937], zoom: 4 });
+  const [activeLayer, setActiveLayer] = useState("cases"); // cases, losses, crypto, fraud
+
+  const handleMoveEnd = (position) => {
+    setPosition(position);
+  };
+
+  const getTooltipContent = (geo) => {
+    const data = fraudData[geo.properties.name];
+    if (!data) return "";
+
+    switch(activeLayer) {
+      case "cases":
+        return `${geo.properties.name}\nCases: ${data.caseCount}`;
+      case "losses":
+        return `${geo.properties.name}\nLoss: ₹${(data.estimatedLoss/10000000).toFixed(1)}Cr`;
+      case "crypto":
+        return `${geo.properties.name}\nCrypto: ${data.cryptoTypes.join(", ")}`;
+      case "fraud":
+        return `${geo.properties.name}\nTypes: ${data.fraudTypes.join(", ")}`;
+      default:
+        return geo.properties.name;
+    }
+  };
+
+  const getFillColor = (geo) => {
+    const data = fraudData[geo.properties.name];
+    if (!data) return "#F5F5F5";
+
+    switch(activeLayer) {
+      case "cases":
+        return colorScale(data.caseCount);
+      case "losses":
+        return colorScale(data.estimatedLoss/1000000);
+      case "crypto":
+        return colorScale(data.cryptoTypes.length * 20);
+      case "fraud":
+        return colorScale(data.fraudTypes.length * 20);
+      default:
+        return "#F5F5F5";
+    }
+  };
+
   return (
     <div className="container mx-auto py-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Scam Heatmap</h1>
+        <h1 className="text-2xl font-bold mb-2">Crypto Fraud Heatmap</h1>
         <p className="text-muted-foreground">
-          State-wise visualization of active frauds and escalations
+          Interactive visualization of crypto fraud cases across India
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
         <div className="lg:col-span-3">
           <Card className="shadow">
             <CardHeader className="flex flex-row items-center justify-between py-4">
               <CardTitle>India Crypto Fraud Heatmap</CardTitle>
               <div className="flex items-center gap-2">
-                <Select defaultValue="monthly">
-                  <SelectTrigger className="w-[120px] h-8 text-xs">
-                    <SelectValue placeholder="Select period" />
+                <Select 
+                  defaultValue={activeLayer}
+                  onValueChange={setActiveLayer}
+                >
+                  <SelectTrigger className="w-[140px] h-8 text-xs">
+                    <SelectValue placeholder="Select layer" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
-                      <SelectItem value="yearly">Yearly</SelectItem>
+                      <SelectItem value="cases">Case Count</SelectItem>
+                      <SelectItem value="losses">Financial Loss</SelectItem>
+                      <SelectItem value="crypto">Crypto Types</SelectItem>
+                      <SelectItem value="fraud">Fraud Types</SelectItem>
                     </SelectGroup>
                   </SelectContent>
                 </Select>
-                
+
                 <Button variant="outline" size="sm" className="h-8">
                   <Filter className="h-4 w-4 mr-1" />
                   Filter
                 </Button>
-                
+
                 <Button variant="outline" size="sm" className="h-8">
                   <Share2 className="h-4 w-4 mr-1" />
                   Share
                 </Button>
-                
+
                 <Button variant="outline" size="sm" className="h-8">
                   <Download className="h-4 w-4 mr-1" />
                   Export
@@ -75,63 +156,86 @@ const ScamHeatmap = () => {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="heatmap h-[500px]">
+              <div className="heatmap h-[500px]" data-tip="">
                 <ComposableMap
                   projection="geoMercator"
+                  data-tip=""
                   projectionConfig={{
-                    scale: 1000,
-                    center: [78.9629, 22.5937]
+                    scale: 1000
                   }}
                 >
-                  <Geographies geography={"/india.json"}>
-                    {({ geographies }) =>
-                      geographies.map((geo) => {
-                        const stateName = geo.properties.name;
-                        const stateData = stateStats.find(s => s.state === stateName);
-                        const intensity = stateData ? colorScale(stateData.caseCount) : "#F5F5F5";
-                        
-                        return (
+                  <ZoomableGroup
+                    zoom={position.zoom}
+                    center={position.coordinates}
+                    onMoveEnd={handleMoveEnd}
+                  >
+                    <Geographies geography="/india.json">
+                      {({ geographies }) =>
+                        geographies.map((geo) => (
                           <Geography
                             key={geo.rsmKey}
                             geography={geo}
-                            fill={intensity}
+                            fill={getFillColor(geo)}
                             stroke="#FFFFFF"
                             strokeWidth={0.5}
+                            onMouseEnter={() => {
+                              setTooltipContent(getTooltipContent(geo));
+                            }}
+                            onMouseLeave={() => {
+                              setTooltipContent("");
+                            }}
                             style={{
                               default: { outline: "none" },
                               hover: { fill: "#666", outline: "none" },
                               pressed: { outline: "none" }
                             }}
                           />
-                        );
-                      })
-                    }
-                  </Geographies>
+                        ))
+                      }
+                    </Geographies>
+                  </ZoomableGroup>
                 </ComposableMap>
+                {tooltipContent && (
+                  <div 
+                    style={{
+                      position: "absolute",
+                      bottom: "20px",
+                      left: "20px",
+                      padding: "10px",
+                      background: "white",
+                      borderRadius: "4px",
+                      boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+                    }}
+                  >
+                    {tooltipContent.split('\n').map((line, i) => (
+                      <div key={i}>{line}</div>
+                    ))}
+                  </div>
+                )}
               </div>
-              
+
               <div className="mt-4 flex justify-between text-xs">
                 <div className="flex items-center">
-                  <span className="w-3 h-3 bg-green-100 rounded-full mr-2"></span>
-                  <span>Low Risk (0-10 cases)</span>
+                  <span className="w-3 h-3 bg-[#ffedea] rounded-full mr-2"></span>
+                  <span>Low</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="w-3 h-3 bg-yellow-100 rounded-full mr-2"></span>
-                  <span>Medium Risk (11-30 cases)</span>
+                  <span className="w-3 h-3 bg-[#ffad9f] rounded-full mr-2"></span>
+                  <span>Medium</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="w-3 h-3 bg-orange-100 rounded-full mr-2"></span>
-                  <span>High Risk (31-50 cases)</span>
+                  <span className="w-3 h-3 bg-[#ff5533] rounded-full mr-2"></span>
+                  <span>High</span>
                 </div>
                 <div className="flex items-center">
-                  <span className="w-3 h-3 bg-red-100 rounded-full mr-2"></span>
-                  <span>Critical Risk (51+ cases)</span>
+                  <span className="w-3 h-3 bg-[#be3d26] rounded-full mr-2"></span>
+                  <span>Critical</span>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-        
+
         <div className="lg:col-span-1">
           <Card className="shadow mb-6">
             <CardHeader>
