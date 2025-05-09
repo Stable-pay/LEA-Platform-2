@@ -64,4 +64,8 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
+args = "export DATABASE_URL=\"postgres://user:pass@localhost:5432/mydb\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
 args = "npm run dev"

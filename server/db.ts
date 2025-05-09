@@ -6,12 +6,11 @@ import * as schema from '@shared/schema';
 
 neonConfig.webSocketConstructor = ws;
 
-if (!process.env.DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is required');
-}
+// Use a default local URL if DATABASE_URL is not set
+const DATABASE_URL = process.env.DATABASE_URL || 'postgres://user:pass@localhost:5432/mydb';
 
 // Create connection pool
-const sql = neon(process.env.DATABASE_URL);
+const sql = neon(DATABASE_URL);
 export const db = drizzle(sql, { schema });
 
 // Test database connection
