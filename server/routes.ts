@@ -108,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         dateReported,
         reportedBy: req.body.reportedBy,
         estimatedLoss: Number(req.body.estimatedLoss || 0),
-        assignedTo: req.body.assignedDepartment,
+        assignedTo: Number(req.body.assignedTo) || null,
         priority: req.body.priority || "medium",
         createdAt: dateReported,
         updatedAt: dateReported

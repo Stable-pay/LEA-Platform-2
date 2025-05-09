@@ -598,24 +598,39 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCase(caseData: InsertCase): Promise<Case> {
-    const [newCase] = await db
-      .insert(cases)
-      .values(caseData)
-      .returning();
-    
-    // Create blockchain transaction for case creation
-    await this.createBlockchainTransaction({
-      blockHash: `block_${Date.now()}`,
-      sourceNodeId: "LEA_NODE_001", // Default LEA node
-      entityType: "case",
-      entityId: newCase.id.toString(),
-      action: "create",
-      metadata: { caseId: newCase.caseId },
-      status: "confirmed",
-      signatureHash: `sig_${Date.now()}`
-    });
-    
-    return newCase;
+    try {
+      console.log("Inserting case with data:", caseData);
+      
+      const [newCase] = await db
+        .insert(cases)
+        .values(caseData)
+        .returning();
+
+      if (!newCase) {
+        throw new Error("Failed to insert case into database");
+      }
+      
+      try {
+        // Create blockchain transaction for case creation
+        await this.createBlockchainTransaction({
+          blockHash: `block_${Date.now()}`,
+          sourceNodeId: "LEA_NODE_001", // Default LEA node
+          entityType: "case",
+          entityId: newCase.id.toString(),
+          action: "create",
+          metadata: { caseId: newCase.caseId },
+          status: "confirmed",
+          signatureHash: `sig_${Date.now()}`
+        });
+      } catch (blockchainError) {
+        console.error("Blockchain transaction failed but case was created:", blockchainError);
+      }
+      
+      return newCase;
+    } catch (error) {
+      console.error("Error creating case:", error);
+      throw error;
+    }
   }
 
   async updateCase(id: number, caseData: Partial<InsertCase>): Promise<Case | undefined> {
