@@ -164,18 +164,23 @@ export function setupAuth(app: Express) {
   
   // Middleware to check if user is authenticated
   app.use("/api/*", (req: Request, res: Response, next: NextFunction) => {
-    // Skip auth check for login, logout, register, and user endpoints
-    if (
-      req.path === "/api/login" || 
-      req.path === "/api/logout" || 
-      req.path === "/api/register" || 
-      req.path === "/api/user"
-    ) {
+    const publicPaths = [
+      "/api/login",
+      "/api/logout", 
+      "/api/register",
+      "/api/user"
+    ];
+    
+    // Skip auth check for public endpoints
+    if (publicPaths.includes(req.path)) {
       return next();
     }
-    
+
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Authentication required" });
+      return res.status(401).json({ 
+        message: "Authentication required",
+        redirectTo: "/auth"
+      });
     }
     
     next();

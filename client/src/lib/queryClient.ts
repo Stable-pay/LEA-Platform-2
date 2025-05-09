@@ -13,8 +13,11 @@ export const queryClient = new QueryClient({
 });
 
 export const apiRequest = axios.create({
-  baseURL: '/api',
-  withCredentials: true
+  baseURL: '/',
+  withCredentials: true,
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 type QueryFnOptions = {
