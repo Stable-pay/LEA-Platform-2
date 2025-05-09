@@ -192,18 +192,19 @@ const BlockchainDemo = () => {
         const response = await fetch('/api/cases');
         if (response.ok) {
           const data = await response.json();
-          setCases(data);
-          updateCaseCounts(data);
+          setCases(data || []);
+          updateCaseCounts(data || []);
         }
       } catch (error) {
         console.error('Error fetching cases:', error);
+        setCases([]);
       }
     };
 
     if (user) {
       fetchCases();
     }
-  }, [user]);
+  }, [user, updateCaseCounts]);
 
   return (
     <Card>
