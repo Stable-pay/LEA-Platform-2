@@ -26,14 +26,14 @@ export default function App() {
           <AppShell>
             <Switch>
               <Route path="/" component={Dashboard} />
-              <ProtectedRoute path="/case-management" component={CaseManagement} />
-              <ProtectedRoute path="/case-filing" component={CaseFiling} />
-              <ProtectedRoute path="/analytics" component={Analytics} />
-              <ProtectedRoute path="/wallet-check" component={WalletCheck} />
-              <ProtectedRoute path="/pattern-scan" component={PatternScan} />
-              <ProtectedRoute path="/str-generator" component={StrGenerator} />
-              <ProtectedRoute path="/scam-heatmap" component={ScamHeatmap} />
-              <ProtectedRoute path="/network-graph" component={NetworkGraph} />
+              <Route path="/case-management" component={CaseManagement} />
+              <Route path="/case-filing" component={CaseFiling} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/wallet-check" component={WalletCheck} />
+              <Route path="/pattern-scan" component={PatternScan} />
+              <Route path="/str-generator" component={StrGenerator} />
+              <Route path="/scam-heatmap" component={ScamHeatmap} />
+              <Route path="/network-graph" component={NetworkGraph} />
               <Route path="/auth" component={AuthPage} />
               <Route component={NotFound} />
             </Switch>
