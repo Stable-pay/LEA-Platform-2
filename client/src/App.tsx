@@ -26,7 +26,7 @@ export default function App() {
         <TooltipProvider>
           <AppShell>
             <Switch>
-              <Route path="/" component={Dashboard} />
+              <Route path="/" component={DepartmentLogin} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/login" component={DepartmentLogin} />
               <Route path="/case-management" component={CaseManagement} />
