@@ -101,7 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create a new case
   app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
     try {
-      const caseCount = (await storage.getCases()).length;
+      console.log("Creating case with data:", req.body);
+      const cases = await storage.getCases();
+      const caseCount = Array.isArray(cases) ? cases.length : 0;
       const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);
       
       // Create case with department assignment

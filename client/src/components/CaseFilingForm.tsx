@@ -259,10 +259,11 @@ const CaseFilingForm = () => {
       form.reset();
     },
     onError: (error) => {
+      console.error("Case creation error:", error);
       setIsSubmitting(false);
       toast({
-        title: "Error",
-        description: "Failed to create case. Please try again.",
+        title: "Error Creating Case",
+        description: error.message || "Failed to create case. Please try again.",
         variant: "destructive",
       });
     },

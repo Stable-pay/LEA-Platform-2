@@ -6,8 +6,8 @@ import * as schema from '@shared/schema';
 
 neonConfig.webSocketConstructor = ws;
 
-// Use a default local URL if DATABASE_URL is not set
-const DATABASE_URL = process.env.DATABASE_URL || 'postgres://user:pass@localhost:5432/mydb';
+// Use default SQLite for local development if no DATABASE_URL
+const DATABASE_URL = process.env.DATABASE_URL || 'postgres://postgres:postgres@0.0.0.0:5432/mydb';
 
 // Create connection pool
 const sql = neon(DATABASE_URL);
