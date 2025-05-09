@@ -627,60 +627,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   if (wss) { // This block won't execute, just keeping the handlers for reference
     wss.on('connection', (ws) => {
-    log("WebSocket client connected", "ws");
-    
-    // Send welcome message
-    ws.send(JSON.stringify({
-      type: "CONNECTED",
-      message: "Connected to StablePay Blockchain Network",
-      timestamp: new Date()
-    }));
-
-    // Simulate periodic node confirmations
-    const nodeNames = ["LEA Central Node", "FIU Node 1", "IND Node", "I4C Node"];
-    const confirmationInterval = setInterval(() => {
-      const randomNode = nodeNames[Math.floor(Math.random() * nodeNames.length)];
+      log("WebSocket client connected", "ws");
+      
+      // Send welcome message
       ws.send(JSON.stringify({
-        type: "NODE_CONFIRMATION",
-        nodeName: randomNode,
-        timestamp: new Date().toISOString()
+        type: "CONNECTED",
+        message: "Connected to StablePay Blockchain Network",
+        timestamp: new Date()
       }));
-    }, 2000);
 
-    ws.on('close', () => {
-      clearInterval(confirmationInterval);
-    });
-    
-    ws.on('message', async (message) => {
-      try {
-        const data = JSON.parse(message.toString());
-        
-        if (data.type === "SUBSCRIBE_BLOCKCHAIN") {
-          // Send recent blockchain transactions
-          const transactions = await storage.getBlockchainTransactionsByEntity(
-            data.entityType || "all",
-            data.entityId || "all"
-          );
+      // Simulate periodic node confirmations
+      const nodeNames = ["LEA Central Node", "FIU Node 1", "IND Node", "I4C Node"];
+      const confirmationInterval = setInterval(() => {
+        const randomNode = nodeNames[Math.floor(Math.random() * nodeNames.length)];
+        ws.send(JSON.stringify({
+          type: "NODE_CONFIRMATION",
+          nodeName: randomNode,
+          timestamp: new Date().toISOString()
+        }));
+      }, 2000);
+
+      ws.on('close', () => {
+        clearInterval(confirmationInterval);
+      });
+      
+      ws.on('message', async (message) => {
+        try {
+          const data = JSON.parse(message.toString());
           
+          if (data.type === "SUBSCRIBE_BLOCKCHAIN") {
+            // Send recent blockchain transactions
+            const transactions = await storage.getBlockchainTransactionsByEntity(
+              data.entityType || "all",
+              data.entityId || "all"
+            );
+            
+            ws.send(JSON.stringify({
+              type: "BLOCKCHAIN_TRANSACTIONS",
+              data: transactions
+            }));
+          }
+          
+        } catch (error) {
+          log(`WebSocket error: ${error}`, "ws");
           ws.send(JSON.stringify({
-            type: "BLOCKCHAIN_TRANSACTIONS",
-            data: transactions
+            type: "ERROR",
+            message: "Failed to process message"
           }));
         }
-        
-      } catch (error) {
-        log(`WebSocket error: ${error}`, "ws");
-        ws.send(JSON.stringify({
-          type: "ERROR",
-          message: "Failed to process message"
-        }));
-      }
+      });
+      
+      ws.on('close', () => {
+        log("WebSocket client disconnected", "ws");
+      });
     });
-    
-    ws.on('close', () => {
-      log("WebSocket client disconnected", "ws");
-    });
-  });
+  }
+  
+  return httpServer;
+}
   
   return httpServer;
 }
