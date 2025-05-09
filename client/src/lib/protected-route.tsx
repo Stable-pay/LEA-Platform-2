@@ -1,12 +1,14 @@
 
-import { Redirect } from 'wouter';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 
 export const ProtectedRoute = ({ component: Component, ...rest }: any) => {
   const { isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
   if (!isAuthenticated) {
-    return <Redirect to="/auth" />;
+    setLocation('/auth');
+    return null;
   }
 
   return <Component {...rest} />;
