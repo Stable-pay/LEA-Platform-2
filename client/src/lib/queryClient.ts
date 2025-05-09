@@ -10,14 +10,14 @@ export const queryClient = new QueryClient({
 });
 
 export const apiRequest = async (method: string, path: string, body?: any) => {
-  const response = await fetch(path, {
+  const response = await fetch(`/api${path}`, {
     method,
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     },
     body: body ? JSON.stringify(body) : undefined,
-    credentials: 'include' // Important for session cookies
+    credentials: 'include'
   });
 
   if (response.status === 401) {
@@ -28,26 +28,7 @@ export const apiRequest = async (method: string, path: string, body?: any) => {
     throw new Error('API request failed');
   }
 
-  return response;
-};
-
-export const getQueryFn = ({ on401 = "throw" } = {}) => {
-  return async ({ queryKey }: { queryKey: string[] }) => {
-    const [url] = queryKey;
-    const res = await fetch(url, {
-      credentials: 'include'
-    });
-
-    if (res.status === 401 && on401 === "returnNull") {
-      return null;
-    }
-
-    if (!res.ok) {
-      throw new Error(`API Error: ${res.status}`);
-    }
-
-    return res.json();
-  };
+  return response.json();
 };
 
 export const api = {
