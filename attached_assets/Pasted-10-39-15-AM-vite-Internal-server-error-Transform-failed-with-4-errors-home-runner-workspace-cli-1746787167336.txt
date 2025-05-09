@@ -1,0 +1,50 @@
+10:39:15 AM [vite] Internal server error: Transform failed with 4 errors:
+/home/runner/workspace/client/src/lib/queryClient.ts:29:13: ERROR: Multiple exports with the same name "queryClient"
+/home/runner/workspace/client/src/lib/queryClient.ts:29:13: ERROR: The symbol "queryClient" has already been declared
+/home/runner/workspace/client/src/lib/queryClient.ts:57:13: ERROR: Multiple exports with the same name "apiRequest"
+/home/runner/workspace/client/src/lib/queryClient.ts:57:13: ERROR: The symbol "apiRequest" has already been declared
+  Plugin: vite:esbuild
+  File: /home/runner/workspace/client/src/lib/queryClient.ts:29:13
+  
+  Multiple exports with the same name "queryClient"
+  27 |  });
+  28 |  
+  29 |  export const queryClient = new QueryClient({
+     |               ^
+  30 |    defaultOptions: {
+  31 |      queries: {
+  
+  The symbol "queryClient" has already been declared
+  27 |  });
+  28 |  
+  29 |  export const queryClient = new QueryClient({
+     |               ^
+  30 |    defaultOptions: {
+  31 |      queries: {
+  
+  Multiple exports with the same name "apiRequest"
+  55 |  };
+  56 |  
+  57 |  export const apiRequest = async (
+     |               ^
+  58 |    method: string,
+  59 |    url: string,
+  
+  The symbol "apiRequest" has already been declared
+  55 |  };
+  56 |  
+  57 |  export const apiRequest = async (
+     |               ^
+  58 |    method: string,
+  59 |    url: string,
+  
+      at failureErrorWithLog (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:1472:15)
+      at /home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:755:50
+      at responseCallbacks.<computed> (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:622:9)
+      at handleIncomingPacket (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:677:12)
+      at Socket.readFromStdout (/home/runner/workspace/node_modules/vite/node_modules/esbuild/lib/main.js:600:7)
+      at Socket.emit (node:events:518:28)
+      at addChunk (node:internal/streams/readable:561:12)
+      at readableAddChunkPushByteMode (node:internal/streams/readable:512:3)
+      at Readable.push (node:internal/streams/readable:392:5)
+      at Pipe.onStreamRead (node:internal/stream_base_commons:191:23)
