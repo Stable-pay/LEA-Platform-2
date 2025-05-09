@@ -16,6 +16,7 @@ export const apiRequest = async (method: string, path: string, body?: any) => {
     headers: {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token')}`,
     },
     body: body ? JSON.stringify(body) : undefined,
     credentials: 'include'

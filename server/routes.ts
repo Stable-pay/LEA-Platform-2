@@ -34,6 +34,17 @@ const generateReferenceId = (prefix: string, number: number) => {
 };
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Setup authentication first
+  setupAuth(app);
+
+  // Middleware to check authentication for all API routes
+  app.use('/api/*', (req: Request, res: Response, next: NextFunction) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    next();
+  });
+
   // API routes
   // All routes are prefixed with /api
   
