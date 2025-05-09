@@ -62,13 +62,43 @@ interface NetworkNode {
 }
 
 const BlockchainDemo = () => {
-  const [nodes, setNodes] = useState<NetworkNode[]>([
-    { id: "val-1", type: "validator", status: "active", name: "Primary Validator", uptime: 99.9, transactions: 1205 },
-    { id: "val-2", type: "validator", status: "active", name: "Secondary Validator", uptime: 99.5, transactions: 982 },
-    { id: "peer-1", type: "peer", status: "active", name: "Delhi Node", uptime: 98.8, transactions: 456 },
-    { id: "peer-2", type: "peer", status: "active", name: "Mumbai Node", uptime: 99.2, transactions: 789 },
-    { id: "peer-3", type: "peer", status: "inactive", name: "Bangalore Node", uptime: 85.5, transactions: 234 }
-  ]);
+  const [nodes, setNodes] = useState<NetworkNode[]>([]);
+  const [departments, setDepartments] = useState<string[]>([]);
+
+  useEffect(() => {
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch('/api/blockchain/nodes');
+        if (!response.ok) throw new Error('Failed to fetch departments');
+        const data = await response.json();
+        
+        // Extract unique department names
+        const deptSet = new Set(data.map((node: any) => node.nodeType));
+        setDepartments(Array.from(deptSet));
+
+        // Transform nodes data
+        const transformedNodes = data.map((node: any) => ({
+          id: node.nodeId,
+          type: node.nodeType.toLowerCase(),
+          status: node.status,
+          name: node.name,
+          uptime: 99.9, // You might want to calculate this from lastSyncTimestamp
+          transactions: 0 // This could be calculated from actual transaction count
+        }));
+        
+        setNodes(transformedNodes);
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch departments",
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchDepartments();
+  }, []);
   const { toast } = useToast();
   const { user } = useAuth();
   const [wsConnected, setWsConnected] = useState(false);

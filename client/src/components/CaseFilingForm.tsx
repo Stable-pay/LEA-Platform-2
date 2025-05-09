@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -116,13 +116,48 @@ const CaseFilingForm = () => {
   const [txHash, setTxHash] = useState<string | null>(null);
   const [confirmations, setConfirmations] = useState(0);
   const [caseId, setCaseId] = useState<string | null>(null);
+  const [departments, setDepartments] = useState<string[]>([]);
 
-  const nodes = [
-    { id: "ED", name: "Enforcement Directorate" },
-    { id: "FIU", name: "Financial Intelligence Unit" },
-    { id: "I4C", name: "Indian Cybercrime Coordination Centre" },
-    { id: "IT", name: "Income Tax Department" }
-  ];
+  useEffect(() => {
+    // Fetch departments from backend
+    const fetchDepartments = async () => {
+      try {
+        const response = await fetch('/api/departments');
+        if (response.ok) {
+          const data = await response.json();
+          setDepartments(data);
+        } else {
+          console.error('Failed to fetch departments:', response.status);
+          toast({
+            title: "Error Fetching Departments",
+            description: "Failed to retrieve department list.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching departments:', error);
+          toast({
+            title: "Error Fetching Departments",
+            description: "An unexpected error occurred while fetching departments.",
+            variant: "destructive",
+          });
+      }
+    };
+
+    fetchDepartments();
+  }, [toast]);
+
+  const getDepartmentLabel = (dept: string) => {
+    switch (dept) {
+      case "ED": return "Enforcement Directorate";
+      case "FIU": return "Financial Intelligence Unit";
+      case "I4C": return "Indian Cybercrime Coordination Centre";
+      case "IT": return "Income Tax Department";
+      case "VASP": return "Virtual Asset Service Provider";
+      case "BANK": return "Banking Institution";
+      default: return dept;
+    }
+  };
 
   const form = useForm<CaseFormValues>({
     resolver: zodResolver(caseFormSchema),
@@ -281,12 +316,11 @@ const CaseFilingForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                        <SelectItem value="IT">Income Tax Department</SelectItem>
-                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                        <SelectItem value="BANK">Banking Institution</SelectItem>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {getDepartmentLabel(dept)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -333,12 +367,11 @@ const CaseFilingForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                        <SelectItem value="IT">Income Tax Department</SelectItem>
-                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                        <SelectItem value="BANK">Banking Institution</SelectItem>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {getDepartmentLabel(dept)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -359,12 +392,11 @@ const CaseFilingForm = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                        <SelectItem value="IT">Income Tax Department</SelectItem>
-                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                        <SelectItem value="BANK">Banking Institution</SelectItem>
+                        {departments.map((dept) => (
+                          <SelectItem key={dept} value={dept}>
+                            {getDepartmentLabel(dept)}
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
