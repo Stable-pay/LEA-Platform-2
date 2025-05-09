@@ -1,4 +1,3 @@
-
 import type { Request, Response, NextFunction } from 'express';
 import type { Express } from 'express';
 import session from 'express-session';
@@ -14,10 +13,6 @@ declare module 'express-session' {
 }
 
 export const setupAuth = (app: Express) => {
-  // Initialize Passport and restore authentication state from session
-  app.use(passport.initialize());
-  app.use(passport.session());
-
   app.use(session({
     store: new SessionStore({
       checkPeriod: 86400000
@@ -31,14 +26,9 @@ export const setupAuth = (app: Express) => {
     }
   }));
 
-  // Passport session setup
-  passport.serializeUser((user: any, done) => {
-    done(null, user.id);
-  });
-
-  passport.deserializeUser((id: string, done) => {
-    done(null, { id });
-  });
+  // Initialize Passport and restore authentication state from session
+  app.use(passport.initialize());
+  app.use(passport.session());
 
   app.get('/api/auth/replit', (req, res) => {
     // Store user info in session
