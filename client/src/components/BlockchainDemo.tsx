@@ -52,7 +52,23 @@ interface NodeCase {
   confirmer: string;
 }
 
+interface NetworkNode {
+  id: string;
+  type: "validator" | "peer";
+  status: "active" | "inactive";
+  name: string;
+  uptime: number;
+  transactions: number;
+}
+
 const BlockchainDemo = () => {
+  const [nodes, setNodes] = useState<NetworkNode[]>([
+    { id: "val-1", type: "validator", status: "active", name: "Primary Validator", uptime: 99.9, transactions: 1205 },
+    { id: "val-2", type: "validator", status: "active", name: "Secondary Validator", uptime: 99.5, transactions: 982 },
+    { id: "peer-1", type: "peer", status: "active", name: "Delhi Node", uptime: 98.8, transactions: 456 },
+    { id: "peer-2", type: "peer", status: "active", name: "Mumbai Node", uptime: 99.2, transactions: 789 },
+    { id: "peer-3", type: "peer", status: "inactive", name: "Bangalore Node", uptime: 85.5, transactions: 234 }
+  ]);
   const { toast } = useToast();
   const { user } = useAuth();
   const [wsConnected, setWsConnected] = useState(false);
@@ -246,6 +262,102 @@ const BlockchainDemo = () => {
         <CardTitle>Department Node Explorer</CardTitle>
       </CardHeader>
       <CardContent className="p-2 sm:p-4">
+        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm font-medium">Total Nodes</p>
+                <Users className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mt-2">{nodes.length}</h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                {nodes.filter(n => n.status === "active").length} Active
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm font-medium">Validator Nodes</p>
+                <Shield className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mt-2">
+                {nodes.filter(n => n.type === "validator").length}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                {nodes.filter(n => n.type === "validator" && n.status === "active").length} Active
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm font-medium">Average Uptime</p>
+                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mt-2">
+                {(nodes.reduce((acc, node) => acc + node.uptime, 0) / nodes.length).toFixed(1)}%
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-4">
+              <div className="flex justify-between items-center">
+                <p className="text-sm font-medium">Total Transactions</p>
+                <MessageSquare className="h-4 w-4 text-muted-foreground" />
+              </div>
+              <h3 className="text-2xl font-bold mt-2">
+                {nodes.reduce((acc, node) => acc + node.transactions, 0).toLocaleString()}
+              </h3>
+              <p className="text-xs text-muted-foreground mt-1">Across all nodes</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <CardTitle>Network Topology</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[400px] bg-muted/30 rounded-lg flex items-center justify-center">
+                <p className="text-muted-foreground">Network visualization goes here</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Node Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {nodes.map(node => (
+                  <div key={node.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+                    <div>
+                      <p className="font-medium">{node.name}</p>
+                      <div className="flex items-center mt-1">
+                        <Badge variant={node.status === "active" ? "success" : "destructive"} className="text-xs">
+                          {node.status}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {node.uptime}% uptime
+                        </span>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="capitalize">
+                      {node.type}
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         <Tabs defaultValue="all" className="w-full">
           <TabsList className="w-full flex-wrap">
             <TabsTrigger value="all" className="text-xs sm:text-sm">All Cases</TabsTrigger>
