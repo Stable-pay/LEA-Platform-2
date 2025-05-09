@@ -212,10 +212,15 @@ const BlockchainDemo = () => {
       const response = await fetch('/api/cases/response', {
         method: 'POST',
         body: formData,
+        headers: {
+          'Accept': 'application/json',
+        },
+        credentials: 'include'
       });
 
       if (!response.ok) {
-        throw new Error('Failed to submit response');
+        const errorData = await response.json().catch(() => ({ message: 'Failed to submit response' }));
+        throw new Error(errorData.message || 'Failed to submit response');
       }
 
       const data = await response.json();
