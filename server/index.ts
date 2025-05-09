@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 // Setup WebSocket server
-import WebSocket from 'ws';
-const wss = new WebSocket.Server({ noServer: true });
+import { WebSocketServer } from 'ws';
+const wss = new WebSocketServer({ noServer: true });
 
 wss.on('connection', (ws) => {
   console.log('WebSocket client connected');
