@@ -64,7 +64,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export DATABASE_URL=\"postgresql://winter-water-28073687.replit.co\""
+args = "export DATABASE_URL=\"postgresql://user:pass@winter-water-28073687.replit.co/neondb\""
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
