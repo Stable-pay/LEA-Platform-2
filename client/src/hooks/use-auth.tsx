@@ -1,11 +1,5 @@
-import { createContext, useContext } from 'react';
 
-interface User {
-  username: string;
-  role: string;
-  fullName: string;
-  organization: string;
-}
+import { createContext, useContext } from 'react';
 
 const AuthContext = createContext({
   isAuthenticated: true,
