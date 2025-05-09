@@ -47,11 +47,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = parseInt(req.query.offset as string) || 0;
       const cases = await storage.getCases(limit, offset);
+      
+      if (!cases) {
+        return res.status(200).json([]);
+      }
+      
       res.setHeader('Content-Type', 'application/json');
-      res.json(cases || []);
+      res.json(cases);
     } catch (error) {
-      res.setHeader('Content-Type', 'application/json');
-      res.status(500).json({ message: "Failed to fetch cases", error: String(error) });
+      console.error('Error fetching cases:', error);
+      res.status(500).json({ 
+        message: "Failed to fetch cases", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
   

@@ -142,13 +142,26 @@ const BlockchainDemo = () => {
   useEffect(() => {
     const fetchCases = async () => {
       try {
-        const response = await fetch('/api/cases');
+        const response = await fetch('/api/cases', {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          credentials: 'include'
+        });
+        
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
+        
         const data = await response.json();
-        setCases(data || []);
-        updateCaseCounts(data || []);
+        if (Array.isArray(data)) {
+          setCases(data);
+          updateCaseCounts(data);
+        } else {
+          setCases([]);
+          console.error('Invalid data format received:', data);
+        }
       } catch (error) {
         console.error('Error fetching cases:', error);
         setCases([]);
