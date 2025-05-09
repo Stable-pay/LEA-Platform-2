@@ -1,9 +1,8 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useAuth } from "@/hooks/use-auth";
 import { useToast } from "@/hooks/use-toast";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -33,7 +32,7 @@ const caseFormSchema = z.object({
   initiatorDepartment: z.string().min(1, "Task initiator is required"),
   confirmerDepartment: z.string().min(1, "Task confirmer is required"),
   walletAddress: z.string().min(1, "Wallet Address is required"),
-  transactionHash: z.string().min(1, "Transaction Hash is required"),
+  transactionHash: z.string().min(1, "Transaction Hash is required")
 });
 
 type CaseFormValues = z.infer<typeof caseFormSchema>;
@@ -109,7 +108,6 @@ const BlockchainVerification = ({
 };
 
 const CaseFilingForm = () => {
-  const { user, login } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -119,47 +117,6 @@ const CaseFilingForm = () => {
   const [confirmations, setConfirmations] = useState(0);
   const [caseId, setCaseId] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isVerifying) return;
-
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.hostname}/ws`;
-    const socket = new WebSocket(wsUrl);
-
-    socket.onopen = () => {
-      console.log("WebSocket connected");
-    };
-
-    socket.onmessage = (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log("WebSocket message:", data);
-
-        if (data.type === "TRANSACTION_CONFIRMED" && data.data.entityType === "case" && data.data.entityId === caseId) {
-          setVerificationStage(3);
-          setConfirmations(1);
-          setIsVerifying(false);
-
-          toast({
-            title: "Case Verified on Blockchain",
-            description: "Your case has been successfully verified by all network nodes.",
-            variant: "default",
-          });
-        }
-      } catch (error) {
-        console.error("WebSocket error:", error);
-      }
-    };
-
-    socket.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
-
-    return () => {
-      socket.close();
-    };
-  }, [isVerifying, caseId, toast]);
-
   const nodes = [
     { id: "ED", name: "Enforcement Directorate" },
     { id: "FIU", name: "Financial Intelligence Unit" },
@@ -167,34 +124,18 @@ const CaseFilingForm = () => {
     { id: "IT", name: "Income Tax Department" }
   ];
 
-  useEffect(() => {
-    if (!isVerifying) return;
-
-    const interval = setInterval(() => {
-      setVerificationStage((stage) => {
-        const next = stage + 1;
-        if (next >= 3) {
-          clearInterval(interval);
-        }
-        return next < 3 ? next : 2;
-      });
-    }, 2500);
-
-    return () => clearInterval(interval);
-  }, [isVerifying]);
-
   const form = useForm<CaseFormValues>({
     resolver: zodResolver(caseFormSchema),
     defaultValues: {
       title: "",
       description: "",
-      reportedBy: user?.fullName || "",
+      reportedBy: "",
       status: "active",
       priority: "medium",
       estimatedLoss: 0,
-      assignedDepartment: "ED",
-      initiatorDepartment: "ED",
-      confirmerDepartment: "ED",
+      assignedDepartment: "",
+      initiatorDepartment: "",
+      confirmerDepartment: "",
       walletAddress: "",
       transactionHash: ""
     },
@@ -202,81 +143,35 @@ const CaseFilingForm = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      try {
-        const caseData = {
-          title: values.title,
-          description: values.description,
-          reportedBy: user?.fullName || values.reportedBy,
-          status: values.status || "active",
-          priority: values.priority || "medium",
-          estimatedLoss: Number(values.estimatedLoss),
-          assignedTo: values.assignedDepartment,
-          initiatorDepartment: values.initiatorDepartment,
-          confirmerDepartment: values.confirmerDepartment,
-          walletAddress: values.walletAddress,
-          transactionHash: values.transactionHash
-        };
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values)
+      });
 
-        console.log("Submitting case:", caseData);
-
-        const response = await fetch('/api/cases', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(caseData)
-        });
-        
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || 'Failed to create case');
-        }
-        
-        return await response.json();
-      } catch (error: any) {
-        console.error("Case creation error:", error);
-        throw error;
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create case');
       }
+
+      return response.json();
     },
-    onSuccess: (data, values) => {
+    onSuccess: () => {
       setIsSubmitting(false);
-      setCaseId(data.id.toString());
-
-      setIsVerifying(true);
-      setVerificationStage(0);
-
-      const mockId = Date.now().toString().slice(-4);
-      setTxHash(`0x${Math.random().toString(16).slice(2)}`);
-
-      const caseData = {
-        ...values,
-        id: mockId,
-        caseId: `CASE-${mockId}`,
-        createdAt: new Date().toISOString(),
-        verifiedOnBlockchain: true,
-        department: values.assignedDepartment,
-        status: values.status || "active"
-      };
-
-      const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
-      const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
-
-      window.dispatchEvent(newCaseEvent);
-      window.dispatchEvent(caseManagementEvent);
-
       queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
       toast({
         title: "Case Created",
-        description: `Case ${mockId} has been created successfully.`,
+        description: "New case has been created successfully.",
       });
       form.reset();
     },
-    onError: (error) => {
-      console.error("Case creation error:", error);
+    onError: (error: Error) => {
       setIsSubmitting(false);
       toast({
         title: "Error Creating Case",
-        description: error.message || "Failed to create case. Please try again.",
+        description: error.message,
         variant: "destructive",
       });
     },
@@ -287,59 +182,11 @@ const CaseFilingForm = () => {
     createCaseMutation.mutate(data);
   };
 
-  const startBlockchainVerification = async (caseId: number) => {
-    try {
-      setIsVerifying(true);
-      setVerificationStage(0);
-
-      const res = await fetch("/api/blockchain/verify", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          entityType: "case",
-          entityId: caseId.toString(),
-          action: "create",
-          sourceNodeId: "stable-pay-node",
-          metadata: {
-            verifiedBy: user?.fullName,
-            role: user?.role,
-            timestamp: new Date().toISOString()
-          }
-        }),
-      });
-
-      const txData = await res.json();
-      setTxHash(txData.txHash);
-
-    } catch (error) {
-      console.error("Blockchain verification error:", error);
-      toast({
-        title: "Verification Error",
-        description: "Failed to verify case on blockchain",
-        variant: "destructive",
-      });
-      setIsVerifying(false);
-    }
-  };
-
-  const handleReset = () => {
-    form.reset();
-    setIsVerifying(false);
-    setVerificationStage(0);
-    setTxHash(null);
-    setConfirmations(0);
-    setCaseId(null);
-  };
-
   return (
     <Card className="w-full shadow-md">
       <CardHeader>
-        <CardTitle>File New Fraud Case</CardTitle>
-        <CardDescription>
-          Create a new cryptocurrency fraud case with blockchain verification
-        </CardDescription>
+        <CardTitle>File New Case</CardTitle>
+        <CardDescription>Submit a new cryptocurrency fraud case</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
@@ -351,7 +198,7 @@ const CaseFilingForm = () => {
                 <FormItem>
                   <FormLabel>Case Title</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter case title" {...field} disabled={isSubmitting || isVerifying}/>
+                    <Input placeholder="Enter case title" {...field} disabled={isSubmitting}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -366,10 +213,10 @@ const CaseFilingForm = () => {
                   <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Describe the case in detail"
-                      className="min-h-[120px]"
+                      placeholder="Describe the case"
+                      className="min-h-[100px]"
                       {...field}
-                      disabled={isSubmitting || isVerifying}
+                      disabled={isSubmitting}
                     />
                   </FormControl>
                   <FormMessage />
@@ -385,7 +232,7 @@ const CaseFilingForm = () => {
                   <FormItem>
                     <FormLabel>Reported By</FormLabel>
                     <FormControl>
-                      <Input placeholder="Name of reporter" {...field} disabled={isSubmitting || isVerifying}/>
+                      <Input placeholder="Name of reporter" {...field} disabled={isSubmitting}/>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -403,7 +250,7 @@ const CaseFilingForm = () => {
                         type="number"
                         placeholder="Amount in INR"
                         {...field}
-                        disabled={isSubmitting || isVerifying}
+                        disabled={isSubmitting}
                       />
                     </FormControl>
                     <FormMessage />
@@ -413,91 +260,39 @@ const CaseFilingForm = () => {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <FormField
-                  control={form.control}
-                  name="assignedDepartment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Assign to Department</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select department" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+              <FormField
+                control={form.control}
+                name="assignedDepartment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assign to Department</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select department" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                        <SelectItem value="IT">Income Tax Department</SelectItem>
+                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                        <SelectItem value="BANK">Banking Institution</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <FormField
-                  control={form.control}
-                  name="initiatorDepartment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Task Initiator</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select initiator" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="confirmerDepartment"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Task Confirmer</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select confirmer" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                          <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                          <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
-                          <SelectItem value="IT">Income Tax Department</SelectItem>
-                          <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
-                          <SelectItem value="BANK">Banking Institution</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="priority"
-                  render={({ field }) => (
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
                   <FormItem>
                     <FormLabel>Priority</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Select priority" />
@@ -514,23 +309,54 @@ const CaseFilingForm = () => {
                   </FormItem>
                 )}
               />
+            </div>
 
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="status"
+                name="initiatorDepartment"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Initial Status</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting || isVerifying}>
+                    <FormLabel>Initiator Department</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select status" />
+                          <SelectValue placeholder="Select initiator" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="investigating">Investigating</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                        <SelectItem value="IT">Income Tax Department</SelectItem>
+                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                        <SelectItem value="BANK">Banking Institution</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="confirmerDepartment"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirmer Department</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isSubmitting}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select confirmer" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                        <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                        <SelectItem value="I4C">Indian Cybercrime Coordination Centre</SelectItem>
+                        <SelectItem value="IT">Income Tax Department</SelectItem>
+                        <SelectItem value="VASP">Virtual Asset Service Provider</SelectItem>
+                        <SelectItem value="BANK">Banking Institution</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -546,7 +372,7 @@ const CaseFilingForm = () => {
                 <FormItem>
                   <FormLabel>Wallet Address</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter wallet address" {...field} disabled={isSubmitting || isVerifying}/>
+                    <Input placeholder="Enter wallet address" {...field} disabled={isSubmitting}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -560,7 +386,7 @@ const CaseFilingForm = () => {
                 <FormItem>
                   <FormLabel>Transaction Hash</FormLabel>
                   <FormControl>
-                    <Input placeholder="Enter transaction hash" {...field} disabled={isSubmitting || isVerifying}/>
+                    <Input placeholder="Enter transaction hash" {...field} disabled={isSubmitting}/>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -571,14 +397,14 @@ const CaseFilingForm = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={handleReset}
-                disabled={isSubmitting || isVerifying}
+                onClick={() => {
+                  form.reset();
+                }}
+                disabled={isSubmitting}
               >
                 Reset
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting || isVerifying}
+              <Button type="submit" disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
@@ -594,15 +420,6 @@ const CaseFilingForm = () => {
             </div>
           </form>
         </Form>
-
-        {(isVerifying || confirmations > 0) && (
-          <BlockchainVerification
-            isVerifying={isVerifying}
-            verificationStage={verificationStage}
-            txHash={txHash}
-            confirmations={confirmations}
-          />
-        )}
       </CardContent>
     </Card>
   );

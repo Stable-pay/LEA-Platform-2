@@ -20,12 +20,16 @@ export const cases = pgTable("cases", {
   caseId: text("case_id").notNull().unique(), // Human-readable case ID (e.g., LEA-3912)
   title: text("title").notNull(),
   description: text("description"),
-  status: text("status").notNull().default("active"), // active, investigating, pending, resolved, critical
+  status: text("status").notNull().default("active"), // active, investigating, pending, resolved
   dateReported: timestamp("date_reported").defaultNow(),
   reportedBy: text("reported_by").notNull(),
   estimatedLoss: integer("estimated_loss"), // In INR
-  assignedTo: integer("assigned_to").references(() => users.id),
   priority: text("priority").notNull().default("medium"), // critical, high, medium, low
+  initiatorDepartment: text("initiator_department").notNull(),
+  confirmerDepartment: text("confirmer_department").notNull(),
+  assignedDepartment: text("assigned_department").notNull(),
+  walletAddress: text("wallet_address").notNull(),
+  transactionHash: text("transaction_hash").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
