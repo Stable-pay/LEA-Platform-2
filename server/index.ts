@@ -1,6 +1,7 @@
 import express from "express";
 import session from "express-session";
 import { WebSocketServer } from 'ws';
+import cors from 'cors';
 import { registerRoutes } from "./routes";
 import { setupAuth } from "./auth";
 import { testConnection } from "./db";
@@ -9,6 +10,10 @@ async function startServer() {
   const app = express();
 
   // Basic middleware
+  app.use(cors({
+    origin: true,
+    credentials: true
+  }));
   app.use(express.json());
   app.use(express.urlencoded({ extended: false }));
 

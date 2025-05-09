@@ -1,10 +1,9 @@
-
 import { QueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 // Create base axios instance
 export const apiRequest = axios.create({
-  baseURL: '/',
+  baseURL: import.meta.env.VITE_API_URL || "http://0.0.0.0:5000",
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
