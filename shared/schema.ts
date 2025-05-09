@@ -38,11 +38,21 @@ export const cases = pgTable("cases", {
 export const wallets = pgTable("wallets", {
   id: serial("id").primaryKey(),
   address: text("address").notNull().unique(),
+  network: text("network").notNull(), // ethereum, bitcoin, binance, polygon, solana
   riskScore: integer("risk_score"), // 0-100 risk score
-  riskLevel: text("risk_level"), // critical, high risk, medium risk, low risk, safe
+  riskLevel: text("risk_level"), // critical, high, medium, low, safe
+  transactionVolume: real("transaction_volume"), // Total transaction volume
+  lastActivity: timestamp("last_activity"), // Last transaction timestamp
+  firstSeen: timestamp("first_seen").defaultNow(),
+  tags: jsonb("tags"), // Array of tags like ["mixer", "exchange", "gambling"]
   scamPatterns: jsonb("scam_patterns"), // Array of scam patterns this wallet is associated with
   caseIds: jsonb("case_ids"), // Array of case IDs this wallet is linked to
   exchanges: jsonb("exchanges"), // Array of exchanges this wallet has interacted with
+  arkhamIntelligence: jsonb("arkham_intelligence"), // Arkham Intelligence data
+  riskIndicators: jsonb("risk_indicators"), // Array of risk indicators
+  analysisNotes: text("analysis_notes"), // Manual analysis notes
+  watchlistStatus: text("watchlist_status").default("none"), // none, watching, blocked
+  lastChecked: timestamp("last_checked"), // Last time wallet was checked
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
