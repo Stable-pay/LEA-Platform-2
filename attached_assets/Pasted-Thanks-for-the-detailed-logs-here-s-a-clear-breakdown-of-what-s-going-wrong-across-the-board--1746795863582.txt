@@ -1,0 +1,96 @@
+Thanks for the detailed logs — here's a clear breakdown of what's going wrong across the board:
+
+---
+
+## 🧩 1. **WebSocket URL Error from Vite Dev Server**
+
+**Error:**
+
+```
+Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=...' is invalid.
+```
+
+**Root Cause:**
+Vite is trying to open a hot-reload WebSocket connection using a malformed URL. It’s using `localhost:undefined` — which means the `port` is not set correctly.
+
+**Fix:**
+
+* Make sure `VITE_PORT` or any custom port config is properly defined in `.env` or `vite.config.ts`.
+* Example:
+
+  ```ts
+  server: {
+    host: "localhost",
+    port: 5173,
+  }
+  ```
+* If deploying via Replit, avoid relying on `localhost`—use absolute URLs with your deployment host when needed.
+
+---
+
+## 📤 2. **Case Submission: `Invalid request body`**
+
+You logged this:
+
+```js
+Submitting case: {
+  title: "UPI Scam",
+  description: "UPI scam of 10000",
+  reportedBy: "Yash",
+  status: "active",
+  priority: "medium",
+  …
+}
+```
+
+**Backend says:**
+`Invalid request body`
+
+**Likely Cause:**
+Your backend's validation schema (probably Zod or Joi) expects a specific shape or missing fields like a timestamp, user ID, or strict enum values.
+
+### ✅ Quick Fix Plan:
+
+1. **Log Backend Validation Schema:**
+
+   * Check if your backend expects more/less/different fields.
+   * Add debug:
+
+     ```ts
+     console.log("Received:", req.body);
+     ```
+
+2. **Relax the Schema Temporarily (for testing):**
+
+   ```ts
+   const schema = z.object({
+     title: z.string(),
+     description: z.string(),
+     reportedBy: z.string(),
+     status: z.enum(["active", "closed"]).optional(),
+     priority: z.enum(["low", "medium", "high"]).optional(),
+     // ...include optional createdAt, etc.
+   });
+   ```
+
+3. **Ensure You Send JSON Properly in Frontend:**
+
+   ```ts
+   fetch('/api/cases', {
+     method: "POST",
+     headers: {
+       "Content-Type": "application/json",
+       Authorization: `Bearer ${token}`,
+     },
+     body: JSON.stringify(formData),
+   });
+   ```
+
+---
+
+## ✅ Recommended Next Steps:
+
+* Share the **Zod schema or validation logic** you're using for `/api/cases`.
+* Share the **frontend POST logic** in `CaseFilingForm.tsx`.
+
+Would you like me to generate a sample Zod schema + working Express POST handler based on your submission format?
