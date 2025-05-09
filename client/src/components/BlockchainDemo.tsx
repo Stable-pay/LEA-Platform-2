@@ -90,14 +90,14 @@ const BlockchainDemo = () => {
         }));
         setNodes(initialNodes);
 
-        // Transform nodes data
-        const transformedNodes = data.map((node: any) => ({
-          id: node.nodeId,
-          type: node.nodeType.toLowerCase(),
-          status: node.status,
-          name: node.name,
-          uptime: 99.9, // You might want to calculate this from lastSyncTimestamp
-          transactions: 0 // This could be calculated from actual transaction count
+        // Transform department data into nodes
+        const transformedNodes = data.map((dept: string) => ({
+          id: `${dept}-node`,
+          type: 'validator',
+          status: 'active',
+          name: `${dept} Node`,
+          uptime: 99.9,
+          transactions: 0
         }));
 
         setNodes(transformedNodes);
@@ -131,8 +131,9 @@ const BlockchainDemo = () => {
   };
 
   useEffect(() => {
+    // Connect to WebSocket on port 5000
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.host;
+    const host = '0.0.0.0:5000';
     const ws = new WebSocket(`${protocol}//${host}/ws`);
 
     ws.onopen = () => {
