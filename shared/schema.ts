@@ -25,9 +25,9 @@ export const cases = pgTable("cases", {
   reportedBy: text("reported_by").notNull(),
   estimatedLoss: integer("estimated_loss"), // In INR
   priority: text("priority").notNull().default("medium"), // critical, high, medium, low
+  assignedTo: text("assigned_to"), // Department assigned to the case
   initiatorDepartment: text("initiator_department").notNull(),
   confirmerDepartment: text("confirmer_department").notNull(),
-  assignedDepartment: text("assigned_department").notNull(),
   walletAddress: text("wallet_address").notNull(),
   transactionHash: text("transaction_hash").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
