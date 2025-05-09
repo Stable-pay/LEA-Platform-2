@@ -154,8 +154,10 @@ export class MemStorage implements IStorage {
     
     // Initialize blockchain nodes for each stakeholder
     const nodes = [
-      { nodeType: "LEA", nodeId: "LEA_NODE_001", name: "Delhi Police Node", organization: "Delhi Police", ipAddress: "10.0.1.1", port: 7051, status: "active" },
-      { nodeType: "LEA", nodeId: "LEA_NODE_002", name: "Mumbai Police Node", organization: "Mumbai Police", ipAddress: "10.0.1.2", port: 7051, status: "active" },
+      { nodeType: "LEA", nodeId: "LEA_NODE_001", name: "Delhi Police Node", organization: "Delhi Police", ipAddress: "peer0.lea.example.com", port: 7051, status: "active", mspId: "LEAMSP" },
+      { nodeType: "LEA", nodeId: "LEA_NODE_002", name: "Mumbai Police Node", organization: "Mumbai Police", ipAddress: "peer1.lea.example.com", port: 7051, status: "active", mspId: "LEAMSP" },
+      { nodeType: "FIU", nodeId: "FIU_NODE_001", name: "FIU Central Node", organization: "Financial Intelligence Unit", ipAddress: "peer0.fiu.example.com", port: 7051, status: "active", mspId: "FIUMSP" },
+      { nodeType: "I4C", nodeId: "I4C_NODE_001", name: "I4C Primary Node", organization: "I4C", ipAddress: "peer0.i4c.example.com", port: 7051, status: "active", mspId: "I4CMSP" },
       { nodeType: "FIU", nodeId: "FIU_NODE_001", name: "FIU Central Node", organization: "Financial Intelligence Unit", ipAddress: "10.0.2.1", port: 7052, status: "active" },
       { nodeType: "IND", nodeId: "IND_NODE_001", name: "Indian Nodal Department", organization: "Ministry of Finance", ipAddress: "10.0.3.1", port: 7053, status: "active" },
       { nodeType: "I4C", nodeId: "I4C_NODE_001", name: "Cyber Crime Coordination Centre", organization: "I4C", ipAddress: "10.0.4.1", port: 7054, status: "active" }
