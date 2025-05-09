@@ -102,6 +102,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
     try {
       console.log("Creating case with data:", req.body);
+      await db.execute('SELECT 1'); // Test DB connection
+      
       const cases = await storage.getCases();
       const caseCount = Array.isArray(cases) ? cases.length : 0;
       const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);

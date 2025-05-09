@@ -220,7 +220,8 @@ const CaseFilingForm = () => {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to create case');
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create case');
       }
 
       return response.json();
