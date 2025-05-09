@@ -9,27 +9,39 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatWalletAddress } from "@/lib/utils";
 
 const WalletCheck = () => {
   const [walletAddress, setWalletAddress] = useState("");
   const [network, setNetwork] = useState("");
-  const [coin, setCoin] = useState("");
-  const [hashId, setHashId] = useState("");
+  const [transactionVolume, setTransactionVolume] = useState("");
   const [riskLevel, setRiskLevel] = useState("");
   const [analysis, setAnalysis] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentWallets, setRecentWallets] = useState<any[]>([]);
   const { toast } = useToast();
 
-  // Fetch recent wallets on component mount
+  const redirectToArkham = () => {
+    if (!walletAddress) {
+      toast({
+        title: "Error",
+        description: "Please enter a wallet address",
+        variant: "destructive"
+      });
+      return;
+    }
+    window.open(`https://platform.arkhamintelligence.com/explorer/address/${walletAddress}`, '_blank');
+  };
+
   useEffect(() => {
     fetchRecentWallets();
   }, []);
 
   const fetchRecentWallets = async () => {
     try {
-      const response = await fetch('/api/recent-wallets');
+      const response = await fetch('/api/wallet-checks');
       if (response.ok) {
         const data = await response.json();
         setRecentWallets(data);
@@ -37,18 +49,25 @@ const WalletCheck = () => {
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to fetch recent wallets",
+        description: "Failed to fetch recent wallet checks",
         variant: "destructive"
       });
     }
   };
 
   const handleSubmit = async () => {
-    if (!walletAddress || !network || !riskLevel) return;
+    if (!walletAddress || !network || !riskLevel) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/wallets', {
+      const response = await fetch('/api/wallet-checks', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -56,8 +75,7 @@ const WalletCheck = () => {
         body: JSON.stringify({
           address: walletAddress,
           network,
-          coin,
-          hashId,
+          transactionVolume: parseFloat(transactionVolume) || 0,
           riskLevel,
           analysis
         })
@@ -69,6 +87,11 @@ const WalletCheck = () => {
           description: "Wallet check submitted successfully",
         });
         fetchRecentWallets();
+        setWalletAddress("");
+        setNetwork("");
+        setTransactionVolume("");
+        setRiskLevel("");
+        setAnalysis("");
       } else {
         throw new Error('Failed to submit wallet check');
       }
@@ -86,9 +109,9 @@ const WalletCheck = () => {
   return (
     <div className="container mx-auto py-4">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-2">Wallet Check</h1>
+        <h1 className="text-2xl font-bold mb-2">Wallet Risk Assessment</h1>
         <p className="text-muted-foreground">
-          Add and update wallet information across departments
+          Check wallet risk profiles and analyze transaction patterns
         </p>
       </div>
 
@@ -98,7 +121,7 @@ const WalletCheck = () => {
             <CardTitle>New Wallet Check</CardTitle>
           </CardHeader>
           <CardContent>
-            <form className="space-y-4">
+            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
                   Wallet Address*
@@ -110,45 +133,33 @@ const WalletCheck = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-medium leading-none mb-2 block">
-                    Coin (Optional)
-                  </label>
-                  <Input 
-                    placeholder="e.g. BTC, ETH" 
-                    value={coin}
-                    onChange={(e) => setCoin(e.target.value)}
-                  />
-                </div>
-
-                <div>
-                  <label className="text-sm font-medium leading-none mb-2 block">
-                    Network*
-                  </label>
-                  <Select value={network} onValueChange={setNetwork}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select network" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bitcoin">Bitcoin</SelectItem>
-                      <SelectItem value="ethereum">Ethereum</SelectItem>
-                      <SelectItem value="binance">Binance Smart Chain</SelectItem>
-                      <SelectItem value="polygon">Polygon</SelectItem>
-                      <SelectItem value="solana">Solana</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <label className="text-sm font-medium leading-none mb-2 block">
+                  Network*
+                </label>
+                <Select value={network} onValueChange={setNetwork}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select network" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bitcoin">Bitcoin</SelectItem>
+                    <SelectItem value="ethereum">Ethereum</SelectItem>
+                    <SelectItem value="binance">Binance Smart Chain</SelectItem>
+                    <SelectItem value="polygon">Polygon</SelectItem>
+                    <SelectItem value="solana">Solana</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
-                  Transaction Hash ID (Optional)
+                  Transaction Volume
                 </label>
                 <Input 
-                  placeholder="Enter transaction hash" 
-                  value={hashId}
-                  onChange={(e) => setHashId(e.target.value)}
+                  type="number"
+                  placeholder="Enter transaction volume" 
+                  value={transactionVolume}
+                  onChange={(e) => setTransactionVolume(e.target.value)}
                 />
               </div>
 
@@ -171,44 +182,55 @@ const WalletCheck = () => {
 
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
-                  Risk Analysis*
+                  Analysis Notes
                 </label>
                 <Input 
-                  placeholder="Enter risk analysis details"
+                  placeholder="Enter analysis notes"
                   value={analysis}
                   onChange={(e) => setAnalysis(e.target.value)}
                 />
               </div>
 
-              <Button 
-                type="button"
-                onClick={handleSubmit}
-                disabled={isSubmitting}
-                className="w-full"
-              >
-                {isSubmitting ? "Submitting..." : "Submit Wallet Check"}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={isSubmitting}
+                  className="flex-1"
+                >
+                  {isSubmitting ? "Submitting..." : "Submit Assessment"}
+                </Button>
+                <Button 
+                  type="button"
+                  variant="outline"
+                  onClick={redirectToArkham}
+                  className="flex-1"
+                >
+                  Check on Arkham
+                </Button>
+              </div>
             </form>
           </CardContent>
         </Card>
 
         <Card className="shadow">
           <CardHeader>
-            <CardTitle>Recent Wallet Checks</CardTitle>
+            <CardTitle>Recent Assessments</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               {recentWallets.map((wallet, index) => (
                 <div key={index} className="p-4 border rounded">
                   <div className="flex justify-between items-start mb-2">
-                    <code className="text-sm">{wallet.address}</code>
+                    <code className="text-sm">{formatWalletAddress(wallet.address)}</code>
                     <Badge variant={wallet.riskLevel === 'high' ? 'destructive' : 'secondary'}>
                       {wallet.riskLevel} Risk
                     </Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
                     <p>Network: {wallet.network}</p>
-                    {wallet.coin && <p>Coin: {wallet.coin}</p>}
+                    <p>Volume: {wallet.transactionVolume}</p>
+                    <p>Date: {new Date(wallet.timestamp).toLocaleDateString()}</p>
                   </div>
                 </div>
               ))}
