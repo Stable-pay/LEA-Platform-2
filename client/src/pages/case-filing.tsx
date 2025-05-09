@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { useQuery } from "@tanstack/react-query";
 import { FileCheck, Database, ShieldCheck, User, ArrowRight, CheckCircle } from "lucide-react";
 
+import { useState, useEffect } from 'react';
+
 const CaseFiling = () => {
   const { user } = useAuth();
   const [departmentValidated, setDepartmentValidated] = useState(false);
