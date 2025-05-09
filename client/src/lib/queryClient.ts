@@ -59,4 +59,5 @@ export const api = {
   delete: (url: string) => apiRequest('DELETE', url),
 };
 
+export { queryClient };
 export default queryClient;
