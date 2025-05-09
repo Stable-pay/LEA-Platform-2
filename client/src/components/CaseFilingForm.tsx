@@ -123,8 +123,8 @@ const CaseFilingForm = () => {
     if (!isVerifying) return;
 
     // Connect to WebSocket for real-time updates
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
+    const wsProtocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const wsUrl = `${wsProtocol}//${window.location.hostname}:5000/ws`;
     const socket = new WebSocket(wsUrl);
 
     socket.onopen = () => {
