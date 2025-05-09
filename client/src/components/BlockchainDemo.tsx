@@ -50,6 +50,12 @@ interface NodeCase {
   assignedTo: string;
   initiator: string;
   confirmer: string;
+  caseId: string;
+  dateReported: string;
+  reportedBy: string;
+  estimatedLoss: number;
+  walletAddress: string;
+  transactionHash: string;
 }
 
 interface NetworkNode {
@@ -72,7 +78,7 @@ const BlockchainDemo = () => {
         if (!response.ok) throw new Error('Failed to fetch departments');
         const data = await response.json();
         setDepartments(data);
-        
+
         // Initialize nodes with department data
         const initialNodes = data.map((dept: string) => ({
           id: `${dept}-node`,
@@ -93,7 +99,7 @@ const BlockchainDemo = () => {
           uptime: 99.9, // You might want to calculate this from lastSyncTimestamp
           transactions: 0 // This could be calculated from actual transaction count
         }));
-        
+
         setNodes(transformedNodes);
       } catch (error) {
         console.error('Error fetching departments:', error);
@@ -187,11 +193,11 @@ const BlockchainDemo = () => {
           },
           credentials: 'include'
         });
-        
+
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        
+
         const data = await response.json();
         if (Array.isArray(data)) {
           setCases(data);
@@ -332,7 +338,7 @@ const BlockchainDemo = () => {
               </p>
             </CardContent>
           </Card>
-          
+
           <Card>
             <CardContent className="pt-4">
               <div className="flex justify-between items-center">
@@ -508,22 +514,70 @@ const BlockchainDemo = () => {
               <div className="space-y-4">
                 {canViewCaseDetails(selectedCase) ? (
                   <>
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3">Case Details</h4>
-                      <p>{selectedCase.details}</p>
-                      {selectedCase.attachments && selectedCase.attachments.length > 0 && (
-                        <div className="mt-3">
-                          <h5 className="font-semibold mb-2">Attachments</h5>
-                          <div className="flex gap-2">
-                            {selectedCase.attachments.map((file, idx) => (
-                              <Badge key={idx} variant="secondary">
-                                {file.name}
-                              </Badge>
-                            ))}
+                    <div className="bg-muted/30 p-4 rounded-lg space-y-4">
+                        <div>
+                          <h4 className="font-semibold mb-3">Case Details</h4>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Case ID</p>
+                              <p className="font-medium">{selectedCase.caseId}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Date Reported</p>
+                              <p className="font-medium">{format(new Date(selectedCase.dateReported), "PPp")}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Reported By</p>
+                              <p className="font-medium">{selectedCase.reportedBy}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Estimated Loss</p>
+                              <p className="font-medium">₹{selectedCase.estimatedLoss.toLocaleString()}</p>
+                            </div>
+                          </div>
+                          <div className="bg-background/50 p-4 rounded">
+                            <h5 className="font-medium mb-2">Description</h5>
+                            <p className="whitespace-pre-wrap">{selectedCase.details}</p>
                           </div>
                         </div>
-                      )}
-                    </div>
+
+                        {selectedCase.attachments && selectedCase.attachments.length > 0 && (
+                          <div>
+                            <h5 className="font-semibold mb-2">Case Attachments</h5>
+                            <div className="flex flex-wrap gap-2">
+                              {selectedCase.attachments.map((file, idx) => (
+                                <div key={idx} className="flex items-center gap-1 p-1 bg-background rounded">
+                                  <Badge variant="secondary" className="cursor-pointer hover:bg-accent">
+                                    {file.name}
+                                  </Badge>
+                                  <a 
+                                    href={URL.createObjectURL(file)}
+                                    download={file.name}
+                                    className="text-xs text-blue-500 hover:text-blue-700"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    Download
+                                  </a>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
+                        <div>
+                          <h5 className="font-semibold mb-2">Blockchain Details</h5>
+                          <div className="bg-background/50 p-3 rounded space-y-2">
+                            <div>
+                              <p className="text-sm text-muted-foreground">Wallet Address</p>
+                              <p className="font-mono text-sm break-all">{selectedCase.walletAddress}</p>
+                            </div>
+                            <div>
+                              <p className="text-sm text-muted-foreground">Transaction Hash</p>
+                              <p className="font-mono text-sm break-all">{selectedCase.transactionHash}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
 
                     <div className="bg-muted/30 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3">Participating Departments</h4>
@@ -556,18 +610,26 @@ const BlockchainDemo = () => {
                                 </span>
                               </div>
                               <p>{response.message}</p>
-                              {response.attachments && response.attachments.length > 0 && (
-                                <div className="mt-2">
-                                  <h6 className="text-sm font-semibold mb-1">Attachments</h6>
-                                  <div className="flex gap-2">
-                                    {response.attachments.map((file, fileIdx) => (
-                                      <Badge key={fileIdx} variant="secondary">
-                                        {file.name}
-                                      </Badge>
-                                    ))}
+                              <div className="mt-2">
+                              <h6 className="text-sm font-semibold mb-1">Attachments</h6>
+                              <div className="flex flex-wrap gap-2">
+                                {response.attachments.map((file, fileIdx) => (
+                                  <div key={fileIdx} className="flex items-center gap-1 p-1 bg-muted rounded">
+                                    <Badge variant="secondary" className="cursor-pointer hover:bg-accent">
+                                      {file.name}
+                                    </Badge>
+                                    <a 
+                                      href={URL.createObjectURL(file)}
+                                      download={file.name}
+                                      className="text-xs text-blue-500 hover:text-blue-700"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      Download
+                                    </a>
                                   </div>
-                                </div>
-                              )}
+                                ))}
+                              </div>
+                            </div>
                             </CardContent>
                           </Card>
                         ))}
