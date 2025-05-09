@@ -1,7 +1,13 @@
-import { Navigate } from 'wouter';
+
+import { useLocation } from 'wouter';
 
 const AuthPage = () => {
-  return <Navigate to="/" />;
+  const [, setLocation] = useLocation();
+  
+  // Redirect to home page
+  setLocation('/');
+  
+  return null;
 };
 
 export default AuthPage;
