@@ -65,6 +65,11 @@ const BlockchainDemo = () => {
     ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0
   });
 
+  const handleCaseSelect = (nodeCase: NodeCase) => {
+    setSelectedCase(nodeCase);
+    setIsDetailsOpen(true);
+  };
+
   useEffect(() => {
     const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
 
@@ -226,14 +231,11 @@ const BlockchainDemo = () => {
           <TabsContent value="all">
             <ScrollArea className="h-[400px]">
               <div className="space-y-4 p-4">
-                {cases.map((nodeCase) => (
+                {Array.isArray(cases) && cases.map((nodeCase) => (
                   <Card
                     key={nodeCase.id}
                     className="cursor-pointer hover:bg-accent/5"
-                    onClick={() => {
-                      setSelectedCase(nodeCase);
-                      setIsDetailsOpen(true);
-                    }}
+                    onClick={() => handleCaseSelect(nodeCase)}
                   >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between mb-2">
