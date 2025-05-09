@@ -51,6 +51,31 @@ const DEPARTMENTS = {
 const BlockchainDemo = () => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const [wsConnected, setWsConnected] = useState(false);
+  
+  useEffect(() => {
+    const ws = new WebSocket(`wss://${window.location.host}/ws`);
+    
+    ws.onopen = () => {
+      setWsConnected(true);
+      toast({
+        title: "Connected to blockchain network",
+        description: "Receiving real-time updates"
+      });
+    };
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === "NODE_CONFIRMATION") {
+        toast({
+          title: "Node Confirmation",
+          description: `${data.nodeName} confirmed at ${data.timestamp}`
+        });
+      }
+    };
+
+    return () => ws.close();
+  }, []);
   const [cases, setCases] = useState<NodeCase[]>([]);
   const [selectedCase, setSelectedCase] = useState<NodeCase | null>(null);
   const [newCaseDetails, setNewCaseDetails] = useState("");

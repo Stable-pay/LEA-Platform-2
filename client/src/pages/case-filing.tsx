@@ -7,6 +7,27 @@ import { FileCheck, Database, ShieldCheck, User, ArrowRight, CheckCircle } from 
 
 const CaseFiling = () => {
   const { user } = useAuth();
+  const [departmentValidated, setDepartmentValidated] = useState(false);
+  const [blockchainStatus, setBlockchainStatus] = useState<'pending' | 'verified' | 'failed'>('pending');
+
+  const validateDepartment = async () => {
+    try {
+      const response = await fetch('/api/blockchain/nodes/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ department: user?.department })
+      });
+      setDepartmentValidated(response.ok);
+    } catch (error) {
+      console.error('Department validation failed:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (user?.department) {
+      validateDepartment();
+    }
+  }, [user?.department]);
   
   // Get active cases for display
   const { data: cases = [], isLoading: casesLoading } = useQuery({

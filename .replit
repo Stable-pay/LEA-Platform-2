@@ -7,7 +7,7 @@ channel = "stable-24_05"
 
 [deployment]
 deploymentTarget = "autoscale"
-run = ["sh", "-c", "NODE_ENV=production node dist/index.js"]
+run = ["sh", "-c", "NODE_ENV=production node dist/server/index.js"]
 build = ["sh", "-c", "npm run build"]
 
 [[ports]]
@@ -55,7 +55,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "NODE_ENV=production npm run build && npm start"
+args = "NODE_ENV=production npm run build && NODE_ENV=production node dist/server/index.js"
 
 [[workflows.workflow]]
 name = "Dev"
