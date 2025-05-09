@@ -1,11 +1,11 @@
 
 import { QueryClient } from '@tanstack/react-query';
 
-const queryClient = new QueryClient({
+export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      retry: 2,
+      retry: 1,
+      refetchOnWindowFocus: false,
     },
   },
 });
@@ -32,21 +32,19 @@ export const getQueryFn = ({ on401 = "throw" } = {}) => {
 export const apiRequest = async (
   method: string,
   url: string,
-  data?: unknown
-): Promise<Response> => {
+  body?: any
+) => {
   const res = await fetch(url, {
     method,
     headers: {
       'Content-Type': 'application/json',
-      'Accept': 'application/json',
     },
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: 'include',
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: 'include'
   });
 
   if (!res.ok) {
-    const errorData = await res.json().catch(() => ({}));
-    throw new Error(errorData.message || `API Error: ${res.status}`);
+    throw new Error(`API Error: ${res.status}`);
   }
 
   return res;
@@ -54,10 +52,8 @@ export const apiRequest = async (
 
 export const api = {
   get: (url: string) => apiRequest('GET', url),
-  post: (url: string, data: unknown) => apiRequest('POST', url, data),
-  put: (url: string, data: unknown) => apiRequest('PUT', url, data),
+  post: (url: string, body: any) => apiRequest('POST', url, body),
+  put: (url: string, body: any) => apiRequest('PUT', url, body),
+  patch: (url: string, body: any) => apiRequest('PATCH', url, body),
   delete: (url: string) => apiRequest('DELETE', url),
 };
-
-export { queryClient };
-export default queryClient;

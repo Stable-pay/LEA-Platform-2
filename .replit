@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Production"
+runButton = "Dev"
 
 [[workflows.workflow]]
 name = "Project"
@@ -56,3 +56,12 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "NODE_ENV=production npm run build && npm start"
+
+[[workflows.workflow]]
+name = "Dev"
+author = 42453641
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
