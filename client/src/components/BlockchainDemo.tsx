@@ -299,26 +299,41 @@ const BlockchainDemo = () => {
                     )}
 
                     {canRespondToCase(selectedCase) && (
-                      <div className="space-y-4">
+                      <div className="space-y-4 bg-muted/30 p-4 rounded-lg">
                         <div className="flex items-center gap-2 mb-4">
-                          <h4 className="font-semibold">Submit Response</h4>
+                          <h4 className="font-semibold">Submit Department Response</h4>
                           <Badge variant="outline">
                             {getDepartmentRole(selectedCase)}
                           </Badge>
                         </div>
                         <Textarea
-                          placeholder="Enter your response as department..."
+                          placeholder="Enter your department's official response..."
                           value={responseDetails}
                           onChange={(e) => setResponseDetails(e.target.value)}
+                          className="min-h-[100px]"
                         />
-                        <div className="flex items-center gap-4">
-                          <FileUploader
-                            onFilesSelected={setAttachments}
-                            maxFiles={5}
-                            accept=".pdf,.doc,.docx,.jpg,.png"
-                          />
-                          <Button onClick={submitResponse} disabled={!responseDetails || !attachments.length}>
-                            Submit Response
+                        <div className="space-y-4">
+                          <div className="bg-background/50 p-4 rounded-md">
+                            <h5 className="text-sm font-medium mb-2">Attachments</h5>
+                            <FileUploader
+                              onFilesSelected={setAttachments}
+                              maxFiles={5}
+                              accept=".pdf,.doc,.docx,.jpg,.png"
+                            />
+                            {attachments.length > 0 && (
+                              <div className="mt-2">
+                                <p className="text-sm text-muted-foreground">
+                                  {attachments.length} file(s) selected
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                          <Button 
+                            onClick={submitResponse} 
+                            disabled={!responseDetails.trim()}
+                            className="w-full sm:w-auto"
+                          >
+                            Submit Department Response
                           </Button>
                         </div>
                       </div>
