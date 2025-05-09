@@ -40,10 +40,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Skip auth check for login and user endpoints
   app.use('/api/*', (req: Request, res: Response, next: NextFunction) => {
     if (
-      req.path === '/login' || 
-      req.path === '/logout' || 
-      req.path === '/register' || 
-      req.path === '/user'
+      req.path.endsWith('/login') || 
+      req.path.endsWith('/logout') || 
+      req.path.endsWith('/register') || 
+      req.path.endsWith('/user')
     ) {
       return next();
     }

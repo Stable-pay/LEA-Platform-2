@@ -23,7 +23,10 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 5000,
-    hmr: false  // Disable HMR to prevent auto-refresh
+    hmr: false,
+    watch: {
+      usePolling: false
+    }
   },
   resolve: {
     alias: {
