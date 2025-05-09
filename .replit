@@ -64,11 +64,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "export VITE_WS_PORT=5000"
-
-[[workflows.workflow.tasks]]
-task = "shell.exec"
-args = "export DATABASE_URL=\"postgres://user:pass@localhost:5432/mydb\""
+args = "export REPL_ID=winter-water-28073687"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
