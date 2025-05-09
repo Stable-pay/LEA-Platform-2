@@ -1,0 +1,81 @@
+Thanks — the new error message confirms that the **request shape is now valid**, but something **went wrong inside the backend logic** during case creation. Here's a precise breakdown:
+
+---
+
+### 🚨 New Error: `500 Internal Server Error`
+
+Message: `"Failed to create case"`
+This means your backend **passed validation**, but something inside the `try` block for inserting the case failed — possibly:
+
+---
+
+### 🧠 Likely Backend Causes:
+
+1. **Database Insertion Failure (e.g. Prisma or Mongo):**
+
+   * Required field missing in DB (e.g. `createdAt`, `userId`)
+   * Wrong enum value
+   * Unique constraint violation (e.g. duplicate `transactionHash`)
+   * Wallet address or transactionHash is too long for the DB schema
+
+2. **Silent Try-Catch Block:**
+
+   * Your Express code is likely doing this:
+
+     ```ts
+     try {
+       await db.case.create({ data: req.body });
+     } catch (e) {
+       console.error("Case creation error:", e); // Do this!
+       res.status(500).json({ message: "Failed to create case" });
+     }
+     ```
+
+   🔍 But you're not logging the real `e`, so you're blind to the actual cause.
+
+---
+
+### ✅ Recommended Fix:
+
+1. **Update your Express handler:**
+
+   ```ts
+   app.post("/api/cases", async (req, res) => {
+     try {
+       console.log("Request Body:", req.body);
+       const newCase = await db.case.create({ data: req.body });
+       res.status(201).json(newCase);
+     } catch (err) {
+       console.error("❌ Error inserting case:", err);
+       res.status(500).json({ message: "Failed to create case", error: err });
+     }
+   });
+   ```
+
+2. **Check your DB schema:**
+
+   * Is `estimatedLoss` expecting a `number` or a `string`?
+   * Are `initiatorDepartment`, `confirmerDepartment`, and `assignedDepartment` allowed as free-form strings or enums?
+   * Do `transactionHash` and `walletAddress` have size/format limits?
+
+3. **Validate request with Zod before insert:**
+
+   ```ts
+   const schema = z.object({
+     title: z.string(),
+     description: z.string(),
+     reportedBy: z.string(),
+     status: z.enum(["active", "closed"]),
+     priority: z.enum(["low", "medium", "high"]),
+     assignedDepartment: z.string(),
+     confirmerDepartment: z.string(),
+     initiatorDepartment: z.string(),
+     estimatedLoss: z.number(),
+     transactionHash: z.string(),
+     walletAddress: z.string()
+   });
+   ```
+
+---
+
+Would you like help crafting a full Express POST route with validation and error logging that’s production-safe?
