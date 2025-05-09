@@ -91,28 +91,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create a new case
   app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
-    const userId = req.headers["x-replit-user-id"];
-    if (!userId) {
-      return res.status(401).json({ message: "Authentication required" });
-    }
-    
     try {
       console.log("Creating case with data:", req.body);
-      await db.execute('SELECT 1'); // Test DB connection
       
       const cases = await storage.getCases();
       const caseCount = Array.isArray(cases) ? cases.length : 0;
-      const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);
+      const caseId = generateReferenceId("LEA", caseCount + 1);
       
-      // Create case with department assignment
+      // Create case with validated data
       const newCase = await storage.createCase({
-        ...req.body,
+        title: req.body.title,
+        description: req.body.description,
+        reportedBy: req.body.reportedBy,
+        status: req.body.status || "active",
+        priority: req.body.priority || "medium",
+        estimatedLoss: req.body.estimatedLoss,
+        assignedTo: req.body.assignedDepartment,
         caseId,
-        departmentAssignment: {
-          assigned: req.body.assignedDepartment,
-          initiator: req.body.initiatorDepartment,
-          confirmer: req.body.confirmerDepartment
-        }
+        walletAddress: req.body.walletAddress,
+        transactionHash: req.body.transactionHash
       });
 
       // Create blockchain transaction for verification
