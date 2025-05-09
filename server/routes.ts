@@ -622,14 +622,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const httpServer = createServer(app);
   
-  // Setup WebSocket Server for real-time blockchain updates
-  const wss = new WebSocket.Server({
-    server: httpServer,
-    path: '/ws'
-  });
+  // WebSocket connection handling is now managed in index.ts
+  const wss = null; // We'll use the WebSocket server from index.ts
   
-  // WebSocket connection handling
-  wss.on('connection', (ws) => {
+  if (wss) { // This block won't execute, just keeping the handlers for reference
+    wss.on('connection', (ws) => {
     log("WebSocket client connected", "ws");
     
     // Send welcome message
