@@ -71,7 +71,9 @@ const BlockchainDemo = () => {
   };
 
   useEffect(() => {
-    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const host = window.location.host;
+    const ws = new WebSocket(`${protocol}//${host}/ws`);
 
     ws.onopen = () => {
       setWsConnected(true);
@@ -82,15 +84,69 @@ const BlockchainDemo = () => {
     };
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === "NEW_CASE") {
-        setCases(prev => [...prev, data.case]);
-        updateCaseCounts([...cases, data.case]);
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "NEW_CASE") {
+          setCases(prev => [...prev, data.case]);
+          updateCaseCounts([...cases, data.case]);
+        }
+      } catch (error) {
+        console.error('WebSocket message parsing error:', error);
       }
     };
 
-    return () => ws.close();
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+      toast({
+        title: "Connection Error",
+        description: "Failed to connect to blockchain network",
+        variant: "destructive"
+      });
+    };
+
+    return () => {
+      if (ws.readyState === WebSocket.OPEN) {
+        ws.close();
+      }
+    };
   }, []);
+
+  const updateCaseCounts = (caseList: NodeCase[]) => {
+    const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
+    if (Array.isArray(caseList)) {
+      caseList.forEach(c => {
+        if (c.department in counts) {
+          counts[c.department as keyof typeof counts]++;
+        }
+      });
+    }
+    setCaseCounts(counts);
+  };
+
+  useEffect(() => {
+    const fetchCases = async () => {
+      try {
+        const response = await fetch('/api/cases');
+        if (response.ok) {
+          const data = await response.json();
+          setCases(data || []);
+          updateCaseCounts(data || []);
+        }
+      } catch (error) {
+        console.error('Error fetching cases:', error);
+        setCases([]);
+        toast({
+          title: "Error",
+          description: "Failed to fetch cases",
+          variant: "destructive"
+        });
+      }
+    };
+
+    if (user) {
+      fetchCases();
+    }
+  }, [user]);
 
   const canViewCaseDetails = (nodeCase: NodeCase) => {
     return user?.department === nodeCase.department ||
@@ -111,14 +167,6 @@ const BlockchainDemo = () => {
     if (user?.department === nodeCase.initiator) return "Initiator Department";
     if (user?.department === nodeCase.confirmer) return "Confirmer Department";
     return null;
-  };
-
-  const updateCaseCounts = (caseList: NodeCase[]) => {
-    const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
-    caseList.forEach(c => {
-      counts[c.department as keyof typeof counts] = (counts[c.department as keyof typeof counts] || 0) + 1;
-    });
-    setCaseCounts(counts);
   };
 
   const submitResponse = async () => {
@@ -192,26 +240,6 @@ const BlockchainDemo = () => {
     return () => ws.close();
   }, []);
 
-  useEffect(() => {
-    const fetchCases = async () => {
-      try {
-        const response = await fetch('/api/cases');
-        if (response.ok) {
-          const data = await response.json();
-          setCases(data || []);
-          updateCaseCounts(data || []);
-        }
-      } catch (error) {
-        console.error('Error fetching cases:', error);
-        setCases([]);
-      }
-    };
-
-    if (user) {
-      fetchCases();
-    }
-  }, [user, updateCaseCounts]);
-
   return (
     <Card>
       <CardHeader>
@@ -231,27 +259,33 @@ const BlockchainDemo = () => {
           <TabsContent value="all">
             <ScrollArea className="h-[400px]">
               <div className="space-y-4 p-4">
-                {Array.isArray(cases) && cases.map((nodeCase) => (
-                  <Card
-                    key={nodeCase.id}
-                    className="cursor-pointer hover:bg-accent/5"
-                    onClick={() => handleCaseSelect(nodeCase)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="font-semibold">{nodeCase.title}</h3>
-                        <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
-                          {nodeCase.status}
-                        </Badge>
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        <div>Assigned to: {DEPARTMENTS[nodeCase.assignedTo as keyof typeof DEPARTMENTS]}</div>
-                        <div>Initiator: {DEPARTMENTS[nodeCase.initiator as keyof typeof DEPARTMENTS]}</div>
-                        <div>Confirmer: {DEPARTMENTS[nodeCase.confirmer as keyof typeof DEPARTMENTS]}</div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {(!cases || cases.length === 0) ? (
+                  <div className="text-center text-muted-foreground py-8">
+                    No cases available
+                  </div>
+                ) : (
+                  cases.map((nodeCase) => (
+                    <Card
+                      key={nodeCase.id}
+                      className="cursor-pointer hover:bg-accent/5"
+                      onClick={() => handleCaseSelect(nodeCase)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold">{nodeCase.title}</h3>
+                          <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
+                            {nodeCase.status}
+                          </Badge>
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          <div>Assigned to: {DEPARTMENTS[nodeCase.assignedTo as keyof typeof DEPARTMENTS]}</div>
+                          <div>Initiator: {DEPARTMENTS[nodeCase.initiator as keyof typeof DEPARTMENTS]}</div>
+                          <div>Confirmer: {DEPARTMENTS[nodeCase.confirmer as keyof typeof DEPARTMENTS]}</div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))
+                )}
               </div>
             </ScrollArea>
           </TabsContent>
@@ -260,30 +294,36 @@ const BlockchainDemo = () => {
             <TabsContent key={dept} value={dept}>
               <ScrollArea className="h-[400px]">
                 <div className="space-y-4 p-4">
-                  {cases
-                    .filter(c => c.department === dept || c.assignedTo === dept || 
-                               c.initiator === dept || c.confirmer === dept)
-                    .map((nodeCase) => (
-                    <Card
-                      key={nodeCase.id}
-                      className="cursor-pointer hover:bg-accent/5"
-                      onClick={() => setSelectedCase(nodeCase)}
-                    >
-                      <CardContent className="p-3 sm:p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                          <h3 className="font-semibold text-sm sm:text-base line-clamp-1">{nodeCase.title}</h3>
-                          <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"} className="w-fit">
-                            {nodeCase.status}
-                          </Badge>
-                        </div>
-                        {canViewCaseDetails(nodeCase) && (
-                          <div className="text-sm text-muted-foreground mt-2">
-                            <p>{nodeCase.details}</p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {(!cases || cases.length === 0) ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      No cases available for {DEPARTMENTS[dept as keyof typeof DEPARTMENTS]}
+                    </div>
+                  ) : (
+                    cases
+                      .filter(c => c.department === dept || c.assignedTo === dept || 
+                                c.initiator === dept || c.confirmer === dept)
+                      .map((nodeCase) => (
+                        <Card
+                          key={nodeCase.id}
+                          className="cursor-pointer hover:bg-accent/5"
+                          onClick={() => handleCaseSelect(nodeCase)}
+                        >
+                          <CardContent className="p-3 sm:p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                              <h3 className="font-semibold text-sm sm:text-base line-clamp-1">{nodeCase.title}</h3>
+                              <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"} className="w-fit">
+                                {nodeCase.status}
+                              </Badge>
+                            </div>
+                            {nodeCase && (
+                              <div className="text-sm text-muted-foreground mt-2">
+                                <p>{nodeCase.details}</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))
+                  )}
                 </div>
               </ScrollArea>
             </TabsContent>
@@ -291,7 +331,7 @@ const BlockchainDemo = () => {
         </Tabs>
 
         {selectedCase && (
-          <Dialog open={!!selectedCase} onOpenChange={() => setSelectedCase(null)}>
+          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
             <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{selectedCase.title}</DialogTitle>
@@ -302,7 +342,7 @@ const BlockchainDemo = () => {
                     <div className="bg-muted/30 p-4 rounded-lg">
                       <h4 className="font-semibold mb-3">Case Details</h4>
                       <p>{selectedCase.details}</p>
-                      {selectedCase.attachments.length > 0 && (
+                      {selectedCase.attachments && selectedCase.attachments.length > 0 && (
                         <div className="mt-3">
                           <h5 className="font-semibold mb-2">Attachments</h5>
                           <div className="flex gap-2">
@@ -334,7 +374,7 @@ const BlockchainDemo = () => {
                       </div>
                     </div>
 
-                    {selectedCase.responses.length > 0 && (
+                    {selectedCase.responses && selectedCase.responses.length > 0 && (
                       <div className="space-y-4">
                         <h4 className="font-semibold">Department Responses</h4>
                         {selectedCase.responses.map((response, idx) => (
@@ -347,7 +387,7 @@ const BlockchainDemo = () => {
                                 </span>
                               </div>
                               <p>{response.message}</p>
-                              {response.attachments.length > 0 && (
+                              {response.attachments && response.attachments.length > 0 && (
                                 <div className="mt-2">
                                   <h6 className="text-sm font-semibold mb-1">Attachments</h6>
                                   <div className="flex gap-2">
