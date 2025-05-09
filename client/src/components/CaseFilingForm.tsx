@@ -202,36 +202,41 @@ const CaseFilingForm = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      const caseData = {
-        title: values.title,
-        description: values.description,
-        reportedBy: user?.fullName || values.reportedBy,
-        status: values.status || "active",
-        priority: values.priority || "medium",
-        estimatedLoss: Number(values.estimatedLoss),
-        assignedDepartment: values.assignedDepartment,
-        initiatorDepartment: values.initiatorDepartment,
-        confirmerDepartment: values.confirmerDepartment,
-        walletAddress: values.walletAddress,
-        transactionHash: values.transactionHash
-      };
+      try {
+        const caseData = {
+          title: values.title,
+          description: values.description,
+          reportedBy: user?.fullName || values.reportedBy,
+          status: values.status || "active",
+          priority: values.priority || "medium",
+          estimatedLoss: Number(values.estimatedLoss),
+          assignedTo: values.assignedDepartment,
+          initiatorDepartment: values.initiatorDepartment,
+          confirmerDepartment: values.confirmerDepartment,
+          walletAddress: values.walletAddress,
+          transactionHash: values.transactionHash
+        };
 
-      console.log("Submitting case:", caseData);
+        console.log("Submitting case:", caseData);
 
-      const response = await fetch('/api/cases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(caseData)
-      });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Failed to create case');
+        const response = await fetch('/api/cases', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(caseData)
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || 'Failed to create case');
+        }
+        
+        return await response.json();
+      } catch (error: any) {
+        console.error("Case creation error:", error);
+        throw error;
       }
-      
-      return response.json();
     },
     onSuccess: (data, values) => {
       setIsSubmitting(false);
