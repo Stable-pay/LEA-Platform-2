@@ -222,45 +222,42 @@ const CaseFilingForm = () => {
 
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data, values) => {
       setIsSubmitting(false);
       setCaseId(data.id.toString());
       
       // Start blockchain verification
       setIsVerifying(true);
       setVerificationStage(0);
-      setTxHash(data.blockchainTx?.txHash);
-        
-        // Start blockchain verification
-        setIsVerifying(true);
-        setVerificationStage(0);
-        setTxHash(`0x${Math.random().toString(16).slice(2)}`);
-        
-        // Dispatch events for both Department Node Explorer and Case Management
-        const caseData = {
-          ...values,
-          id: mockId.toString(),
-          caseId: `CASE-${mockId}`,
-          attachments: attachments.map(file => file.name),
-          createdAt: new Date().toISOString(),
-          verifiedOnBlockchain: true,
-          department: values.assignedDepartment,
-          status: values.status || "active"
-        };
-        
-        const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
-        const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
-        
-        window.dispatchEvent(newCaseEvent);
-        window.dispatchEvent(caseManagementEvent);
-        
-        toast({
-          title: "Case Created",
-          description: `Case ${mockId} has been created successfully.`,
-        });
-      }, 1000);
+      
+      // Generate mock transaction hash
+      const mockId = Date.now().toString().slice(-4);
+      setTxHash(`0x${Math.random().toString(16).slice(2)}`);
+      
+      // Dispatch events for both Department Node Explorer and Case Management
+      const caseData = {
+        ...values,
+        id: mockId,
+        caseId: `CASE-${mockId}`,
+        attachments: attachments.map(file => file.name),
+        createdAt: new Date().toISOString(),
+        verifiedOnBlockchain: true,
+        department: values.assignedDepartment,
+        status: values.status || "active"
+      };
+      
+      const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
+      const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
+      
+      window.dispatchEvent(newCaseEvent);
+      window.dispatchEvent(caseManagementEvent);
+      
+      toast({
+        title: "Case Created",
+        description: `Case ${mockId} has been created successfully.`,
+      });
     }
-  };
+  });
 
   // Function to handle form submission
   const onSubmit = (data: CaseFormValues) => {
