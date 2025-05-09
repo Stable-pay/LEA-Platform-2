@@ -1,11 +1,23 @@
+
 import type { Request, Response, NextFunction } from 'express';
 import type { Express } from 'express';
 import session from 'express-session';
 import MemoryStore from 'memorystore';
+import passport from 'passport';
 
 const SessionStore = MemoryStore(session);
 
+declare module 'express-session' {
+  interface SessionData {
+    user?: { id: string };
+  }
+}
+
 export const setupAuth = (app: Express) => {
+  // Initialize Passport and restore authentication state from session
+  app.use(passport.initialize());
+  app.use(passport.session());
+
   app.use(session({
     store: new SessionStore({
       checkPeriod: 86400000
@@ -19,15 +31,24 @@ export const setupAuth = (app: Express) => {
     }
   }));
 
-  app.get('/api/auth/replit', (req, res) => {
-    // Implement Replit auth login
-    res.redirect('https://replit.com/auth');
+  // Passport session setup
+  passport.serializeUser((user: any, done) => {
+    done(null, user.id);
   });
 
-  app.get('/api/auth/callback', (req, res) => {
-    // Handle Replit auth callback
-    req.session.user = { id: req.query.id };
-    res.redirect('/');
+  passport.deserializeUser((id: string, done) => {
+    done(null, { id });
+  });
+
+  app.get('/api/auth/replit', (req, res) => {
+    // Store user info in session
+    const userId = req.headers['x-replit-user-id'];
+    if (userId) {
+      req.session.user = { id: userId as string };
+      res.redirect('/');
+    } else {
+      res.status(401).json({ message: 'Authentication failed' });
+    }
   });
 
   app.post('/api/auth/logout', (req, res) => {
