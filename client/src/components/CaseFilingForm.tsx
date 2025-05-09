@@ -206,21 +206,19 @@ const CaseFilingForm = () => {
         login();
         throw new Error("Please login to create a case");
       }
-      
+
       const caseData = {
-        ...values,
-        caseId: `CASE-${Date.now().toString().slice(-6)}`,
-        dateReported: new Date().toISOString(),
-        assignedTo: values.assignedDepartment,
-        status: values.status || "active",
-        reportedBy: user?.fullName || values.reportedBy,
         title: values.title,
         description: values.description,
+        reportedBy: user?.fullName || values.reportedBy,
+        status: values.status || "active",
         priority: values.priority || "medium",
+        estimatedLoss: Number(values.estimatedLoss),
+        assignedDepartment: values.assignedDepartment,
         initiatorDepartment: values.initiatorDepartment,
         confirmerDepartment: values.confirmerDepartment,
         walletAddress: values.walletAddress,
-        transactionHash: values.transactionHash,
+        transactionHash: values.transactionHash
       };
 
       console.log("Submitting case:", caseData);
