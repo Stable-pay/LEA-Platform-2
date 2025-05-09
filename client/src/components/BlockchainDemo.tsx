@@ -68,13 +68,21 @@ const BlockchainDemo = () => {
   useEffect(() => {
     const fetchDepartments = async () => {
       try {
-        const response = await fetch('/api/blockchain/nodes');
+        const response = await fetch('/api/departments');
         if (!response.ok) throw new Error('Failed to fetch departments');
         const data = await response.json();
+        setDepartments(data);
         
-        // Extract unique department names
-        const deptSet = new Set(data.map((node: any) => node.nodeType));
-        setDepartments(Array.from(deptSet));
+        // Initialize nodes with department data
+        const initialNodes = data.map((dept: string) => ({
+          id: `${dept}-node`,
+          type: dept.toLowerCase(),
+          status: 'active',
+          name: `${dept} Node`,
+          uptime: 99.9,
+          transactions: 0
+        }));
+        setNodes(initialNodes);
 
         // Transform nodes data
         const transformedNodes = data.map((node: any) => ({
