@@ -255,36 +255,53 @@ const BlockchainDemo = () => {
 
               {canViewCaseDetails(nodeCase) ? (
                 <>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold mb-2">Participating Departments</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {[nodeCase.department, nodeCase.assignedTo, nodeCase.initiator, nodeCase.confirmer]
-                          .filter((dept, index, self) => dept && self.indexOf(dept) === index)
-                          .map((dept) => (
-                            <Badge key={dept} variant="secondary" className="flex items-center gap-1">
-                              {DEPARTMENTS[dept as keyof typeof DEPARTMENTS]}
-                              <span className="text-xs opacity-70">({getDepartmentRoleInCase(nodeCase, dept)})</span>
-                            </Badge>
-                          ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold">Case Details</h4>
-                      <p>{nodeCase.details}</p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {nodeCase.attachments.map((file, idx) => (
-                          <div key={idx} className="flex items-center">
-                            <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
-                              <FileCheck className="w-4 h-4 mr-1" />
-                              {file.name}
-                            </Badge>
+                  <div className="space-y-6">
+                    <div className="bg-muted/30 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-3 flex items-center">
+                        <Users className="w-4 h-4 mr-2" />
+                        Participating Departments
+                      </h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {[
+                          { role: "Creator", dept: nodeCase.department },
+                          { role: "Assigned", dept: nodeCase.assignedTo },
+                          { role: "Initiator", dept: nodeCase.initiator },
+                          { role: "Confirmer", dept: nodeCase.confirmer }
+                        ].filter(({dept}) => dept).map(({role, dept}) => (
+                          <div key={role} className="flex items-center p-2 bg-background rounded">
+                            <Badge variant="outline" className="mr-2">{role}</Badge>
+                            <span>{DEPARTMENTS[dept as keyof typeof DEPARTMENTS]}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-                  
+
+                    <div className="border-l-4 border-primary/20 pl-4">
+                      <h4 className="font-semibold mb-3 flex items-center">
+                        <FileText className="w-4 h-4 mr-2" />
+                        Case Details
+                      </h4>
+                      <p className="text-muted-foreground mb-4">{nodeCase.details}</p>
+                      {nodeCase.attachments.length > 0 && (
+                        <div>
+                          <h5 className="text-sm font-medium mb-2">Attachments</h5>
+                          <div className="flex flex-wrap gap-2">
+                            {nodeCase.attachments.map((file, idx) => (
+                              <div key={idx} className="group">
+                                <Badge 
+                                  variant="secondary" 
+                                  className="cursor-pointer transition-colors hover:bg-primary/20"
+                                  onClick={() => window.open(file.url)}
+                                >
+                                  <FileCheck className="w-4 h-4 mr-1" />
+                                  {file.name}
+                                </Badge>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                   <div className="mt-2 text-sm">
                     <span className="text-muted-foreground">Assigned to: </span>
@@ -443,27 +460,49 @@ const BlockchainDemo = () => {
                   </div>
 
                   {selectedCase.responses.length > 0 && (
-                    <div>
-                      <h4 className="font-semibold mb-2">Responses</h4>
-                      <div className="space-y-2">
+                    <div className="mt-6">
+                      <h4 className="font-semibold mb-4 flex items-center">
+                        <MessageSquare className="w-4 h-4 mr-2" />
+                        Department Responses
+                      </h4>
+                      <div className="space-y-4">
                         {selectedCase.responses.map((response, idx) => (
-                          <Card key={idx}>
+                          <Card key={idx} className="border-l-4 border-l-primary/40">
                             <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <span className="font-medium">{DEPARTMENTS[response.department as keyof typeof DEPARTMENTS]}</span>
-                                <Badge>{response.status}</Badge>
+                              <div className="flex justify-between items-center mb-3">
+                                <div className="flex items-center gap-2">
+                                  <Badge variant="secondary">
+                                    {DEPARTMENTS[response.department as keyof typeof DEPARTMENTS]}
+                                  </Badge>
+                                  <span className="text-sm text-muted-foreground">
+                                    {format(new Date(response.timestamp), "PPp")}
+                                  </span>
+                                </div>
+                                <Badge variant={response.status === "confirmed" ? "success" : "destructive"}>
+                                  {response.status}
+                                </Badge>
                               </div>
-                              <p className="text-sm">{response.details}</p>
-                              <div className="flex flex-wrap gap-2 mt-2">
-                                {response.attachments.map((file, fileIdx) => (
-                                  <div key={fileIdx} className="flex items-center">
-                                    <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
-                                      <FileCheck className="w-4 h-4 mr-1" />
-                                      {file.name}
-                                    </Badge>
+                              <div className="bg-muted/30 p-3 rounded-md mb-3">
+                                <p className="text-sm">{response.details}</p>
+                              </div>
+                              {response.attachments.length > 0 && (
+                                <div>
+                                  <span className="text-xs font-medium text-muted-foreground">Attachments</span>
+                                  <div className="flex flex-wrap gap-2 mt-1">
+                                    {response.attachments.map((file, fileIdx) => (
+                                      <Badge 
+                                        key={fileIdx}
+                                        variant="outline" 
+                                        className="cursor-pointer transition-colors hover:bg-primary/20"
+                                        onClick={() => window.open(file.url)}
+                                      >
+                                        <FileCheck className="w-4 h-4 mr-1" />
+                                        {file.name}
+                                      </Badge>
+                                    ))}
                                   </div>
-                                ))}
-                              </div>
+                                </div>
+                              )}
                             </CardContent>
                           </Card>
                         ))}
