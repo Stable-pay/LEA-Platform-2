@@ -195,6 +195,10 @@ const CaseFilingForm = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
+      if (!user) {
+        throw new Error("Please login to create a case");
+      }
+      
       const caseData = {
         ...values,
         caseId: `CASE-${Date.now().toString().slice(-6)}`,

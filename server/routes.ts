@@ -100,6 +100,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Create a new case
   app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Authentication required" });
+    }
+    
     try {
       console.log("Creating case with data:", req.body);
       await db.execute('SELECT 1'); // Test DB connection
