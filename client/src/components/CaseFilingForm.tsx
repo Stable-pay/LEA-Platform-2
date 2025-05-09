@@ -179,7 +179,11 @@ const CaseFilingForm = () => {
 
   const onSubmit = (data: CaseFormValues) => {
     setIsSubmitting(true);
-    createCaseMutation.mutate(data);
+    const submissionData = {
+      ...data,
+      assignedTo: data.assignedDepartment
+    };
+    createCaseMutation.mutate(submissionData);
   };
 
   return (

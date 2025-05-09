@@ -113,9 +113,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         confirmerDepartment: req.body.confirmerDepartment,
         walletAddress: req.body.walletAddress,
         transactionHash: req.body.transactionHash,
-        priority: req.body.priority || "medium",
-        createdAt: dateReported,
-        updatedAt: dateReported
+        priority: req.body.priority || "medium"
       });
 
       // Create blockchain transaction for verification
