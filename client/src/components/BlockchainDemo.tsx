@@ -131,10 +131,10 @@ const BlockchainDemo = () => {
   };
 
   useEffect(() => {
-    // Connect to WebSocket on port 5000
+    // Connect to WebSocket using the same host as the page
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const host = window.location.hostname;
-    const ws = new WebSocket(`${protocol}//${host}:5000/ws`);
+    const host = window.location.host;
+    const ws = new WebSocket(`${protocol}//${host}/ws`);
 
     ws.onopen = () => {
       setWsConnected(true);
