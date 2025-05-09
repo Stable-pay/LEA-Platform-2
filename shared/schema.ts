@@ -20,23 +20,16 @@ export const cases = pgTable("cases", {
   caseId: text("case_id").notNull().unique(), // Human-readable case ID (e.g., LEA-3912)
   title: text("title").notNull(),
   description: text("description"),
-  caseType: text("case_type").notNull().default("task"), // task, story, bug, epic
-  status: text("status").notNull().default("backlog"), // backlog, todo, in_progress, review, done
-  sprint: text("sprint"), // Current sprint name/id
-  storyPoints: integer("story_points"), // Fibonacci: 1,2,3,5,8,13
+  status: text("status").notNull().default("active"), // active, investigating, pending, resolved
   dateReported: timestamp("date_reported").defaultNow(),
   reportedBy: text("reported_by").notNull(),
   estimatedLoss: integer("estimated_loss"), // In INR
-  priority: text("priority").notNull().default("medium"), // blocker, critical, high, medium, low
+  priority: text("priority").notNull().default("medium"), // critical, high, medium, low
   assignedTo: text("assigned_to"), // Department assigned to the case
   initiatorDepartment: text("initiator_department").notNull(),
   confirmerDepartment: text("confirmer_department").notNull(),
   walletAddress: text("wallet_address").notNull(),
   transactionHash: text("transaction_hash").notNull(),
-  components: jsonb("components").default("[]"), // Array of components
-  labels: jsonb("labels").default("[]"), // Array of labels
-  linkedIssues: jsonb("linked_issues").default("[]"), // Array of linked case IDs
-  epicLink: text("epic_link"), // Parent epic case ID
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
