@@ -116,34 +116,94 @@ const BlockchainDemo = () => {
   };
 
   const submitResponse = async () => {
-    if (!selectedCase || !responseDetails || !attachments.length) return;
+    if (!selectedCase || !responseDetails.trim()) return;
 
-    const newResponse = {
-      department: user?.department || "",
-      message: responseDetails,
-      attachments,
-      timestamp: new Date().toISOString(),
-      status: "confirmed"
+    try {
+      const formData = new FormData();
+      formData.append('caseId', selectedCase.id);
+      formData.append('department', user?.department || '');
+      formData.append('message', responseDetails);
+      attachments.forEach(file => formData.append('attachments', file));
+
+      const response = await fetch('/api/cases/response', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to submit response');
+      }
+
+      const data = await response.json();
+
+      setCases(prev => prev.map(c => {
+        if (c.id === selectedCase.id) {
+          return {
+            ...c,
+            responses: [...c.responses, data]
+          };
+        }
+        return c;
+      }));
+
+      setResponseDetails('');
+      setAttachments([]);
+
+      toast({
+        title: 'Response Submitted',
+        description: 'Your response has been recorded on the blockchain',
+      });
+    } catch (error) {
+      console.error('Response submission error:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to submit response',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  useEffect(() => {
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'NEW_CASE') {
+        setCases(prev => [...prev, data.case]);
+      } else if (data.type === 'NEW_RESPONSE') {
+        setCases(prev => prev.map(c => {
+          if (c.id === data.caseId) {
+            return {
+              ...c,
+              responses: [...c.responses, data.response]
+            };
+          }
+          return c;
+        }));
+      }
     };
 
-    setCases(prev => prev.map(c => {
-      if (c.id === selectedCase.id) {
-        return {
-          ...c,
-          responses: [...c.responses, newResponse]
-        };
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
+    const fetchCases = async () => {
+      try {
+        const response = await fetch('/api/cases');
+        if (response.ok) {
+          const data = await response.json();
+          setCases(data);
+          updateCaseCounts(data);
+        }
+      } catch (error) {
+        console.error('Error fetching cases:', error);
       }
-      return c;
-    }));
+    };
 
-    setResponseDetails("");
-    setAttachments([]);
-
-    toast({
-      title: "Response Submitted",
-      description: "Your response has been recorded on the blockchain",
-    });
-  };
+    if (user) {
+      fetchCases();
+    }
+  }, [user]);
 
   return (
     <Card>
