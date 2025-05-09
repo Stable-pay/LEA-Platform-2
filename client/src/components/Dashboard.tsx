@@ -14,17 +14,17 @@ const Dashboard = () => {
         <StatsCard />
       </div>
 
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-7">
-        <div className="col-span-1 md:col-span-2 lg:col-span-4">
+      <div className="flex flex-col lg:flex-row gap-4">
+        <div className="w-full lg:w-2/3">
           <BlockchainDemo />
         </div>
 
-        <div className="col-span-1 md:col-span-2 lg:col-span-3">
+        <div className="w-full lg:w-1/3">
           <Card>
             <CardHeader>
               <CardTitle>Recent Activity</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0 sm:p-4">
               <RecentCaseActivity />
             </CardContent>
           </Card>

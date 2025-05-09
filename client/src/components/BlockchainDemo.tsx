@@ -143,13 +143,13 @@ const BlockchainDemo = () => {
       <CardHeader>
         <CardTitle>Department Node Explorer</CardTitle>
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="all">
-          <TabsList>
-            <TabsTrigger value="all">All Cases</TabsTrigger>
+      <CardContent className="p-2 sm:p-4">
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="w-full flex-wrap">
+            <TabsTrigger value="all" className="text-xs sm:text-sm">All Cases</TabsTrigger>
             {Object.entries(DEPARTMENTS).map(([key, value]) => (
-              <TabsTrigger key={key} value={key}>
-                {value} ({caseCounts[key as keyof typeof caseCounts]})
+              <TabsTrigger key={key} value={key} className="text-xs sm:text-sm whitespace-nowrap">
+                {key} ({caseCounts[key as keyof typeof caseCounts]})
               </TabsTrigger>
             ))}
           </TabsList>
@@ -192,13 +192,13 @@ const BlockchainDemo = () => {
                     .map((nodeCase) => (
                     <Card
                       key={nodeCase.id}
-                      className="cursor-pointer"
+                      className="cursor-pointer hover:bg-accent/5"
                       onClick={() => setSelectedCase(nodeCase)}
                     >
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h3 className="font-semibold">{nodeCase.title}</h3>
-                          <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                          <h3 className="font-semibold text-sm sm:text-base line-clamp-1">{nodeCase.title}</h3>
+                          <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"} className="w-fit">
                             {nodeCase.status}
                           </Badge>
                         </div>
@@ -218,7 +218,7 @@ const BlockchainDemo = () => {
 
         {selectedCase && (
           <Dialog open={!!selectedCase} onOpenChange={() => setSelectedCase(null)}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{selectedCase.title}</DialogTitle>
               </DialogHeader>
