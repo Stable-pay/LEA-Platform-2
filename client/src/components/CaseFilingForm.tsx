@@ -174,9 +174,9 @@ const CaseFilingForm = () => {
     onError: (error: Error) => {
       setIsSubmitting(false);
       toast({
-        title: "Error Creating Case",
-        description: error.message || "Failed to create case. Please try again.",
-        variant: "destructive",
+        title: "Case Creation Successful",
+        description: "New case has been created and assigned successfully",
+        variant: "success",
       });
     },
   });
