@@ -1,5 +1,4 @@
 import CaseFilingForm from "@/components/CaseFilingForm";
-import { HyperledgerStatus } from "@/components/HyperledgerStatus";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/use-auth";
@@ -49,9 +48,8 @@ const CaseFiling = () => {
       </div>
       
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-        <div className="xl:col-span-2 space-y-6">
+        <div className="xl:col-span-2">
           <CaseFilingForm />
-          <HyperledgerStatus />
         </div>
         
         <div className="space-y-6">

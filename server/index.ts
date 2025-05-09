@@ -1,26 +1,10 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import WebSocket, { WebSocketServer } from 'ws';
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-
-// Setup WebSocket server
-const wss = new WebSocketServer({ noServer: true });
-
-wss.on('connection', (ws) => {
-  console.log('WebSocket client connected');
-  
-  ws.on('message', (message) => {
-    console.log('Received:', message);
-  });
-  
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
-});
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -82,14 +66,5 @@ app.use((req, res, next) => {
     reusePort: true,
   }, () => {
     log(`serving on port ${port}`);
-  });
-
-  // Handle WebSocket upgrade
-  server.on('upgrade', (request, socket, head) => {
-    if (request.url?.startsWith('/ws')) {
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        wss.emit('connection', ws, request);
-      });
-    }
   });
 })();

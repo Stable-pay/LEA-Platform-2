@@ -152,36 +152,30 @@ export function setupAuth(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req: Request, res: Response) => {
-    if (!req.user || !req.isAuthenticated()) {
-      return res.status(401).json({ 
-        message: "Not authenticated",
-        redirectTo: "/auth"
-      });
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
     
     // Remove password from response
     const { password: _, ...userWithoutPassword } = req.user as User;
+    
     res.status(200).json(userWithoutPassword);
   });
   
   // Middleware to check if user is authenticated
   app.use("/api/*", (req: Request, res: Response, next: NextFunction) => {
-    const publicPaths = [
-      "/api/login",
-      "/api/logout", 
-      "/api/register"
-    ];
-    
-    // Skip auth check for public endpoints
-    if (publicPaths.includes(req.path)) {
+    // Skip auth check for login, logout, register, and user endpoints
+    if (
+      req.path === "/api/login" || 
+      req.path === "/api/logout" || 
+      req.path === "/api/register" || 
+      req.path === "/api/user"
+    ) {
       return next();
     }
-
+    
     if (!req.isAuthenticated()) {
-      return res.status(401).json({ 
-        message: "Authentication required",
-        redirectTo: "/auth"
-      });
+      return res.status(401).json({ message: "Authentication required" });
     }
     
     next();

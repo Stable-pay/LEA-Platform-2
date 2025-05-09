@@ -88,11 +88,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new case
-  app.post("/api/cases", async (req, res) => {
+  app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
     try {
-      const validatedData = insertCaseSchema.parse(req.body);
-      req.body = validatedData;
-      
       const caseCount = (await storage.getCases()).length;
       const caseId = req.body.caseId || generateReferenceId("LEA", caseCount + 1);
       
@@ -622,8 +619,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   const httpServer = createServer(app);
   
-  // WebSocket connection handling passed from index.ts
-  const handleWebSocketConnection = (ws: WebSocket) => {
+  // Setup WebSocket Server for real-time blockchain updates
+  const wss = new WebSocketServer({
+    server: httpServer,
+    path: '/ws'
+  });
+  
+  // WebSocket connection handling
+  wss.on('connection', (ws) => {
     log("WebSocket client connected", "ws");
     
     // Send welcome message
