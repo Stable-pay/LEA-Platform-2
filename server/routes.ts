@@ -623,7 +623,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
   // Setup WebSocket Server for real-time blockchain updates
-  const wss = new WebSocketServer({
+  const wss = new WebSocket.Server({
     server: httpServer,
     path: '/ws'
   });
