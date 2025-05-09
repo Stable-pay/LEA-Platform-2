@@ -152,13 +152,15 @@ export function setupAuth(app: Express) {
 
   // Get current user endpoint
   app.get("/api/user", (req: Request, res: Response) => {
-    if (!req.isAuthenticated()) {
-      return res.status(401).json({ message: "Not authenticated" });
+    if (!req.user || !req.isAuthenticated()) {
+      return res.status(401).json({ 
+        message: "Not authenticated",
+        redirectTo: "/auth"
+      });
     }
     
     // Remove password from response
     const { password: _, ...userWithoutPassword } = req.user as User;
-    
     res.status(200).json(userWithoutPassword);
   });
   
@@ -167,8 +169,7 @@ export function setupAuth(app: Express) {
     const publicPaths = [
       "/api/login",
       "/api/logout", 
-      "/api/register",
-      "/api/user"
+      "/api/register"
     ];
     
     // Skip auth check for public endpoints
