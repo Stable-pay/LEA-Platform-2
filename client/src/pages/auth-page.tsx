@@ -1,9 +1,10 @@
+
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useLocation } from "wouter";
+import { useAuth } from "@/hooks/use-auth";
 
-const WelcomePage = () => {
-  const [, setLocation] = useLocation();
+const AuthPage = () => {
+  const { login } = useAuth();
 
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
@@ -16,9 +17,9 @@ const WelcomePage = () => {
           <CardContent>
             <Button
               className="w-full"
-              onClick={() => setLocation("/")}
+              onClick={login}
             >
-              Enter Dashboard
+              Login with Replit
             </Button>
           </CardContent>
         </Card>
@@ -27,4 +28,4 @@ const WelcomePage = () => {
   );
 };
 
-export default WelcomePage;
+export default AuthPage;

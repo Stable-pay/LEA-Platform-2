@@ -1,44 +1,21 @@
 import { createContext, ReactNode, useContext } from "react";
-import {
-  useQuery,
-  useMutation,
-  UseMutationResult,
-} from "@tanstack/react-query";
-import { User, insertUserSchema } from "@shared/schema";
-import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
+import { useQuery } from "@tanstack/react-query";
+import { User } from "@shared/schema";
+import { getQueryFn } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import { z } from "zod";
 
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   error: Error | null;
-  loginMutation: UseMutationResult<User, Error, LoginData>;
-  logoutMutation: UseMutationResult<void, Error, void>;
-  registerMutation: UseMutationResult<User, Error, RegisterData>;
+  login: () => void;
 };
 
-// Create specific types for login and registration
-type LoginData = {
-  username: string;
-  password: string;
-};
-
-// Extend the user schema for registration
-const extendedUserSchema = insertUserSchema.extend({
-  fullName: z.string().min(2, "Full name is required"),
-});
-
-type RegisterData = z.infer<typeof extendedUserSchema>;
-
-// Create the auth context
 export const AuthContext = createContext<AuthContextType | null>(null);
 
-// Auth provider component
 export function AuthProvider({ children }: { children: ReactNode }) {
   const { toast } = useToast();
-  
-  // Query to get user data
+
   const {
     data: user,
     error,
@@ -48,86 +25,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryFn: getQueryFn({ on401: "returnNull" }),
   });
 
-  // Login mutation
-  const loginMutation = useMutation({
-    mutationFn: async (credentials: LoginData) => {
-      const res = await apiRequest("POST", "/api/login", credentials);
-      return await res.json();
-    },
-    onSuccess: (user: User) => {
-      queryClient.setQueryData(["/api/user"], user);
-      
-      toast({
-        title: "Login successful",
-        description: `Welcome back, ${user.fullName || user.username}`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Login failed",
-        description: error.message || "Invalid username or password",
-        variant: "destructive",
-      });
-    },
-  });
+  const login = () => {
+    window.addEventListener("message", authComplete);
+    const h = 500;
+    const w = 350;
+    const left = screen.width / 2 - w / 2;
+    const top = screen.height / 2 - h / 2;
 
-  // Register mutation
-  const registerMutation = useMutation({
-    mutationFn: async (userData: RegisterData) => {
-      const res = await apiRequest("POST", "/api/register", userData);
-      return await res.json();
-    },
-    onSuccess: (user: User) => {
-      queryClient.setQueryData(["/api/user"], user);
-      
-      toast({
-        title: "Registration successful",
-        description: `Welcome, ${user.fullName || user.username}`,
-      });
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Registration failed",
-        description: error.message || "Could not create account",
-        variant: "destructive",
-      });
-    },
-  });
+    const authWindow = window.open(
+      "https://replit.com/auth_with_repl_site?domain=" + location.host,
+      "_blank",
+      "modal=yes, toolbar=no, location=no, directories=no, status=no, menubar=no, scrollbars=no, resizable=no, copyhistory=no, width=" +
+        w +
+        ", height=" +
+        h +
+        ", top=" +
+        top +
+        ", left=" +
+        left
+    );
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      await apiRequest("POST", "/api/logout");
-    },
-    onSuccess: () => {
-      queryClient.setQueryData(["/api/user"], null);
-      
-      toast({
-        title: "Logged out",
-        description: "You have been logged out successfully",
-      });
-      
-      // Redirect to login
-      window.location.href = '/auth';
-    },
-    onError: (error: Error) => {
-      toast({
-        title: "Logout failed",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+    function authComplete(e: MessageEvent) {
+      if (e.data !== "auth_complete") {
+        return;
+      }
+
+      window.removeEventListener("message", authComplete);
+      authWindow?.close();
+      location.reload();
+    }
+  };
 
   return (
     <AuthContext.Provider
       value={{
-        user: user || null,
+        user,
         isLoading,
         error,
-        loginMutation,
-        logoutMutation,
-        registerMutation,
+        login
       }}
     >
       {children}
@@ -135,7 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook to use auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {

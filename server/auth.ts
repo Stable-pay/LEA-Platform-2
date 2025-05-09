@@ -1,22 +1,20 @@
-import passport from "passport";
-import { Strategy as LocalStrategy } from "passport-local";
 import { Express, Request, Response, NextFunction } from "express";
 import session from "express-session";
-import { scrypt, randomBytes, timingSafeEqual } from "crypto";
-import { promisify } from "util";
-import { storage } from "./storage";
 import { User } from "@shared/schema";
 import MemoryStore from "memorystore";
 
 // Type augmentation for Express.User
 declare global {
   namespace Express {
-    interface User extends User {}
+    interface User extends User {
+      id: string;
+      name: string;
+      bio: string;
+      url: string;
+      profileImage: string;
+    }
   }
 }
-
-const MemStoreConstructor = MemoryStore(session);
-const scryptAsync = promisify(scrypt);
 
 async function hashPassword(password: string) {
   const salt = randomBytes(16).toString("hex");
@@ -32,23 +30,21 @@ async function comparePasswords(supplied: string, stored: string) {
 }
 
 export function setupAuth(app: Express) {
-  // Session setup
-  const sessionSettings: session.SessionOptions = {
-    secret: process.env.SESSION_SECRET || "stable-pay-secret-key-change-in-production",
-    resave: false,
-    saveUninitialized: false,
-    store: new MemStoreConstructor({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    }),
-    cookie: {
-      maxAge: 24 * 60 * 60 * 1000, // 24 hours
-      secure: process.env.NODE_ENV === "production",
+  app.get("/api/user", (req: Request, res: Response) => {
+    const userData = {
+      id: req.headers["x-replit-user-id"],
+      name: req.headers["x-replit-user-name"],
+      bio: req.headers["x-replit-user-bio"],
+      url: req.headers["x-replit-user-url"],
+      profileImage: req.headers["x-replit-user-profile-image"]
+    };
+    
+    if (!userData.id) {
+      return res.status(401).json({ message: "Not authenticated" });
     }
-  };
-
-  app.use(session(sessionSettings));
-  app.use(passport.initialize());
-  app.use(passport.session());
+    
+    res.json(userData);
+  });
 
   // Configure Passport local strategy
   passport.use(
