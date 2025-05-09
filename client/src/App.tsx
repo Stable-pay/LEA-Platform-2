@@ -17,6 +17,7 @@ import CaseFiling from "@/pages/case-filing";
 import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import DepartmentLogin from "@/pages/DepartmentLogin";
 
 export default function App() {
   return (
