@@ -218,7 +218,7 @@ const CaseFilingForm = () => {
 
       console.log("Submitting case:", caseData);
 
-      const response = await fetch("/api/cases", {
+      const apiResponse = await fetch("/api/cases", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -226,12 +226,12 @@ const CaseFilingForm = () => {
         body: JSON.stringify(caseData),
       });
 
-      if (!response.ok) {
-        const error = await response.json();
+      if (!apiResponse.ok) {
+        const error = await apiResponse.json();
         throw new Error(error.message || 'Failed to create case');
       }
 
-      return response.json();
+      return apiResponse.json();
     },
     onSuccess: (data, values) => {
       setIsSubmitting(false);
