@@ -38,7 +38,7 @@ const WalletCheck = () => {
   const { toast } = useToast();
   
   // Fetch recent wallets on component mount
-  useState(() => {
+  useEffect(() => {
     fetchRecentWallets();
   }, []);
 
