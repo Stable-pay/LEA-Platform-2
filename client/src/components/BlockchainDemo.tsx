@@ -1,42 +1,27 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/use-auth";
+import { useToast } from "@/hooks/use-toast";
+import { format } from "date-fns";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FileUploader } from "@/components/ui/file-uploader";
-import { format } from "date-fns";
-import { LucideFileX, FileCheck, Eye, Upload, Shield, AlertTriangle } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
-
-interface NodeCase {
-  id: string;
-  title: string;
-  department: string;
-  status: "initiated" | "pending" | "confirmed" | "rejected";
-  timestamp: string;
-  details: string;
-  attachments: { name: string; url: string }[];
-  responses: NodeResponse[];
-  assignedTo?: string;
-  initiator?: string;
-  confirmer?: string;
-  caseCounts?: { [key: string]: number };
-}
-
-interface NodeResponse {
-  department: string;
-  details: string;
-  attachments: { name: string; url: string }[];
-  timestamp: string;
-  status: "confirmed" | "rejected";
-}
+import { Shield, Users, MessageSquare, AlertTriangle } from "lucide-react";
 
 const DEPARTMENTS = {
   ED: "Enforcement Directorate",
@@ -47,10 +32,37 @@ const DEPARTMENTS = {
   BANK: "Banking Institution"
 };
 
+interface NodeCase {
+  id: string;
+  title: string;
+  department: string;
+  status: string;
+  timestamp: string;
+  details: string;
+  attachments: File[];
+  responses: {
+    department: string;
+    message: string;
+    attachments: File[];
+    timestamp: string;
+    status: string;
+  }[];
+  assignedTo: string;
+  initiator: string;
+  confirmer: string;
+}
+
 const BlockchainDemo = () => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [wsConnected, setWsConnected] = useState(false);
+  const [cases, setCases] = useState<NodeCase[]>([]);
+  const [selectedCase, setSelectedCase] = useState<NodeCase | null>(null);
+  const [responseDetails, setResponseDetails] = useState("");
+  const [attachments, setAttachments] = useState<File[]>([]);
+  const [caseCounts, setCaseCounts] = useState<{ [department: string]: number }>({
+    ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0
+  });
 
   useEffect(() => {
     const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
@@ -65,154 +77,57 @@ const BlockchainDemo = () => {
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
-      if (data.type === "NODE_CONFIRMATION") {
-        toast({
-          title: "Node Confirmation",
-          description: `${data.nodeName} confirmed at ${data.timestamp}`
-        });
+      if (data.type === "NEW_CASE") {
+        setCases(prev => [...prev, data.case]);
+        updateCaseCounts([...cases, data.case]);
       }
     };
 
     return () => ws.close();
   }, []);
-  const [cases, setCases] = useState<NodeCase[]>([]);
-  const [selectedCase, setSelectedCase] = useState<NodeCase | null>(null);
-  const [newCaseDetails, setNewCaseDetails] = useState("");
-  const [responseDetails, setResponseDetails] = useState("");
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [assignToDepartment, setAssignToDepartment] = useState("");
-  const [taskInitiator, setTaskInitiator] = useState("");
-  const [taskConfirmer, setTaskConfirmer] = useState("");
-  const [caseCounts, setCaseCounts] = useState<{ [department: string]: number }>({
-    ED: 0,
-    FIU: 0,
-    I4C: 0,
-    IT: 0,
-    VASP: 0,
-    BANK: 0
-  });
 
-  useEffect(() => {
-    // Subscribe to case filing and management events
-    const handleNewCase = (e: CustomEvent) => {
-      const newCase: NodeCase = {
-        id: `CASE-${Date.now().toString().slice(-3)}`,
-        title: e.detail.title,
-        department: e.detail.initiatorDepartment,
-        status: "initiated",
-        timestamp: new Date().toISOString(),
-        details: e.detail.description,
-        attachments: e.detail.attachments || [],
-        responses: [],
-        assignedTo: e.detail.assignedDepartment,
-        initiator: e.detail.initiatorDepartment,
-        confirmer: e.detail.confirmerDepartment
-      };
+  const canViewCaseDetails = (nodeCase: NodeCase) => {
+    return user?.department === nodeCase.department ||
+           user?.department === nodeCase.assignedTo ||
+           user?.department === nodeCase.initiator ||
+           user?.department === nodeCase.confirmer;
+  };
 
-      setCases(prev => {
-        const updated = [...prev, newCase];
-        updateCaseCounts(updated);
-        return updated;
-      });
-    };
-
-    window.addEventListener('new-case-filed', handleNewCase as EventListener);
-    return () => window.removeEventListener('new-case-filed', handleNewCase as EventListener);
-  }, []);
+  const canRespondToCase = (nodeCase: NodeCase) => {
+    return (user?.department === nodeCase.assignedTo ||
+            user?.department === nodeCase.initiator ||
+            user?.department === nodeCase.confirmer) &&
+           nodeCase.status !== "closed";
+  };
 
   const updateCaseCounts = (caseList: NodeCase[]) => {
     const counts = { ED: 0, FIU: 0, I4C: 0, IT: 0, VASP: 0, BANK: 0 };
     caseList.forEach(c => {
-      counts[c.department] = (counts[c.department] || 0) + 1;
+      counts[c.department as keyof typeof counts] = (counts[c.department as keyof typeof counts] || 0) + 1;
     });
     setCaseCounts(counts);
   };
 
-  const canViewCaseDetails = (nodeCase: NodeCase) => {
-    // Department can view if they are involved in any way
-    const hasAccess = user?.department === nodeCase.department || 
-                     user?.department === nodeCase.assignedTo ||
-                     user?.department === nodeCase.initiator ||
-                     user?.department === nodeCase.confirmer;
-
-    // Log access attempt for auditing
-    console.log(`Department ${user?.department} ${hasAccess ? 'granted' : 'denied'} access to case ${nodeCase.id}`);
-    return hasAccess;
-  };
-
-  const getDepartmentCases = (dept: string) => {
-    return cases.filter(c => 
-      dept === "all" || 
-      c.department === dept ||
-      c.assignedTo === dept ||
-      c.initiator === dept ||
-      c.confirmer === dept
-    );
-  };
-
-    const getDepartmentRoleInCase = (nodeCase: NodeCase, department: string): string => {
-        if (nodeCase.department === department) return "Originator";
-        if (nodeCase.assignedTo === department) return "Assigned";
-        if (nodeCase.initiator === department) return "Initiator";
-        if (nodeCase.confirmer === department) return "Confirmer";
-        return "Participant";
-    };
-
-  const initiateNewCase = () => {
-    if (!newCaseDetails || !attachments.length || !assignToDepartment || !taskInitiator || !taskConfirmer) return;
-
-    const newCase: NodeCase = {
-      id: `CASE-${Date.now().toString().slice(-3)}`,
-      title: `New Case from ${user?.department}`,
-      department: user?.department || "ED",
-      status: "initiated",
-      timestamp: new Date().toISOString(),
-      details: newCaseDetails,
-      attachments: attachments.map(file => ({ name: file.name, url: URL.createObjectURL(file) })),
-      responses: [],
-      assignedTo: assignToDepartment,
-      initiator: taskInitiator,
-      confirmer: taskConfirmer
-    };
-
-    setCases(prev => {
-      const updated = [...prev, newCase];
-      updateCaseCounts(updated);
-      return updated;
-    });
-
-    setNewCaseDetails("");
-    setAttachments([]);
-    setAssignToDepartment("");
-    setTaskInitiator("");
-    setTaskConfirmer("");
-
-    toast({
-      title: "Case Initiated",
-      description: "New case has been added to the blockchain network",
-    });
-  };
-
-  const submitResponse = () => {
+  const submitResponse = async () => {
     if (!selectedCase || !responseDetails || !attachments.length) return;
 
-    const response: NodeResponse = {
-      department: user?.department || "ED",
-      details: responseDetails,
-      attachments: attachments.map(file => ({ name: file.name, url: URL.createObjectURL(file) })),
+    const newResponse = {
+      department: user?.department || "",
+      message: responseDetails,
+      attachments,
       timestamp: new Date().toISOString(),
       status: "confirmed"
     };
 
-    setCases(prev => prev.map(c =>
-      c.id === selectedCase.id
-        ? {
-            ...c,
-            status: "confirmed",
-            responses: [...c.responses, response]
-          }
-        : c
-    ));
+    setCases(prev => prev.map(c => {
+      if (c.id === selectedCase.id) {
+        return {
+          ...c,
+          responses: [...c.responses, newResponse]
+        };
+      }
+      return c;
+    }));
 
     setResponseDetails("");
     setAttachments([]);
@@ -223,280 +138,147 @@ const BlockchainDemo = () => {
     });
   };
 
-  const renderCaseList = (department: string) => (
-    <ScrollArea className="h-[400px]">
-      <div className="space-y-4 p-4">
-        {cases
-          .filter(c => department === "all" || 
-                      c.department === department || 
-                      c.assignedTo === department ||
-                      c.initiator === department ||
-                      c.confirmer === department)
-          .map((nodeCase) => (
-          <Card
-            key={nodeCase.id}
-            className={`cursor-pointer ${
-              selectedCase?.id === nodeCase.id ? 'border-primary' : ''
-            }`}
-            onClick={() => setSelectedCase(nodeCase)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div>
-                  <h3 className="font-semibold">{nodeCase.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {format(new Date(nodeCase.timestamp), "PPpp")}
-                  </p>
-                </div>
-                <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
-                  {nodeCase.status}
-                </Badge>
-              </div>
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Department Node Explorer</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <Tabs defaultValue="all">
+          <TabsList>
+            <TabsTrigger value="all">All Cases</TabsTrigger>
+            {Object.entries(DEPARTMENTS).map(([key, value]) => (
+              <TabsTrigger key={key} value={key}>
+                {value} ({caseCounts[key as keyof typeof caseCounts]})
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
-              {canViewCaseDetails(nodeCase) ? (
-                <>
-                  <div className="space-y-6">
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3 flex items-center">
-                        <Users className="w-4 h-4 mr-2" />
-                        Participating Departments
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {[
-                          { role: "Creator", dept: nodeCase.department },
-                          { role: "Assigned", dept: nodeCase.assignedTo },
-                          { role: "Initiator", dept: nodeCase.initiator },
-                          { role: "Confirmer", dept: nodeCase.confirmer }
-                        ].filter(({dept}) => dept).map(({role, dept}) => (
-                          <div key={role} className="flex items-center p-2 bg-background rounded">
-                            <Badge variant="outline" className="mr-2">{role}</Badge>
-                            <span>{DEPARTMENTS[dept as keyof typeof DEPARTMENTS]}</span>
-                          </div>
-                        ))}
+          <TabsContent value="all">
+            <ScrollArea className="h-[400px]">
+              <div className="space-y-4 p-4">
+                {cases.map((nodeCase) => (
+                  <Card
+                    key={nodeCase.id}
+                    className="cursor-pointer"
+                    onClick={() => setSelectedCase(nodeCase)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="font-semibold">{nodeCase.title}</h3>
+                        <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
+                          {nodeCase.status}
+                        </Badge>
                       </div>
-                    </div>
+                      <div className="text-sm text-muted-foreground">
+                        <div>Assigned to: {DEPARTMENTS[nodeCase.assignedTo as keyof typeof DEPARTMENTS]}</div>
+                        <div>Initiator: {DEPARTMENTS[nodeCase.initiator as keyof typeof DEPARTMENTS]}</div>
+                        <div>Confirmer: {DEPARTMENTS[nodeCase.confirmer as keyof typeof DEPARTMENTS]}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </ScrollArea>
+          </TabsContent>
 
-                    <div className="border-l-4 border-primary/20 pl-4">
-                      <h4 className="font-semibold mb-3 flex items-center">
-                        <FileText className="w-4 h-4 mr-2" />
-                        Case Details
-                      </h4>
-                      <p className="text-muted-foreground mb-4">{nodeCase.details}</p>
-                      {nodeCase.attachments.length > 0 && (
-                        <div>
-                          <h5 className="text-sm font-medium mb-2">Attachments</h5>
-                          <div className="flex flex-wrap gap-2">
-                            {nodeCase.attachments.map((file, idx) => (
-                              <div key={idx} className="group">
-                                <Badge 
-                                  variant="secondary" 
-                                  className="cursor-pointer transition-colors hover:bg-primary/20"
-                                  onClick={() => window.open(file.url)}
-                                >
-                                  <FileCheck className="w-4 h-4 mr-1" />
-                                  {file.name}
-                                </Badge>
-                              </div>
+          {Object.keys(DEPARTMENTS).map(dept => (
+            <TabsContent key={dept} value={dept}>
+              <ScrollArea className="h-[400px]">
+                <div className="space-y-4 p-4">
+                  {cases
+                    .filter(c => c.department === dept || c.assignedTo === dept || 
+                               c.initiator === dept || c.confirmer === dept)
+                    .map((nodeCase) => (
+                    <Card
+                      key={nodeCase.id}
+                      className="cursor-pointer"
+                      onClick={() => setSelectedCase(nodeCase)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h3 className="font-semibold">{nodeCase.title}</h3>
+                          <Badge variant={nodeCase.status === "confirmed" ? "success" : "secondary"}>
+                            {nodeCase.status}
+                          </Badge>
+                        </div>
+                        {canViewCaseDetails(nodeCase) && (
+                          <div className="text-sm text-muted-foreground mt-2">
+                            <p>{nodeCase.details}</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+          ))}
+        </Tabs>
+
+        {selectedCase && (
+          <Dialog open={!!selectedCase} onOpenChange={() => setSelectedCase(null)}>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>{selectedCase.title}</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                {canViewCaseDetails(selectedCase) ? (
+                  <>
+                    <div className="bg-muted/30 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-3">Case Details</h4>
+                      <p>{selectedCase.details}</p>
+                      {selectedCase.attachments.length > 0 && (
+                        <div className="mt-3">
+                          <h5 className="font-semibold mb-2">Attachments</h5>
+                          <div className="flex gap-2">
+                            {selectedCase.attachments.map((file, idx) => (
+                              <Badge key={idx} variant="secondary">
+                                {file.name}
+                              </Badge>
                             ))}
                           </div>
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="mt-2 text-sm">
-                    <span className="text-muted-foreground">Assigned to: </span>
-                    <Badge variant="outline">{DEPARTMENTS[nodeCase.assignedTo as keyof typeof DEPARTMENTS]}</Badge>
-                  </div>
-                  <div className="mt-1 text-sm">
-                    <span className="text-muted-foreground">Initiator: </span>
-                    <Badge variant="outline">{DEPARTMENTS[nodeCase.initiator as keyof typeof DEPARTMENTS]}</Badge>
-                  </div>
-                  <div className="mt-1 text-sm">
-                    <span className="text-muted-foreground">Confirmer: </span>
-                    <Badge variant="outline">{DEPARTMENTS[nodeCase.confirmer as keyof typeof DEPARTMENTS]}</Badge>
-                  </div>
-                </>
-              ) : (
-                <Alert className="mt-2">
-                  <Shield className="w-4 h-4" />
-                  <AlertDescription>
-                    Limited access. Only initiating and assigned departments can view details.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    </ScrollArea>
-  );
 
-  return (
-    <Card className="shadow-lg">
-      <CardHeader>
-        <CardTitle>Department Node Explorer</CardTitle>
-      </CardHeader>
-      <Tabs defaultValue="all" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
-          <TabsTrigger value="all">All Nodes</TabsTrigger>
-          <TabsTrigger value="ED">ED</TabsTrigger>
-          <TabsTrigger value="FIU">FIU</TabsTrigger>
-          <TabsTrigger value="I4C">I4C</TabsTrigger>
-          <TabsTrigger value="IT">Income Tax</TabsTrigger>
-          <TabsTrigger value="VASP">VASP</TabsTrigger>
-          <TabsTrigger value="BANK">BANK</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="all">
-          <CardContent>
-            {renderCaseList("all")}
-          </CardContent>
-        </TabsContent>
-
-        {Object.keys(DEPARTMENTS).map(dept => (
-          <TabsContent key={dept} value={dept}>
-            <CardContent>
-              {dept === user?.department && (
-                <Card className="mb-4">
-                  <CardContent className="p-4">
-                    <h3 className="font-semibold mb-2">Initiate New Case</h3>
-                    <div className="space-y-4">
-                      <Textarea
-                        placeholder="Enter case details..."
-                        value={newCaseDetails}
-                        onChange={(e) => setNewCaseDetails(e.target.value)}
-                      />
-                      <Select
-                        value={assignToDepartment}
-                        onValueChange={setAssignToDepartment}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Assign to Department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>{value}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={taskInitiator}
-                        onValueChange={setTaskInitiator}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Task Initiator" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>{value}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <Select
-                        value={taskConfirmer}
-                        onValueChange={setTaskConfirmer}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Task Confirmer" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(DEPARTMENTS).map(([key, value]) => (
-                            <SelectItem key={key} value={key}>{value}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <div className="flex items-center gap-4">
-                        <FileUploader
-                          onFilesSelected={setAttachments}
-                          maxFiles={5}
-                          accept=".pdf,.doc,.docx,.jpg,.png"
-                        />
-                        <Button
-                          onClick={initiateNewCase}
-                          disabled={!newCaseDetails || !attachments.length || !assignToDepartment || !taskInitiator || !taskConfirmer}
-                        >
-                          <Upload className="w-4 h-4 mr-2" />
-                          Create Node
-                        </Button>
+                    <div className="bg-muted/30 p-4 rounded-lg">
+                      <h4 className="font-semibold mb-3">Participating Departments</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Assigned</Badge>
+                          <span>{DEPARTMENTS[selectedCase.assignedTo as keyof typeof DEPARTMENTS]}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Initiator</Badge>
+                          <span>{DEPARTMENTS[selectedCase.initiator as keyof typeof DEPARTMENTS]}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline">Confirmer</Badge>
+                          <span>{DEPARTMENTS[selectedCase.confirmer as keyof typeof DEPARTMENTS]}</span>
+                        </div>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
-              )}
-              {renderCaseList(dept)}
-            </CardContent>
-          </TabsContent>
-        ))}
-      </Tabs>
 
-      {selectedCase && (
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button variant="outline" className="m-4">
-              <Eye className="w-4 h-4 mr-2" />
-              View Case Details
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Case Details - {selectedCase.id}</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              {canViewCaseDetails(selectedCase) ? (
-                <>
-                  <div className="space-y-2">
-                    <h4 className="font-semibold">Details</h4>
-                    <p>{selectedCase.details}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedCase.attachments.map((file, idx) => (
-                        <div key={idx} className="flex items-center">
-                          <Badge variant="outline" className="cursor-pointer hover:bg-accent" onClick={() => window.open(file.url)}>
-                            <FileCheck className="w-4 h-4 mr-1" />
-                            {file.name}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {selectedCase.responses.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="font-semibold mb-4 flex items-center">
-                        <MessageSquare className="w-4 h-4 mr-2" />
-                        Department Responses
-                      </h4>
+                    {selectedCase.responses.length > 0 && (
                       <div className="space-y-4">
+                        <h4 className="font-semibold">Department Responses</h4>
                         {selectedCase.responses.map((response, idx) => (
-                          <Card key={idx} className="border-l-4 border-l-primary/40">
+                          <Card key={idx}>
                             <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="secondary">
-                                    {DEPARTMENTS[response.department as keyof typeof DEPARTMENTS]}
-                                  </Badge>
-                                  <span className="text-sm text-muted-foreground">
-                                    {format(new Date(response.timestamp), "PPp")}
-                                  </span>
-                                </div>
-                                <Badge variant={response.status === "confirmed" ? "success" : "destructive"}>
-                                  {response.status}
-                                </Badge>
+                              <div className="flex justify-between items-center mb-2">
+                                <Badge>{DEPARTMENTS[response.department as keyof typeof DEPARTMENTS]}</Badge>
+                                <span className="text-sm text-muted-foreground">
+                                  {format(new Date(response.timestamp), "PPp")}
+                                </span>
                               </div>
-                              <div className="bg-muted/30 p-3 rounded-md mb-3">
-                                <p className="text-sm">{response.details}</p>
-                              </div>
+                              <p>{response.message}</p>
                               {response.attachments.length > 0 && (
-                                <div>
-                                  <span className="text-xs font-medium text-muted-foreground">Attachments</span>
-                                  <div className="flex flex-wrap gap-2 mt-1">
+                                <div className="mt-2">
+                                  <h6 className="text-sm font-semibold mb-1">Attachments</h6>
+                                  <div className="flex gap-2">
                                     {response.attachments.map((file, fileIdx) => (
-                                      <Badge 
-                                        key={fileIdx}
-                                        variant="outline" 
-                                        className="cursor-pointer transition-colors hover:bg-primary/20"
-                                        onClick={() => window.open(file.url)}
-                                      >
-                                        <FileCheck className="w-4 h-4 mr-1" />
+                                      <Badge key={fileIdx} variant="secondary">
                                         {file.name}
                                       </Badge>
                                     ))}
@@ -507,42 +289,43 @@ const BlockchainDemo = () => {
                           </Card>
                         ))}
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {selectedCase.status !== "confirmed" && user?.department !== selectedCase.department && (
-                    <div className="space-y-4">
-                      <h4 className="font-semibold">Submit Response</h4>
-                      <Textarea
-                        placeholder="Enter your response..."
-                        value={responseDetails}
-                        onChange={(e) => setResponseDetails(e.target.value)}
-                      />
-                      <div className="flex items-center gap-4">
-                        <FileUploader
-                          onFilesSelected={setAttachments}
-                          maxFiles={5}
-                          accept=".pdf,.doc,.docx,.jpg,.png"
+                    {canRespondToCase(selectedCase) && (
+                      <div className="space-y-4">
+                        <h4 className="font-semibold">Submit Response</h4>
+                        <Textarea
+                          placeholder="Enter your response..."
+                          value={responseDetails}
+                          onChange={(e) => setResponseDetails(e.target.value)}
                         />
-                        <Button onClick={submitResponse} disabled={!responseDetails || !attachments.length}>
-                          Submit Response
-                        </Button>
+                        <div className="flex items-center gap-4">
+                          <FileUploader
+                            onFilesSelected={setAttachments}
+                            maxFiles={5}
+                            accept=".pdf,.doc,.docx,.jpg,.png"
+                          />
+                          <Button onClick={submitResponse} disabled={!responseDetails || !attachments.length}>
+                            Submit Response
+                          </Button>
+                        </div>
                       </div>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Alert>
-                  <AlertTriangle className="w-4 h-4" />
-                  <AlertDescription>
-                    You don't have permission to view the complete case details.
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
+                    )}
+                  </>
+                ) : (
+                  <Alert>
+                    <AlertTriangle className="w-4 h-4" />
+                    <AlertDescription>
+                      You don't have permission to view the complete case details.
+                      Only participating departments can access this information.
+                    </AlertDescription>
+                  </Alert>
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </CardContent>
     </Card>
   );
 };
