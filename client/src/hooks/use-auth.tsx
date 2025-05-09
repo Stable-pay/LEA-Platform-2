@@ -28,6 +28,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     refetchOnWindowFocus: false,
     staleTime: Infinity,
     cacheTime: Infinity,
+    retry: false,
+    enabled: true
   });
 
   const login = () => {
