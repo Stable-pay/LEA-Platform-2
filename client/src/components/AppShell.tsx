@@ -2,20 +2,17 @@ import { useLocation, Link } from "wouter";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { 
-  Home, 
   FileText, 
+  FileCheck, 
   BarChart2, 
   Info, 
-  Monitor, 
-  SmilePlus, 
-  Database, 
-  Users, 
-  Settings,
-  Search,
-  Bell,
-  LogOut,
-  FileCheck,
-  ChevronDown
+  Monitor,
+  Shield,
+  Users,
+  Lock,
+  AlertTriangle,
+  AlertCircle,
+  Bell
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -33,12 +30,29 @@ interface SidebarLinkProps {
   icon: React.ReactNode;
   label: string;
   isMobile: boolean;
+  badge?: string;
+  badgeColor?: string;
 }
 
-const SidebarLink = ({ href, icon, label, isMobile }: SidebarLinkProps) => {
+interface SidebarSectionProps {
+  title: string;
+  children: React.ReactNode;
+  isMobile?: boolean;
+}
+
+const SidebarSection = ({ title, children, isMobile }: SidebarSectionProps) => (
+  <div className="mb-4">
+    <h3 className={`mb-2 px-3 text-xs font-semibold text-neutral-500 ${isMobile ? 'text-base' : ''}`}>
+      {title}
+    </h3>
+    <ul>{children}</ul>
+  </div>
+);
+
+const SidebarLink = ({ href, icon, label, isMobile, badge, badgeColor }: SidebarLinkProps) => {
   const [location] = useLocation();
   const isActive = location === href;
-  
+
   return (
     <Link href={href}>
       <div className={cn(
@@ -49,29 +63,17 @@ const SidebarLink = ({ href, icon, label, isMobile }: SidebarLinkProps) => {
       )}>
         {icon}
         <span className={cn("ml-3", isMobile ? "hidden" : "block")}>{label}</span>
+        {badge !== undefined && (
+          <span className={`ml-auto rounded-full ${badgeColor} px-2 py-0.5 text-xs text-white`}>
+            {badge}
+          </span>
+        )}
       </div>
     </Link>
   );
 };
 
-interface SidebarSectionProps {
-  title: string;
-  children: React.ReactNode;
-  isMobile: boolean;
-}
 
-const SidebarSection = ({ title, children, isMobile }: SidebarSectionProps) => {
-  return (
-    <>
-      {!isMobile && (
-        <div className="px-4 text-xs font-semibold text-neutral-medium uppercase tracking-wider mt-6 mb-2">
-          {title}
-        </div>
-      )}
-      {children}
-    </>
-  );
-};
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -79,18 +81,18 @@ interface AppShellProps {
 
 const AppShell = ({ children }: AppShellProps) => {
   const [isMobile, setIsMobile] = useState(false);
-  
+
   useEffect(() => {
     const checkIfMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
-    
+
     checkIfMobile();
     window.addEventListener("resize", checkIfMobile);
-    
+
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
-  
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar Navigation */}
@@ -106,10 +108,10 @@ const AppShell = ({ children }: AppShellProps) => {
             </span>
           </div>
         </div>
-        
+
         {/* User Profile */}
         <UserProfileSection isMobile={isMobile} />
-        
+
         {/* Navigation Links */}
         <nav className="flex-1 overflow-y-auto scrollbar-thin">
           <ul className="p-2">
@@ -154,7 +156,7 @@ const AppShell = ({ children }: AppShellProps) => {
                 isMobile={isMobile} 
               />
             </li>
-            
+
             {/* FIU-IND Section */}
             <SidebarSection title="FIU-IND Node" isMobile={isMobile}>
               <li className="mb-1">
@@ -174,7 +176,7 @@ const AppShell = ({ children }: AppShellProps) => {
                 />
               </li>
             </SidebarSection>
-            
+
             {/* I4C Portal Section */}
             <SidebarSection title="I4C Portal" isMobile={isMobile}>
               <li className="mb-1">
@@ -196,7 +198,7 @@ const AppShell = ({ children }: AppShellProps) => {
             </SidebarSection>
           </ul>
         </nav>
-        
+
         {/* Bottom Actions */}
         <div className="p-4 border-t">
           <Link href="/settings">
@@ -207,7 +209,7 @@ const AppShell = ({ children }: AppShellProps) => {
           </Link>
         </div>
       </aside>
-      
+
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Header Bar */}
@@ -243,7 +245,7 @@ const AppShell = ({ children }: AppShellProps) => {
             )}
           </div>
         </header>
-        
+
         {/* Content Container */}
         <main className="flex-1 overflow-y-auto p-6 bg-neutral-lightest">
           {children}
@@ -256,13 +258,13 @@ const AppShell = ({ children }: AppShellProps) => {
 // User Profile Component
 const UserProfileSection = ({ isMobile }: { isMobile: boolean }) => {
   const { user, logoutMutation } = useAuth();
-  
+
   if (!user) return null;
-  
+
   const handleLogout = () => {
     logoutMutation.mutate();
   };
-  
+
   const getUserInitials = () => {
     if (!user.fullName) return "U";
     return user.fullName
@@ -272,7 +274,7 @@ const UserProfileSection = ({ isMobile }: { isMobile: boolean }) => {
       .toUpperCase()
       .slice(0, 2);
   };
-  
+
   return (
     <div className={cn("items-center space-x-3 p-4 border-b", isMobile ? "hidden" : "flex")}>
       <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center">
