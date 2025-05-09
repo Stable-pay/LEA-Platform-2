@@ -158,20 +158,24 @@ const CaseFilingForm = () => {
 
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       setIsSubmitting(false);
       queryClient.invalidateQueries({ queryKey: ["/api/cases"] });
       toast({
-        title: "Case Created",
-        description: "New case has been created successfully.",
+        title: "Case Created Successfully",
+        description: `Case ${data.caseId} has been assigned to ${data.assignedTo}`,
+        variant: "success",
       });
       form.reset();
+      setVerificationStage(0);
+      setTxHash(null);
+      setConfirmations(0);
     },
     onError: (error: Error) => {
       setIsSubmitting(false);
       toast({
         title: "Error Creating Case",
-        description: error.message,
+        description: error.message || "Failed to create case. Please try again.",
         variant: "destructive",
       });
     },
