@@ -1,0 +1,69 @@
+// 📁 Public Routes (No Authentication Needed)
+export const publicRoutes = [
+  {
+    path: '/',
+    element: <LandingPage />,
+    description: 'Public dashboard overview with key stats and explanation',
+  },
+  {
+    path: '/auth',
+    element: <AuthPage />,
+    description: 'Login / Signup with Replit Auth integration',
+  },
+  {
+    path: '*',
+    element: <NotFoundPage />,
+    description: '404 error page',
+  },
+];
+
+// 🔐 Protected Routes (Authenticated Users Only)
+export const protectedRoutes = [
+  {
+    path: '/dashboard',
+    element: <DashboardLayout />,
+    children: [
+      { path: '', element: <CaseOverview /> },
+      { path: 'case-management', element: <CaseManagement /> },
+      { path: 'case-filing', element: <NewCaseForm /> },
+      { path: 'wallet-check', element: <WalletChecker /> },
+      { path: 'pattern-scan', element: <PatternScanner /> },
+      { path: 'str-generator', element: <STRGenerator /> },
+      { path: 'analytics', element: <AnalyticsBoard /> },
+      { path: 'scam-heatmap', element: <ScamHeatMap /> },
+      { path: 'network-graph', element: <NetworkGraph /> },
+      { path: 'court-exports', element: <CourtExportPanel /> },
+      { path: 'admin/tools', element: <AdminTools /> },
+      { path: 'settings', element: <UserSettings /> },
+    ],
+  },
+];
+
+// 🧩 AppShell Components
+// This wraps around all authenticated routes with sidebar, topbar, and notifications
+export const AppShell = ({ children }) => (
+  <SidebarLayout>
+    <Topbar />
+    <NotificationPanel />
+    {children}
+  </SidebarLayout>
+);
+
+// 🔧 Core Libraries & State
+// - Auth: Replit Auth
+// - Forms: react-hook-form
+// - UI: Radix UI + Tailwind CSS
+// - State: React Query for async data caching
+// - Blockchain: WebSocket live updates + REST API calls to backend
+
+// 🛠️ API Endpoints (example Fastify or Next.js Backend)
+export const apiRoutes = [
+  '/api/user',                // Login/session logic
+  '/api/cases/*',            // GET/POST/PUT case management
+  '/api/wallets/*',          // Wallet intelligence, checks, flags
+  '/api/transactions/*',     // On-chain transfers monitoring
+  '/api/patterns/*',         // Fraud pattern analytics
+  '/api/str-reports/*',      // Suspicious Transaction Reports
+  '/api/blockchain/*',       // Chain verification and TXID lookups
+  '/api/court-exports/*',    // Export to PDF/JSON with hash signature
+];
