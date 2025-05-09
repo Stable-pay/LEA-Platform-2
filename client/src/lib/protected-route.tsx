@@ -1,15 +1,13 @@
-import { Route } from "wouter";
 
-export function ProtectedRoute({
-  path,
-  component: Component,
-}: {
-  path: string;
-  component: () => React.JSX.Element;
-}) {
-  return (
-    <Route path={path}>
-      <Component />
-    </Route>
-  );
-}
+import { Redirect } from 'wouter';
+import { useAuth } from '@/hooks/use-auth';
+
+export const ProtectedRoute = ({ component: Component, ...rest }: any) => {
+  const { isAuthenticated } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Redirect to="/auth" />;
+  }
+
+  return <Component {...rest} />;
+};

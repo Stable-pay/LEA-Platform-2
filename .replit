@@ -15,7 +15,7 @@ localPort = 5000
 externalPort = 80
 
 [workflows]
-runButton = "Dev Database"
+runButton = "Development"
 
 [[workflows.workflow]]
 name = "Project"
@@ -82,6 +82,15 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "export DATABASE_URL=\"postgresql://neondb_owner:npg_n0EhFVLTo9kU@ep-bold-mud-a4i9z7eg.us-east-1.aws.neon.tech/neondb?sslmode=require\""
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"
+
+[[workflows.workflow]]
+name = "Development"
+author = 42453641
+mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
