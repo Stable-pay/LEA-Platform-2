@@ -10,6 +10,17 @@ const queryClient = new QueryClient({
   },
 });
 
+export const apiRequest = async (method: string, path: string, body?: any) => {
+  return fetchApi(path, { method, body: body ? JSON.stringify(body) : undefined });
+};
+
+export const getQueryFn = () => {
+  return async ({ queryKey }: { queryKey: string[] }) => {
+    const [path] = queryKey;
+    return fetchApi(path);
+  };
+};
+
 export const fetchApi = async (path: string, init?: RequestInit) => {
   const response = await fetch(`/api${path}`, {
     ...init,
