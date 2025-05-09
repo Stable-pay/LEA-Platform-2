@@ -202,10 +202,21 @@ const CaseFilingForm = () => {
 
   const createCaseMutation = useMutation({
     mutationFn: async (values: CaseFormValues) => {
-      if (!user?.id) {
-        login();
-        throw new Error("Please login to create a case");
+      const response = await fetch('/api/cases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(values)
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Failed to create case');
       }
+      
+      return response.json();
+    },
 
       const caseData = {
         title: values.title,

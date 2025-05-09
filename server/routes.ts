@@ -90,7 +90,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Create a new case
-  app.post("/api/cases", validateBody(insertCaseSchema), async (req, res) => {
+  app.post("/api/cases", async (req, res) => {
     try {
       console.log("Creating case with data:", req.body);
       
@@ -104,14 +104,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         caseId,
         title: req.body.title,
         description: req.body.description,
-        status: req.body.status || "active",
+        status: "active",
         dateReported,
         reportedBy: req.body.reportedBy,
-        estimatedLoss: Number(req.body.estimatedLoss),
+        estimatedLoss: Number(req.body.estimatedLoss || 0),
         assignedTo: req.body.assignedDepartment,
         priority: req.body.priority || "medium",
-        walletAddress: req.body.walletAddress,
-        transactionHash: req.body.transactionHash,
         createdAt: dateReported,
         updatedAt: dateReported
       });
