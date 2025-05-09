@@ -190,7 +190,6 @@ const CaseFilingForm = () => {
   // Form definition
   const form = useForm<CaseFormValues>({
     resolver: zodResolver(caseFormSchema),
-    shouldUseNativeValidation: false,
     defaultValues: {
       title: "",
       description: "",
@@ -226,15 +225,15 @@ const CaseFilingForm = () => {
     onSuccess: (data, values) => {
       setIsSubmitting(false);
       setCaseId(data.id.toString());
-
+      
       // Start blockchain verification
       setIsVerifying(true);
       setVerificationStage(0);
-
+      
       // Generate mock transaction hash
       const mockId = Date.now().toString().slice(-4);
       setTxHash(`0x${Math.random().toString(16).slice(2)}`);
-
+      
       // Dispatch events for both Department Node Explorer and Case Management
       const caseData = {
         ...values,
@@ -246,13 +245,13 @@ const CaseFilingForm = () => {
         department: values.assignedDepartment,
         status: values.status || "active"
       };
-
+      
       const newCaseEvent = new CustomEvent('new-case-filed', { detail: caseData });
       const caseManagementEvent = new CustomEvent('case-management-update', { detail: caseData });
-
+      
       window.dispatchEvent(newCaseEvent);
       window.dispatchEvent(caseManagementEvent);
-
+      
       toast({
         title: "Case Created",
         description: `Case ${mockId} has been created successfully.`,
