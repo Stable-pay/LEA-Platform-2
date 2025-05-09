@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { 
   Card, 
   CardContent, 
@@ -36,7 +35,7 @@ const WalletCheck = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [recentWallets, setRecentWallets] = useState<any[]>([]);
   const { toast } = useToast();
-  
+
   // Fetch recent wallets on component mount
   useEffect(() => {
     fetchRecentWallets();
@@ -57,10 +56,10 @@ const WalletCheck = () => {
       });
     }
   };
-  
+
   const handleSubmit = async () => {
     if (!walletAddress || !network || !riskLevel) return;
-    
+
     setIsSubmitting(true);
     try {
       const response = await fetch('/api/wallets', {
@@ -107,7 +106,7 @@ const WalletCheck = () => {
       setIsSubmitting(false);
     }
   };
-  
+
   return (
     <div className="container mx-auto py-4">
       <div className="mb-6">
@@ -116,7 +115,7 @@ const WalletCheck = () => {
           Add and update wallet information across departments
         </p>
       </div>
-      
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="shadow">
           <CardHeader>
@@ -137,7 +136,7 @@ const WalletCheck = () => {
                   onChange={(e) => setWalletAddress(e.target.value)}
                 />
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium leading-none mb-2 block">
@@ -149,7 +148,7 @@ const WalletCheck = () => {
                     onChange={(e) => setCoin(e.target.value)}
                   />
                 </div>
-                
+
                 <div>
                   <label className="text-sm font-medium leading-none mb-2 block">
                     Network*
@@ -168,7 +167,7 @@ const WalletCheck = () => {
                   </Select>
                 </div>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
                   Transaction Hash ID (Optional)
@@ -179,7 +178,7 @@ const WalletCheck = () => {
                   onChange={(e) => setHashId(e.target.value)}
                 />
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
                   Risk Level*
@@ -197,7 +196,7 @@ const WalletCheck = () => {
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <label className="text-sm font-medium leading-none mb-2 block">
                   Risk Analysis*
