@@ -37,8 +37,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Setup authentication first
   setupAuth(app);
 
-  // Middleware to check authentication for all API routes
+  // Skip auth check for login and user endpoints
   app.use('/api/*', (req: Request, res: Response, next: NextFunction) => {
+    if (
+      req.path === '/login' || 
+      req.path === '/logout' || 
+      req.path === '/register' || 
+      req.path === '/user'
+    ) {
+      return next();
+    }
+    
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Authentication required" });
     }

@@ -27,7 +27,7 @@ export const apiRequest = async (method: string, path: string, body?: any) => {
 };
 
 export const fetchApi = async (path: string, init?: RequestInit) => {
-  const response = await fetch(`/api${path}`, {
+  const response = await fetch(path.startsWith('/api') ? path : `/api${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
