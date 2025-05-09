@@ -1,0 +1,170 @@
+Here is the **full-stack sitemap** for your blockchain-enabled government-grade case intelligence platform. It covers the entire architecture from **frontend UI/UX routes**, **backend APIs**, **database schema**, to **blockchain nodes via Hyperledger Fabric**—integrating all key departments: FIU-IND, ED, Income Tax, Banks, VASPs, I4C, and Judiciary.
+
+---
+
+## 🧩 FULL STACK SITEMAP: BLOCKCHAIN INVESTIGATION PLATFORM
+
+---
+
+### 🖥️ 1. **Frontend (React + Tailwind + Radix UI)**
+
+#### 🌐 **Public Routes (No Authentication)**
+
+| Route        | Description            |
+| ------------ | ---------------------- |
+| `/`          | Landing Dashboard      |
+| `/auth`      | Login / Sign-up Portal |
+| `/not-found` | 404 Page               |
+
+#### 🔐 **Protected Routes (Role-Based Access)**
+
+| Route              | Description                                            |
+| ------------------ | ------------------------------------------------------ |
+| `/dashboard`       | Role-specific dashboard (LEA/FIU/I4C/ED/etc.)          |
+| `/case-filing`     | File new case form (multi-step, wallet, KYC, evidence) |
+| `/case-management` | List and manage cases (filters, status, tags)          |
+| `/wallet-check`    | Wallet address scan (with risk score, Arkham link)     |
+| `/pattern-scan`    | Pattern scanner interface                              |
+| `/str-generator`   | Auto-fill STR from scanned patterns                    |
+| `/analytics`       | Stats + Compliance heatmaps                            |
+| `/scam-heatmap`    | Geolocation view of scams                              |
+| `/network-graph`   | Network graph view (wallets, victims, links)           |
+| `/court-export`    | Court export creator (PDF, hash, JSON)                 |
+
+> 💡 All pages use `AppShell` with sidebar, role context, and Replit Auth or JWT.
+
+---
+
+### ⚙️ 2. **Backend API (Express/Node.js + PostgreSQL)**
+
+#### 🔐 Auth `/api/auth`
+
+* `POST /login`
+* `POST /register`
+* `GET /verify`
+
+#### 🗂️ Case System `/api/cases`
+
+* `GET /` → All cases by role/org
+* `POST /` → New case entry
+* `GET /:id` → Detailed view
+* `PATCH /:id/status` → Update case status
+* `POST /:id/evidence` → Upload & hash evidence
+
+#### 🔍 Wallet Tools `/api/wallets`
+
+* `POST /validate` → Check wallet risk
+* `GET /history/:address` → Show transactions
+* `POST /flag` → Mark address as malicious
+* `GET /sync-arkham` → Real-time Arkham pull
+
+#### 📈 Risk/Pattern Analysis `/api/patterns`
+
+* `POST /scan` → Trigger wallet/flow scan
+* `GET /alerts` → Show anomaly reports
+
+#### 📃 STR Management `/api/str-reports`
+
+* `POST /generate` → Auto-generate STR
+* `POST /:id/submit` → Submit to FIU-IND
+* `GET /:id/download` → Download version
+
+#### ⚖️ Court Export `/api/court-exports`
+
+* `GET /:id/pdf`
+* `GET /:id/json`
+* `GET /:id/hash` (SHA256 from Fabric)
+
+#### 🔗 Blockchain `/api/blockchain`
+
+* `POST /anchor-case/:id`
+* `GET /query-hash/:hash`
+* `GET /export-ledger`
+* `WebSocket /events` (live blockchain updates)
+
+---
+
+### 🧠 3. **Database Schema (PostgreSQL)**
+
+| Table         | Key Fields                                                  |
+| ------------- | ----------------------------------------------------------- |
+| `users`       | id, name, role, department, auth\_hash                      |
+| `cases`       | id, wallet\[], title, description, status, blockchain\_hash |
+| `wallets`     | address, risk\_score, tags\[], arkham\_data                 |
+| `evidence`    | file\_hash, filename, uploaded\_by, linked\_case\_id        |
+| `patterns`    | id, scan\_type, affected\_wallets\[], alert\_level          |
+| `str_reports` | id, case\_id, risk\_score, fiu\_submitted\_on               |
+| `exports`     | id, case\_id, pdf\_url, json\_url, sha256\_hash             |
+| `audit_logs`  | action, user, role, metadata, timestamp                     |
+
+---
+
+### 🧱 4. **Blockchain Layer (Hyperledger Fabric)**
+
+#### 🔗 Smart Contracts (Chaincode)
+
+| Contract          | Function                      |
+| ----------------- | ----------------------------- |
+| `CaseChaincode`   | Anchor case metadata & status |
+| `WalletTraceCode` | Record flagged wallets        |
+| `STRChaincode`    | Confirm STR submissions       |
+| `KYCHandlerCode`  | Verify KYC from bank/exchange |
+| `CourtExportCode` | Immutable court proof hash    |
+
+#### 🏛️ Nodes
+
+| Node                                | Description                             |
+| ----------------------------------- | --------------------------------------- |
+| Org1: FIU-IND Node                  | STR Verification + Compliance Chaincode |
+| Org2: ED Node                       | High-value transaction trails           |
+| Org3: I4C Node                      | Pattern scan and escalation             |
+| Org4: Bank/VASP Node                | KYC response only (read/write audit)    |
+| Org5: Judiciary Node                | Final hash verification for court       |
+| Org6: National Dashboard (Gov View) | Scam map, graphs, aggregate stats       |
+
+> 📡 Channels ensure privacy: e.g., **FIU–Bank**, **LEA–ED**, **I4C–Judiciary**
+
+---
+
+### 💾 5. **File Storage**
+
+* Evidence → IPFS or AWS S3 (reference hash only on-chain)
+* STR & Export → Encrypted vault (SHA256 on chain)
+* Arkham + Chainalysis data → Synced via background job
+
+---
+
+### 📡 6. **External Integrations**
+
+| Service                   | Use                            |
+| ------------------------- | ------------------------------ |
+| **Arkham Intelligence**   | Wallet metadata & labels       |
+| **Chainalysis / TRM**     | Risk score sync                |
+| **Notabene**              | KYC & Travel Rule verification |
+| **FIU-IND**               | STR push & fetch APIs          |
+| **Income Tax API**        | UTR trace (planned)            |
+| **Judiciary e-Court API** | e-Filing exports               |
+
+---
+
+### 🎛️ 7. **DevOps & Infra**
+
+| Component               | Description                                 |
+| ----------------------- | ------------------------------------------- |
+| Docker + Kubernetes     | Scalable microservices                      |
+| NGINX                   | Reverse proxy and routing                   |
+| PostgreSQL + Prisma ORM | Reliable relational backend                 |
+| Redis                   | Queues & cache                              |
+| Hyperledger Fabric      | Blockchain ledger with endorsement policies |
+| IPFS or S3              | Evidence & document storage                 |
+| WebSocket               | Blockchain push updates                     |
+
+---
+
+Would you like:
+
+* A clickable Figma/Framer prototype?
+* Swagger/OpenAPI spec for backend?
+* Terraform/Infra-as-code setup for deployment?
+
+Let me know what format you'd like this packaged in (PDF, Google Doc, GitHub repo, etc.).
