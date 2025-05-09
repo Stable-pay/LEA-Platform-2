@@ -1,0 +1,47 @@
+Case creation error: 
+Error {}
+message: "Please login to create a case"
+stack: "Error: Please login to create a case↵ at Object.mutationFn (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/CaseFilingForm.tsx:254:15)↵ at Object.fn (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fbb4d793:1189:29)↵ at run (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fbb4d793:494:49)↵ at Object.start (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fbb4d793:536:9)↵ at _a6.execute (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=fbb4d793:1225:56)"
+get stack: ƒ ()
+length: 0
+name: ""
+[[Prototype]]: ƒ ()
+set stack: ƒ ()
+length: 1
+name: ""
+[[Prototype]]: ƒ ()
+apply: ƒ apply()
+arguments: "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them"
+get arguments: ƒ ()
+set arguments: ƒ ()
+bind: ƒ bind()
+call: ƒ call()
+caller: "'caller', 'callee', and 'arguments' properties may not be accessed on strict mode functions or the arguments objects for calls to them"
+get caller: ƒ ()
+set caller: ƒ ()
+constructor: ƒ Function()
+length: 1
+name: ""
+toString: ƒ toString()
+Symbol(Symbol.hasInstance): undefined
+[[Prototype]]: Object
+constructor: ƒ Function()
+hasOwnProperty: ƒ hasOwnProperty()
+isPrototypeOf: ƒ isPrototypeOf()
+propertyIsEnumerable: ƒ propertyIsEnumerable()
+toLocaleString: ƒ toLocaleString()
+toString: ƒ toString()
+valueOf: ƒ valueOf()
+__defineGetter__: ƒ __defineGetter__()
+__defineSetter__: ƒ __defineSetter__()
+__lookupGetter__: ƒ __lookupGetter__()
+__lookupSetter__: ƒ __lookupSetter__()
+__proto__: ƒ ()
+get __proto__: ƒ get __proto__()
+set __proto__: ƒ set __proto__()
+[[Prototype]]: Object
+constructor: ƒ Error()
+message: "Please login to create a case"
+name: "Error"
+toString: ƒ toString()
+[[Prototype]]: Object
