@@ -245,8 +245,18 @@ const CaseFilingForm = () => {
         previousHash: txHash || '0000000000000000000000000000000000000000000000000000000000000000',
         timestamp,
         assignedTo: data.assignedDepartment,
-    };
-    createCaseMutation.mutate(submissionData);
+      };
+      createCaseMutation.mutate(submissionData);
+    } catch (error) {
+      console.error('Case creation error:', error);
+      toast({
+        title: "Error Creating Case",
+        description: error instanceof Error ? error.message : "Failed to create case",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
