@@ -356,6 +356,10 @@ export class MemStorage implements IStorage {
   }
   
   async getSuspiciousPatterns(limit = 100, offset = 0): Promise<SuspiciousPattern[]> {
+    if (this.suspiciousPatterns.size === 0) {
+      // Re-initialize patterns if empty
+      this.initializeData();
+    }
     const patterns = Array.from(this.suspiciousPatterns.values());
     return patterns
       .sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime())
