@@ -258,13 +258,20 @@ const BlockchainDemo = () => {
   };
 
   const submitResponse = async () => {
-    if (!selectedCase || !responseDetails.trim()) return;
+    if (!selectedCase || !responseDetails.trim() || !user?.department) return;
 
     try {
-      const formData = new FormData();
-      formData.append('caseId', selectedCase.id);
-      formData.append('department', user?.department || '');
-      formData.append('message', responseDetails);
+      const response = await fetch('/api/cases/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caseId: selectedCase.caseId,
+          message: responseDetails,
+          department: user.department,
+          attachments: attachments.map(file => file.name)
+        })
       attachments.forEach(file => formData.append('attachments', file));
 
       const response = await fetch('/api/cases/response', {

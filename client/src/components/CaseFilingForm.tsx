@@ -232,12 +232,19 @@ const CaseFilingForm = () => {
 
   const onSubmit = async (data: CaseFormValues) => {
     setIsSubmitting(true);
-    const caseHash = await generateCaseHash(data);
-    data.blockchainHash = caseHash;
-    data.previousHash = txHash || '0000000000000000000000000000000000000000000000000000000000000000';
-    const submissionData = {
-      ...data,
-      assignedTo: data.assignedDepartment
+    try {
+      const timestamp = new Date().toISOString();
+      const hashInput = `${data.title}-${data.description}-${timestamp}`;
+      const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput));
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      const caseHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      const submissionData = {
+        ...data,
+        blockchainHash: caseHash,
+        previousHash: txHash || '0000000000000000000000000000000000000000000000000000000000000000',
+        timestamp,
+        assignedTo: data.assignedDepartment,
     };
     createCaseMutation.mutate(submissionData);
   };
