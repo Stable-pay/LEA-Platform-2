@@ -173,23 +173,29 @@ const StrFilingForm = () => {
                         <SelectValue placeholder="Select pattern" />
                       </SelectTrigger>
                     </FormControl>
-                    <SelectContent className="max-h-[300px]">
-                      {patterns?.map((p: any) => (
-                        <SelectItem 
-                          key={p.patternId} 
-                          value={p.patternId}
-                          className="flex items-center gap-2"
-                        >
-                          <span>{p.pattern}</span>
-                          <span className={`ml-auto text-xs px-2 py-0.5 rounded-full ${
-                            p.riskLevel.toLowerCase() === 'high' ? 'bg-red-100 text-red-700' :
-                            p.riskLevel.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {p.riskLevel}
-                          </span>
-                        </SelectItem>
-                      ))}
+                    <SelectContent className="max-h-[300px] overflow-y-auto">
+                      {patternsLoading ? (
+                        <SelectItem value="loading">Loading patterns...</SelectItem>
+                      ) : patterns?.length > 0 ? (
+                        patterns.map((p: any) => (
+                          <SelectItem 
+                            key={p.patternId} 
+                            value={p.patternId}
+                            className="flex items-center gap-2"
+                          >
+                            <span className="flex-1 truncate">{p.pattern}</span>
+                            <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
+                              p.riskLevel.toLowerCase() === 'high' ? 'bg-red-100 text-red-700' :
+                              p.riskLevel.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                              'bg-blue-100 text-blue-700'
+                            }`}>
+                              {p.riskLevel}
+                            </span>
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="no-patterns">No patterns available</SelectItem>
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
