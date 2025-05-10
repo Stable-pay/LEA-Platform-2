@@ -105,6 +105,18 @@ export const strReports = pgTable("str_reports", {
   createdBy: integer("created_by").references(() => users.id),
 });
 
+// Case Response model for department responses
+export const caseResponses = pgTable("case_responses", {
+  id: serial("id").primaryKey(),
+  caseId: text("case_id").notNull().references(() => cases.caseId),
+  department: text("department").notNull(),
+  message: text("message").notNull(),
+  attachments: jsonb("attachments"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Timeline model for tracking case events
 export const caseTimeline = pgTable("case_timeline", {
   id: serial("id").primaryKey(),
@@ -205,6 +217,7 @@ export const casesRelations = relations(cases, ({ many }) => ({
   caseTimelines: many(caseTimeline, { relationName: "case_timelines" }),
   strReports: many(strReports, { relationName: "case_str_reports" }),
   courtExports: many(courtExports, { relationName: "case_court_exports" }),
+  responses: many(caseResponses, { relationName: "case_responses" }),
 }));
 
 export const walletsRelations = relations(wallets, ({ many }) => ({
