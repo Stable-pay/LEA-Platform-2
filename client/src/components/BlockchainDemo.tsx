@@ -268,21 +268,25 @@ const BlockchainDemo = () => {
     }
 
     try {
-      // Create form data with required fields
-      if (!selectedCase?.caseId || !responseDetails.trim() || !user?.department) {
+      // Validate required fields
+      if (!selectedCase || !responseDetails.trim() || !user?.department) {
         throw new Error('Missing required fields: caseId, message, or department');
       }
 
-      const formData = new FormData();
-      formData.append('caseId', selectedCase.caseId);
-      formData.append('message', responseDetails.trim());
-      formData.append('department', user.department);
-      if (attachments?.length > 0) {
-        attachments.forEach(file => formData.append('attachments', file));
-      }
+      // Create JSON payload instead of FormData
+      const payload = {
+        caseId: selectedCase.caseId,
+        message: responseDetails.trim(),
+        department: user.department,
+        attachments: attachments || []
+      };
 
       const response = await fetch('/api/cases/response', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload),
         body: formData,
         credentials: 'include'
       });
