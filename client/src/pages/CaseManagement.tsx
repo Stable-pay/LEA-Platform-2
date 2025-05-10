@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { DataTable } from '@/components/ui/data-table';
@@ -7,39 +7,35 @@ import { BlockchainNode } from '@/components/BlockchainNode';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 
+interface BlockchainNodeType {
+  nodeId: string;
+  organization: string;
+  status: string;
+  nodeType: string;
+  lastSyncTimestamp: string;
+}
+
 const CaseManagement = () => {
   const [page, setPage] = useState(1);
   const [selectedCase, setSelectedCase] = useState(null);
-  const [ws, setWs] = useState<WebSocket | null>(null);
 
-  const { data: cases, isLoading } = useQuery({
+  const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases', page],
-    queryFn: () => fetch(`/api/cases?page=${page}`).then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch(`/api/cases?page=${page}`);
+      if (!res.ok) throw new Error('Failed to fetch cases');
+      return res.json();
+    },
   });
 
-  const { data: blockchainNodes } = useQuery({
+  const { data: blockchainNodes = [] } = useQuery<BlockchainNodeType[]>({
     queryKey: ['blockchain-nodes'],
-    queryFn: () => fetch('/api/blockchain/nodes').then(res => res.json()),
+    queryFn: async () => {
+      const res = await fetch('/api/blockchain/nodes');
+      if (!res.ok) throw new Error('Failed to fetch nodes');
+      return res.json();
+    },
   });
-
-  useEffect(() => {
-    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${wsProtocol}//${window.location.host}/ws`);
-    
-    socket.onopen = () => {
-      socket.send(JSON.stringify({ type: 'SUBSCRIBE_BLOCKCHAIN' }));
-    };
-
-    socket.onmessage = (event) => {
-      const data = JSON.parse(event.data);
-      if (data.type === 'BLOCKCHAIN_UPDATE') {
-        // Handle blockchain updates
-      }
-    };
-
-    setWs(socket);
-    return () => socket?.close();
-  }, []);
 
   const columns = [
     { accessorKey: 'caseId', header: 'Case ID' },
@@ -71,7 +67,7 @@ const CaseManagement = () => {
                   ) : (
                     <DataTable 
                       columns={columns} 
-                      data={cases || []}
+                      data={cases}
                       searchKey="caseId"
                       onRowClick={setSelectedCase}
                     />
@@ -104,7 +100,7 @@ const CaseManagement = () => {
 
         <TabsContent value="blockchain">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {blockchainNodes?.map((node: any) => (
+            {Array.isArray(blockchainNodes) && blockchainNodes.map((node) => (
               <Card key={node.nodeId} className="bg-card">
                 <CardHeader>
                   <div className="flex items-center justify-between">
