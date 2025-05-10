@@ -314,10 +314,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/patterns", async (_req, res) => {
     try {
       const patterns = await storage.getSuspiciousPatterns();
-      res.json(patterns);
+      if (!patterns) {
+        return res.status(200).json([]);
+      }
+      res.setHeader('Content-Type', 'application/json');
+      res.json(Array.from(patterns));
     } catch (error) {
       console.error('Error fetching patterns:', error);
-      res.status(500).json({ message: "Failed to fetch patterns", error });
+      res.status(500).json({ 
+        message: "Failed to fetch patterns", 
+        error: error instanceof Error ? error.message : String(error) 
+      });
     }
   });
 
