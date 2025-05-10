@@ -270,11 +270,8 @@ const BlockchainDemo = () => {
       const response = await fetch('/api/cases/response', {
         method: 'POST',
         body: formData,
-        credentials: 'include'
-        method: 'POST',
-        body: formData,
         headers: {
-          'Accept': 'application/json',
+          'Accept': 'application/json'
         },
         credentials: 'include'
       });
