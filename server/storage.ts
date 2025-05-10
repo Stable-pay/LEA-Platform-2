@@ -20,7 +20,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  
+
   // Case operations
   getCase(id: number): Promise<Case | undefined>;
   getCaseByReferenceId(caseId: string): Promise<Case | undefined>;
@@ -29,7 +29,7 @@ export interface IStorage {
   getCasesByPriority(priority: string): Promise<Case[]>;
   createCase(caseData: InsertCase): Promise<Case>;
   updateCase(id: number, caseData: Partial<InsertCase>): Promise<Case | undefined>;
-  
+
   // Wallet operations
   getWallet(id: number): Promise<Wallet | undefined>;
   getWalletByAddress(address: string): Promise<Wallet | undefined>;
@@ -37,20 +37,20 @@ export interface IStorage {
   getWalletsByRiskLevel(riskLevel: string): Promise<Wallet[]>;
   createWallet(wallet: InsertWallet): Promise<Wallet>;
   updateWallet(id: number, wallet: Partial<InsertWallet>): Promise<Wallet | undefined>;
-  
+
   // Transaction operations
   getTransaction(id: number): Promise<Transaction | undefined>;
   getTransactionsByWallet(walletAddress: string): Promise<Transaction[]>;
   getTransactionsByCase(caseId: number): Promise<Transaction[]>;
   createTransaction(transaction: InsertTransaction): Promise<Transaction>;
-  
+
   // Suspicious Pattern operations
   getSuspiciousPattern(id: number): Promise<SuspiciousPattern | undefined>;
   getSuspiciousPatternByReferenceId(patternId: string): Promise<SuspiciousPattern | undefined>;
   getSuspiciousPatterns(limit?: number, offset?: number): Promise<SuspiciousPattern[]>;
   getSuspiciousPatternsByRiskLevel(riskLevel: string): Promise<SuspiciousPattern[]>;
   createSuspiciousPattern(pattern: InsertSuspiciousPattern): Promise<SuspiciousPattern>;
-  
+
   // STR Report operations
   getStrReport(id: number): Promise<StrReport | undefined>;
   getStrReportByReferenceId(strId: string): Promise<StrReport | undefined>;
@@ -58,17 +58,17 @@ export interface IStorage {
   getStrReportsByStatus(status: string): Promise<StrReport[]>;
   createStrReport(report: InsertStrReport): Promise<StrReport>;
   updateStrReport(id: number, report: Partial<InsertStrReport>): Promise<StrReport | undefined>;
-  
+
   // Case Timeline operations
   getCaseTimelineEvents(caseId: number): Promise<CaseTimeline[]>;
   createCaseTimelineEvent(event: InsertCaseTimeline): Promise<CaseTimeline>;
-  
+
   // State Fraud Stats operations
   getStateFraudStats(): Promise<StateFraudStat[]>;
   getStateFraudStatByState(state: string): Promise<StateFraudStat | undefined>;
   updateStateFraudStat(id: number, stat: Partial<InsertStateFraudStat>): Promise<StateFraudStat | undefined>;
   createStateFraudStat(stat: InsertStateFraudStat): Promise<StateFraudStat>;
-  
+
   // Blockchain operations
   createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction>;
   getBlockchainTransactionsByEntity(entityType: string, entityId: string): Promise<BlockchainTransaction[]>;
@@ -91,7 +91,7 @@ export class MemStorage implements IStorage {
   private blockchainTransactions: Map<string, BlockchainTransaction>;
   private kycInformation: Map<number, KycInformation>;
   private courtExports: Map<number, CourtExport>;
-  
+
   // Track the current ID for each entity
   private userId = 1;
   private caseId = 1;
@@ -104,7 +104,7 @@ export class MemStorage implements IStorage {
   private blockchainNodeId = 1;
   private kycInformationId = 1;
   private courtExportId = 1;
-  
+
   constructor() {
     this.users = new Map();
     this.cases = new Map();
@@ -118,11 +118,11 @@ export class MemStorage implements IStorage {
     this.blockchainTransactions = new Map();
     this.kycInformation = new Map();
     this.courtExports = new Map();
-    
+
     // Initialize with some sample data for development
     this.initializeData();
   }
-  
+
   private initializeData() {
     // Initialize suspicious patterns
     const { SUSPICIOUS_PATTERNS } = require('./constants');
@@ -153,7 +153,7 @@ export class MemStorage implements IStorage {
       fullName: "John Doe",
       organization: "Delhi Police"
     });
-    
+
     // Initialize state fraud stats for major Indian states
     const states = [
       { state: "Maharashtra", caseCount: 78, estimatedLoss: 48000000, riskLevel: "critical" },
@@ -162,7 +162,7 @@ export class MemStorage implements IStorage {
       { state: "Gujarat", caseCount: 25, estimatedLoss: 18000000, riskLevel: "medium" },
       { state: "Tamil Nadu", caseCount: 22, estimatedLoss: 15000000, riskLevel: "medium" }
     ];
-    
+
     states.forEach(state => {
       this.createStateFraudStat({
         state: state.state,
@@ -172,7 +172,7 @@ export class MemStorage implements IStorage {
         dateRecorded: new Date()
       });
     });
-    
+
     // Initialize blockchain nodes for each stakeholder
     const nodes = [
       { nodeType: "LEA", nodeId: "LEA_NODE_001", name: "Delhi Police Node", organization: "Delhi Police", ipAddress: "10.0.1.1", port: 7051, status: "active" },
@@ -181,7 +181,7 @@ export class MemStorage implements IStorage {
       { nodeType: "IND", nodeId: "IND_NODE_001", name: "Indian Nodal Department", organization: "Ministry of Finance", ipAddress: "10.0.3.1", port: 7053, status: "active" },
       { nodeType: "I4C", nodeId: "I4C_NODE_001", name: "Cyber Crime Coordination Centre", organization: "I4C", ipAddress: "10.0.4.1", port: 7054, status: "active" }
     ];
-    
+
     nodes.forEach(node => {
       this.createBlockchainNode({
         nodeId: node.nodeId,
@@ -195,71 +195,92 @@ export class MemStorage implements IStorage {
       });
     });
   }
-  
+
   // User operations
   async getUser(id: number): Promise<User | undefined> {
     return this.users.get(id);
   }
-  
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     return Array.from(this.users.values()).find(
       (user) => user.username === username
     );
   }
-  
+
   async createUser(insertUser: InsertUser): Promise<User> {
     const id = this.userId++;
     const user: User = { ...insertUser, id, createdAt: new Date() };
     this.users.set(id, user);
     return user;
   }
-  
+
   // Case operations
   async getCase(id: number): Promise<Case | undefined> {
     return this.cases.get(id);
   }
-  
+
   async getCaseByReferenceId(caseId: string): Promise<Case | undefined> {
     return Array.from(this.cases.values()).find(
       (c) => c.caseId === caseId
     );
   }
-  
+
   async getCases(limit = 100, offset = 0): Promise<Case[]> {
     return Array.from(this.cases.values())
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
       .slice(offset, offset + limit);
   }
-  
+
   async getCasesByStatus(status: string): Promise<Case[]> {
     return Array.from(this.cases.values()).filter(
       (c) => c.status === status
     );
   }
-  
+
   async getCasesByPriority(priority: string): Promise<Case[]> {
     return Array.from(this.cases.values()).filter(
       (c) => c.priority === priority
     );
   }
-  
-  async createCase(caseData: InsertCase): Promise<Case> {
+
+  async createCase(insertCase: InsertCase): Promise<Case> {
     const id = this.caseId++;
-    const now = new Date();
+    const timestamp = new Date();
+    const previousCase = Array.from(this.cases.values())
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())[0];
+
+    const blockchainHash = await this.generateBlockHash({
+      caseId: insertCase.caseId,
+      timestamp: timestamp.toISOString(),
+      previousHash: previousCase?.blockchainHash || '0000000000000000',
+      data: JSON.stringify(insertCase)
+    });
+
     const newCase: Case = { 
-      ...caseData, 
+      ...insertCase, 
       id, 
-      createdAt: now, 
-      updatedAt: now 
+      createdAt: timestamp,
+      blockchainHash,
+      previousHash: previousCase?.blockchainHash || '0000000000000000',
+      nodeId: `NODE_${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+      blockchainStatus: 'pending'
     };
+
     this.cases.set(id, newCase);
     return newCase;
   }
-  
+
+  private async generateBlockHash(data: any): Promise<string> {
+    const msgBuffer = new TextEncoder().encode(JSON.stringify(data));
+    const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   async updateCase(id: number, caseData: Partial<InsertCase>): Promise<Case | undefined> {
     const existingCase = this.cases.get(id);
     if (!existingCase) return undefined;
-    
+
     const updatedCase: Case = { 
       ...existingCase, 
       ...caseData, 
@@ -268,30 +289,30 @@ export class MemStorage implements IStorage {
     this.cases.set(id, updatedCase);
     return updatedCase;
   }
-  
+
   // Wallet operations
   async getWallet(id: number): Promise<Wallet | undefined> {
     return this.wallets.get(id);
   }
-  
+
   async getWalletByAddress(address: string): Promise<Wallet | undefined> {
     return Array.from(this.wallets.values()).find(
       (w) => w.address === address
     );
   }
-  
+
   async getWallets(limit = 100, offset = 0): Promise<Wallet[]> {
     return Array.from(this.wallets.values())
       .sort((a, b) => (b.riskScore || 0) - (a.riskScore || 0))
       .slice(offset, offset + limit);
   }
-  
+
   async getWalletsByRiskLevel(riskLevel: string): Promise<Wallet[]> {
     return Array.from(this.wallets.values()).filter(
       (w) => w.riskLevel === riskLevel
     );
   }
-  
+
   async createWallet(wallet: InsertWallet): Promise<Wallet> {
     const id = this.walletId++;
     const now = new Date();
@@ -304,11 +325,11 @@ export class MemStorage implements IStorage {
     this.wallets.set(id, newWallet);
     return newWallet;
   }
-  
+
   async updateWallet(id: number, wallet: Partial<InsertWallet>): Promise<Wallet | undefined> {
     const existingWallet = this.wallets.get(id);
     if (!existingWallet) return undefined;
-    
+
     const updatedWallet: Wallet = { 
       ...existingWallet, 
       ...wallet, 
@@ -317,24 +338,24 @@ export class MemStorage implements IStorage {
     this.wallets.set(id, updatedWallet);
     return updatedWallet;
   }
-  
+
   // Transaction operations
   async getTransaction(id: number): Promise<Transaction | undefined> {
     return this.transactions.get(id);
   }
-  
+
   async getTransactionsByWallet(walletAddress: string): Promise<Transaction[]> {
     return Array.from(this.transactions.values()).filter(
       (t) => t.fromWallet === walletAddress || t.toWallet === walletAddress
     );
   }
-  
+
   async getTransactionsByCase(caseId: number): Promise<Transaction[]> {
     return Array.from(this.transactions.values()).filter(
       (t) => t.caseId === caseId
     );
   }
-  
+
   async createTransaction(transaction: InsertTransaction): Promise<Transaction> {
     const id = this.transactionId++;
     const newTransaction: Transaction = { 
@@ -345,18 +366,18 @@ export class MemStorage implements IStorage {
     this.transactions.set(id, newTransaction);
     return newTransaction;
   }
-  
+
   // Suspicious Pattern operations
   async getSuspiciousPattern(id: number): Promise<SuspiciousPattern | undefined> {
     return this.suspiciousPatterns.get(id);
   }
-  
+
   async getSuspiciousPatternByReferenceId(patternId: string): Promise<SuspiciousPattern | undefined> {
     return Array.from(this.suspiciousPatterns.values()).find(
       (p) => p.patternId === patternId
     );
   }
-  
+
   async getSuspiciousPatterns(limit = 100, offset = 0): Promise<SuspiciousPattern[]> {
     if (this.suspiciousPatterns.size === 0) {
       // Re-initialize patterns if empty
@@ -367,13 +388,13 @@ export class MemStorage implements IStorage {
       .sort((a, b) => b.detectedAt.getTime() - a.detectedAt.getTime())
       .slice(offset, offset + limit);
   }
-  
+
   async getSuspiciousPatternsByRiskLevel(riskLevel: string): Promise<SuspiciousPattern[]> {
     return Array.from(this.suspiciousPatterns.values()).filter(
       (p) => p.riskLevel === riskLevel
     );
   }
-  
+
   async createSuspiciousPattern(pattern: InsertSuspiciousPattern): Promise<SuspiciousPattern> {
     const id = this.suspiciousPatternId++;
     const newPattern: SuspiciousPattern = { 
@@ -385,30 +406,30 @@ export class MemStorage implements IStorage {
     this.suspiciousPatterns.set(id, newPattern);
     return newPattern;
   }
-  
+
   // STR Report operations
   async getStrReport(id: number): Promise<StrReport | undefined> {
     return this.strReports.get(id);
   }
-  
+
   async getStrReportByReferenceId(strId: string): Promise<StrReport | undefined> {
     return Array.from(this.strReports.values()).find(
       (s) => s.strId === strId
     );
   }
-  
+
   async getStrReports(limit = 100, offset = 0): Promise<StrReport[]> {
     return Array.from(this.strReports.values())
       .sort((a, b) => b.generatedAt.getTime() - a.generatedAt.getTime())
       .slice(offset, offset + limit);
   }
-  
+
   async getStrReportsByStatus(status: string): Promise<StrReport[]> {
     return Array.from(this.strReports.values()).filter(
       (s) => s.status === status
     );
   }
-  
+
   async createStrReport(report: InsertStrReport): Promise<StrReport> {
     const id = this.strReportId++;
     const newReport: StrReport = { 
@@ -420,16 +441,16 @@ export class MemStorage implements IStorage {
     this.strReports.set(id, newReport);
     return newReport;
   }
-  
+
   async updateStrReport(id: number, report: Partial<InsertStrReport>): Promise<StrReport | undefined> {
     const existingReport = this.strReports.get(id);
     if (!existingReport) return undefined;
-    
+
     // Update submittedAt if status is changing to submitted
     const submittedAt = report.status === 'submitted' && existingReport.status !== 'submitted' 
       ? new Date() 
       : existingReport.submittedAt;
-    
+
     const updatedReport: StrReport = { 
       ...existingReport, 
       ...report,
@@ -438,14 +459,14 @@ export class MemStorage implements IStorage {
     this.strReports.set(id, updatedReport);
     return updatedReport;
   }
-  
+
   // Case Timeline operations
   async getCaseTimelineEvents(caseId: number): Promise<CaseTimeline[]> {
     return Array.from(this.caseTimelines.values())
       .filter((t) => t.caseId === caseId)
       .sort((a, b) => b.date.getTime() - a.date.getTime());
   }
-  
+
   async createCaseTimelineEvent(event: InsertCaseTimeline): Promise<CaseTimeline> {
     const id = this.caseTimelineId++;
     const newEvent: CaseTimeline = { 
@@ -456,23 +477,23 @@ export class MemStorage implements IStorage {
     this.caseTimelines.set(id, newEvent);
     return newEvent;
   }
-  
+
   // State Fraud Stats operations
   async getStateFraudStats(): Promise<StateFraudStat[]> {
     return Array.from(this.stateFraudStats.values())
       .sort((a, b) => b.caseCount - a.caseCount);
   }
-  
+
   async getStateFraudStatByState(state: string): Promise<StateFraudStat | undefined> {
     return Array.from(this.stateFraudStats.values()).find(
       (s) => s.state === state
     );
   }
-  
+
   async updateStateFraudStat(id: number, stat: Partial<InsertStateFraudStat>): Promise<StateFraudStat | undefined> {
     const existingStat = this.stateFraudStats.get(id);
     if (!existingStat) return undefined;
-    
+
     const updatedStat: StateFraudStat = { 
       ...existingStat, 
       ...stat, 
@@ -481,7 +502,7 @@ export class MemStorage implements IStorage {
     this.stateFraudStats.set(id, updatedStat);
     return updatedStat;
   }
-  
+
   async createStateFraudStat(stat: InsertStateFraudStat): Promise<StateFraudStat> {
     const id = this.stateFraudStatId++;
     const newStat: StateFraudStat = { 
@@ -492,12 +513,12 @@ export class MemStorage implements IStorage {
     this.stateFraudStats.set(id, newStat);
     return newStat;
   }
-  
+
   // Blockchain operations
   async createBlockchainTransaction(transaction: InsertBlockchainTransaction): Promise<BlockchainTransaction> {
     // Generate a unique transaction hash for blockchain transactions
     const txHash = transaction.txHash || `bct_${Date.now()}_${Math.floor(Math.random() * 10000)}`;
-    
+
     const newTransaction: BlockchainTransaction = {
       txHash,
       blockHash: transaction.blockHash,
@@ -513,17 +534,17 @@ export class MemStorage implements IStorage {
       stakeholderId: transaction.stakeholderId || null,
       stakeholderType: transaction.stakeholderType || null
     };
-    
+
     this.blockchainTransactions.set(txHash, newTransaction);
     return newTransaction;
   }
-  
+
   async getBlockchainTransactionsByEntity(entityType: string, entityId: string): Promise<BlockchainTransaction[]> {
     return Array.from(this.blockchainTransactions.values())
       .filter(tx => tx.entityType === entityType && tx.entityId === entityId)
       .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
   }
-  
+
   async createBlockchainNode(node: InsertBlockchainNode): Promise<BlockchainNode> {
     const id = this.blockchainNodeId++;
     const newNode: BlockchainNode = {
@@ -533,17 +554,17 @@ export class MemStorage implements IStorage {
       lastSyncTimestamp: node.lastSyncTimestamp || new Date(),
       createdAt: new Date()
     };
-    
+
     this.blockchainNodes.set(id, newNode);
     return newNode;
   }
-  
+
   async getBlockchainNodesByType(type: string): Promise<BlockchainNode[]> {
     return Array.from(this.blockchainNodes.values())
       .filter(node => node.nodeType === type)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
   }
-  
+
   async createKycInformation(kyc: InsertKycInformation): Promise<KycInformation> {
     const id = this.kycInformationId++;
     const newKyc: KycInformation = {
@@ -553,11 +574,11 @@ export class MemStorage implements IStorage {
       lastVerifiedAt: kyc.lastVerifiedAt || new Date(),
       verificationStatus: kyc.verificationStatus || 'pending'
     };
-    
+
     this.kycInformation.set(id, newKyc);
     return newKyc;
   }
-  
+
   async createCourtExport(exportData: InsertCourtExport): Promise<CourtExport> {
     const id = this.courtExportId++;
     const newExport: CourtExport = {
@@ -570,7 +591,7 @@ export class MemStorage implements IStorage {
       documentHash: exportData.documentHash || null,
       format: exportData.format || 'pdf'
     };
-    
+
     this.courtExports.set(id, newExport);
     return newExport;
   }
