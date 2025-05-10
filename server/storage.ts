@@ -124,6 +124,22 @@ export class MemStorage implements IStorage {
   }
   
   private initializeData() {
+    // Initialize suspicious patterns
+    const { SUSPICIOUS_PATTERNS } = require('./constants');
+    SUSPICIOUS_PATTERNS.forEach(pattern => {
+      this.createSuspiciousPattern({
+        patternId: pattern.patternId,
+        pattern: pattern.pattern,
+        description: "",
+        riskLevel: pattern.riskLevel.toLowerCase(),
+        patternType: pattern.patternType,
+        detectedAt: new Date(),
+        transactionCount: 0,
+        volume: "0",
+        walletAddress: ""
+      });
+    });
+
     // Create a default admin user
     this.createUser({
       username: "admin",

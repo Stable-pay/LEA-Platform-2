@@ -9,12 +9,15 @@ import { Search, Calendar, Filter } from "lucide-react";
 
 interface SuspiciousPattern {
   id: string;
+  patternId: string;
   pattern: string;
+  description: string;
   detectedAt: string;
   walletAddress: string;
   transactionCount: number;
   volume: string;
   riskLevel: "High" | "Medium" | "Low";
+  patternType: string;
 }
 
 const PatternScan = () => {
