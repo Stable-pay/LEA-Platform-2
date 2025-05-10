@@ -268,8 +268,9 @@ const BlockchainDemo = () => {
     }
 
     try {
+      // Create form data with required fields
       const formData = new FormData();
-      formData.append('caseId', selectedCase.id.toString());
+      formData.append('caseId', selectedCase.caseId);
       formData.append('message', responseDetails.trim());
       formData.append('department', user.department);
       attachments.forEach(file => formData.append('attachments', file));
