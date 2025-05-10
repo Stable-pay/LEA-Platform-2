@@ -1,0 +1,49 @@
+The above error occurred in the <Controller> component:
+
+    at Controller (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4ROUXF3S.js?v=095d8572:296:35)
+    at FormField (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ui/form.tsx:33:6)
+    at form
+    at FormProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-4ROUXF3S.js?v=095d8572:103:11)
+    at div
+    at _c9 (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ui/card.tsx:20:11)
+    at StrFilingForm (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/StrFilingForm.tsx:55:21)
+    at div
+    at https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=095d8572:42:13
+    at Presence (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-YE5GEEUL.js?v=095d8572:24:11)
+    at https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=095d8572:175:13
+    at _c5 (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ui/tabs.tsx:72:12)
+    at div
+    at https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-AXMZZQ2X.js?v=095d8572:42:13
+    at Provider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=095d8572:38:15)
+    at https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tabs.js?v=095d8572:53:7
+    at div
+    at StrGenerator
+    at Route (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=095d8572:338:16)
+    at Switch (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=095d8572:394:17)
+    at main
+    at div
+    at div
+    at AppShell (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/AppShell.tsx:96:21)
+    at Provider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-OXZDJRWN.js?v=095d8572:38:15)
+    at TooltipProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=095d8572:63:5)
+    at AuthProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/hooks/use-auth.tsx:27:32)
+    at QueryClientProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=095d8572:2805:3)
+    at App
+    at ThemeProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev/src/components/ThemeProvider.tsx:25:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+logCapturedError @ react-dom.development.js:18704
+react-dom.development.js:12056 Uncaught TypeError: patterns?.map is not a function
+    at Object.render (StrFilingForm.tsx:170:34)
+    at Controller (controller.tsx:53:9)
+    at renderWithHooks (react-dom.development.js:15486:18)
+    at updateFunctionComponent (react-dom.development.js:19617:20)
+    at beginWork (react-dom.development.js:21640:16)
+    at beginWork$1 (react-dom.development.js:27465:14)
+    at performUnitOfWork (react-dom.development.js:26596:12)
+    at workLoopSync (react-dom.development.js:26505:5)
+    at renderRootSync (react-dom.development.js:26473:7)
+    at recoverFromConcurrentError (react-dom.development.js:25889:20)
