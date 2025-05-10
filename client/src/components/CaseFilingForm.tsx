@@ -221,8 +221,20 @@ const CaseFilingForm = () => {
     },
   });
 
-  const onSubmit = (data: CaseFormValues) => {
+  const generateCaseHash = (data: any) => {
+    const hashInput = `${data.title}-${data.description}-${Date.now()}`;
+    return crypto.subtle.digest('SHA-256', new TextEncoder().encode(hashInput))
+      .then(hashBuffer => {
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      });
+  };
+
+  const onSubmit = async (data: CaseFormValues) => {
     setIsSubmitting(true);
+    const caseHash = await generateCaseHash(data);
+    data.blockchainHash = caseHash;
+    data.previousHash = txHash || '0000000000000000000000000000000000000000000000000000000000000000';
     const submissionData = {
       ...data,
       assignedTo: data.assignedDepartment
