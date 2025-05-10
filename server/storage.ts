@@ -128,16 +128,17 @@ export class MemStorage implements IStorage {
     const { SUSPICIOUS_PATTERNS } = require('./constants');
     SUSPICIOUS_PATTERNS.forEach(pattern => {
       const newPattern = {
-        patternId: pattern.patternId,
+        id: this.suspiciousPatternId++,
+        patternId: pattern.patternId || `SP-${this.suspiciousPatternId.toString().padStart(3, '0')}`,
         pattern: pattern.pattern,
         description: pattern.pattern,
         riskLevel: pattern.riskLevel,
-        patternType: pattern.patternType,
+        patternType: pattern.patternType || 'Transaction',
         detectedAt: new Date(),
-        transactionCount: 0,
-        volume: "₹0",
-        walletAddress: "",
-        id: this.suspiciousPatternId++
+        transactionCount: Math.floor(Math.random() * 50),
+        volume: `₹${Math.floor(Math.random() * 1000000)}`,
+        walletAddress: `0x${Math.random().toString(16).slice(2, 14)}`,
+        createdAt: new Date()
       };
       this.suspiciousPatterns.set(newPattern.id, newPattern);
     });
