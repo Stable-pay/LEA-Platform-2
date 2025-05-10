@@ -42,10 +42,17 @@ const StrFilingForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
-  // Fetch patterns
-  const { data: patterns } = useQuery({
+  // Fetch patterns with proper error and loading handling
+  const { data: patterns, isLoading: patternsLoading } = useQuery({
     queryKey: ['patterns'],
-    queryFn: () => fetch('/api/patterns').then(res => res.json())
+    queryFn: async () => {
+      const res = await fetch('/api/patterns');
+      if (!res.ok) {
+        throw new Error('Failed to fetch patterns');
+      }
+      return res.json();
+    },
+    initialData: []
   });
 
   // Fetch cases for search
@@ -167,11 +174,15 @@ const StrFilingForm = () => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {patterns?.map((p: any) => (
-                        <SelectItem key={p.patternId} value={p.patternId}>
-                          {p.pattern}
-                        </SelectItem>
-                      ))}
+                      {patternsLoading ? (
+                        <SelectItem value="loading">Loading patterns...</SelectItem>
+                      ) : (
+                        patterns.map((p: any) => (
+                          <SelectItem key={p.patternId} value={p.patternId}>
+                            {p.pattern}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
