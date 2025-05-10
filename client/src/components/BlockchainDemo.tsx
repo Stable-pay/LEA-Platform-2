@@ -258,21 +258,25 @@ const BlockchainDemo = () => {
   };
 
   const submitResponse = async () => {
-    if (!selectedCase || !responseDetails.trim() || !user?.department) return;
+    if (!selectedCase || !responseDetails.trim() || !user?.department) {
+      toast({
+        title: "Error",
+        description: "Missing required fields",
+        variant: "destructive"
+      });
+      return;
+    }
 
     try {
       const formData = new FormData();
-      formData.append('caseId', selectedCase.caseId);
-      formData.append('message', responseDetails);
+      formData.append('caseId', selectedCase.id.toString());
+      formData.append('message', responseDetails.trim());
       formData.append('department', user.department);
       attachments.forEach(file => formData.append('attachments', file));
 
       const response = await fetch('/api/cases/response', {
         method: 'POST',
         body: formData,
-        headers: {
-          'Accept': 'application/json'
-        },
         credentials: 'include'
       });
 
