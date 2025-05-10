@@ -61,7 +61,7 @@ interface NodeCase {
 interface NetworkNode {
   id: string;
   type: "validator" | "peer";
-  status: "active" | "inactive";
+  status: "active" | "inactive" | "operational";
   name: string;
   uptime: number;
   transactions: number;
@@ -93,7 +93,7 @@ const BlockchainDemo = () => {
         if (user?.department) {
           const nodeStatus = await fetch(`/api/blockchain/nodes?type=${user.department}`);
           const nodeData = await nodeStatus.json();
-          
+
           toast({
             title: `${user.department} Node Status`,
             description: `Department node is ${nodeData[0]?.status || 'inactive'}`,
@@ -106,8 +106,8 @@ const BlockchainDemo = () => {
         // Transform department data into nodes
         const transformedNodes = data.map((dept: string) => ({
           id: `${dept}-node`,
-          type: 'validator',
-          status: 'active',
+          type: dept.toLowerCase(),
+          status: 'operational',
           name: `${dept} Node`,
           uptime: 99.9,
           transactions: 0
@@ -414,18 +414,21 @@ const BlockchainDemo = () => {
             <CardContent>
               <div className="space-y-4">
                 {nodes.map(node => (
-                  <div key={node.id} className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
-                    <div>
-                      <p className="font-medium">{node.name}</p>
-                      <div className="flex items-center mt-1">
-                        <Badge variant={node.status === "active" ? "success" : "destructive"} className="text-xs">
-                          {node.status}
-                        </Badge>
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {node.uptime}% uptime
-                        </span>
+                  <div key={node.id} className={`flex items-center justify-between p-2 ${user?.department === node.type.toUpperCase() ? 'bg-primary/10' : 'bg-muted/30'} rounded-lg`}>
+                      <div>
+                        <p className="font-medium">{node.name}</p>
+                        <div className="flex items-center mt-1">
+                          <Badge variant={node.status === "operational" ? "success" : "secondary"} className="text-xs">
+                            {node.status}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground ml-2">
+                            {node.uptime}% uptime
+                          </span>
+                          {user?.department === node.type.toUpperCase() && (
+                            <Badge variant="outline" className="ml-2 text-xs">Current Node</Badge>
+                          )}
+                        </div>
                       </div>
-                    </div>
                     <Badge variant="outline" className="capitalize">
                       {node.type}
                     </Badge>
