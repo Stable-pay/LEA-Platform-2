@@ -339,62 +339,6 @@ const BlockchainDemo = () => {
         <CardTitle>Department Node Explorer</CardTitle>
       </CardHeader>
       <CardContent className="p-2 sm:p-4">
-        <div className="mb-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm font-medium">Total Nodes</p>
-                <Users className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold mt-2">{nodes.length}</h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {nodes.filter(n => n.status === "active").length} Active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm font-medium">Validator Nodes</p>
-                <Shield className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold mt-2">
-                {nodes.filter(n => n.type === "validator").length}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">
-                {nodes.filter(n => n.type === "validator" && n.status === "active").length} Active
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm font-medium">Average Uptime</p>
-                <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold mt-2">
-                {(nodes.reduce((acc, node) => acc + node.uptime, 0) / nodes.length).toFixed(1)}%
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">Last 30 days</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-4">
-              <div className="flex justify-between items-center">
-                <p className="text-sm font-medium">Total Transactions</p>
-                <MessageSquare className="h-4 w-4 text-muted-foreground" />
-              </div>
-              <h3 className="text-2xl font-bold mt-2">
-                {nodes.reduce((acc, node) => acc + node.transactions, 0).toLocaleString()}
-              </h3>
-              <p className="text-xs text-muted-foreground mt-1">Across all nodes</p>
-            </CardContent>
-          </Card>
-        </div>
-
         <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
