@@ -88,6 +88,19 @@ const BlockchainDemo = () => {
           uptime: 99.9,
           transactions: 0
         }));
+
+        // Verify node status for logged in department
+        if (user?.department) {
+          const nodeStatus = await fetch(`/api/blockchain/nodes?type=${user.department}`);
+          const nodeData = await nodeStatus.json();
+          
+          toast({
+            title: `${user.department} Node Status`,
+            description: `Department node is ${nodeData[0]?.status || 'inactive'}`,
+            variant: nodeData[0]?.status === 'active' ? 'default' : 'destructive'
+          });
+        }
+
         setNodes(initialNodes);
 
         // Transform department data into nodes
