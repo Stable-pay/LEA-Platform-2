@@ -51,7 +51,10 @@ const StrFilingForm = () => {
         throw new Error('Failed to fetch patterns');
       }
       const data = await res.json();
-      return Array.isArray(data) ? data : [];
+      return Array.isArray(data) ? data.map(p => ({
+        ...p,
+        riskLevel: p.riskLevel.toLowerCase()
+      })) : [];
     }
   });
 

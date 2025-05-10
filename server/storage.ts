@@ -126,22 +126,24 @@ export class MemStorage implements IStorage {
   private initializeData() {
     // Initialize suspicious patterns
     const { SUSPICIOUS_PATTERNS } = require('./constants');
-    SUSPICIOUS_PATTERNS.forEach(pattern => {
-      const newPattern = {
-        id: this.suspiciousPatternId++,
-        patternId: pattern.patternId || `SP-${this.suspiciousPatternId.toString().padStart(3, '0')}`,
-        pattern: pattern.pattern,
-        description: pattern.pattern,
-        riskLevel: pattern.riskLevel,
-        patternType: pattern.patternType || 'Transaction',
-        detectedAt: new Date(),
-        transactionCount: Math.floor(Math.random() * 50),
-        volume: `₹${Math.floor(Math.random() * 1000000)}`,
-        walletAddress: `0x${Math.random().toString(16).slice(2, 14)}`,
-        createdAt: new Date()
-      };
-      this.suspiciousPatterns.set(newPattern.id, newPattern);
-    });
+    if (this.suspiciousPatterns.size === 0) {
+      SUSPICIOUS_PATTERNS.forEach(pattern => {
+        const newPattern = {
+          id: this.suspiciousPatternId++,
+          patternId: pattern.patternId,
+          pattern: pattern.pattern,
+          description: pattern.pattern,
+          riskLevel: pattern.riskLevel,
+          patternType: pattern.patternType,
+          detectedAt: new Date(),
+          transactionCount: Math.floor(Math.random() * 50),
+          volume: `₹${Math.floor(Math.random() * 1000000)}`,
+          walletAddress: `0x${Math.random().toString(16).slice(2, 14)}`,
+          createdAt: new Date()
+        };
+        this.suspiciousPatterns.set(newPattern.id, newPattern);
+      });
+    }
 
     // Create a default admin user
     this.createUser({
