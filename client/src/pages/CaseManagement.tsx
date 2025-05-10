@@ -2,129 +2,147 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { DataTable } from '@/components/ui/data-table';
-import { BlockchainNode } from '@/components/BlockchainNode';
+import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
+import { BlockchainNode } from '@/components/BlockchainNode';
 
-interface BlockchainNodeType {
-  nodeId: string;
-  organization: string;
+interface Case {
+  caseId: string;
+  title: string;
   status: string;
-  nodeType: string;
-  lastSyncTimestamp: string;
+  assignedTo: string;
+  createdAt: string;
+  priority: string;
+  blockchainHash?: string;
+  previousHash?: string;
+  nodeId?: string;
+  blockchainStatus?: string;
 }
 
 const CaseManagement = () => {
-  const [page, setPage] = useState(1);
-  const [selectedCase, setSelectedCase] = useState(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [selectedCase, setSelectedCase] = useState<Case | null>(null);
 
   const { data: cases = [], isLoading } = useQuery({
-    queryKey: ['cases', page],
+    queryKey: ['cases'],
     queryFn: async () => {
-      const res = await fetch(`/api/cases?page=${page}`);
+      const res = await fetch('/api/cases');
       if (!res.ok) throw new Error('Failed to fetch cases');
       return res.json();
     },
   });
 
-  const { data: blockchainNodes = [] } = useQuery<BlockchainNodeType[]>({
-    queryKey: ['blockchain-nodes'],
-    queryFn: async () => {
-      const res = await fetch('/api/blockchain/nodes');
-      if (!res.ok) throw new Error('Failed to fetch nodes');
-      return res.json();
-    },
+  const filteredCases = cases.filter((case_: Case) => {
+    const matchesSearch = case_.caseId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         case_.title.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesDepartment = selectedDepartment === 'all' || case_.assignedTo === selectedDepartment;
+    return matchesSearch && matchesDepartment;
   });
 
-  const columns = [
-    { accessorKey: 'caseId', header: 'Case ID' },
-    { accessorKey: 'title', header: 'Title' },
-    { accessorKey: 'status', header: 'Status' },
-    { accessorKey: 'priority', header: 'Priority' },
-    { accessorKey: 'assignedTo', header: 'Assigned To' },
-    { accessorKey: 'createdAt', header: 'Created At' },
-  ];
-
   return (
-    <div className="container mx-auto py-6">
-      <Tabs defaultValue="cases">
-        <TabsList>
-          <TabsTrigger value="cases">Cases</TabsTrigger>
-          <TabsTrigger value="blockchain">Blockchain Network</TabsTrigger>
-        </TabsList>
-        
+    <Card className="shadow">
+      <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b">
+        <CardTitle className="font-semibold">Private Case Explorer</CardTitle>
+        <div className="flex items-center text-xs text-muted-foreground">
+          <div className="mr-2 px-2 py-1 bg-green-100 text-green-700 rounded">Active</div>
+          Connected to Private Blockchain Network
+        </div>
+      </CardHeader>
+
+      <Tabs defaultValue="cases" className="w-full">
+        <div className="px-6 py-2 border-b">
+          <TabsList>
+            <TabsTrigger value="cases">Case Explorer</TabsTrigger>
+            <TabsTrigger value="blockchain">Blockchain Verification</TabsTrigger>
+          </TabsList>
+        </div>
+
         <TabsContent value="cases">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Case Management</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div>Loading...</div>
-                  ) : (
-                    <DataTable 
-                      columns={columns} 
-                      data={cases}
-                      searchKey="caseId"
-                      onRowClick={setSelectedCase}
-                    />
-                  )}
-                </CardContent>
-              </Card>
+          <CardContent className="p-4">
+            <div className="flex flex-col md:flex-row gap-3 mb-4">
+              <div className="relative flex-1">
+                <Input
+                  type="text"
+                  placeholder="Search by case ID or title"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pr-10"
+                />
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <Search className="h-4 w-4 text-muted-foreground" />
+                </div>
+              </div>
+              <div className="w-full md:w-48">
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    <SelectItem value="LEA">Law Enforcement</SelectItem>
+                    <SelectItem value="FIU">Financial Intel</SelectItem>
+                    <SelectItem value="CERT">Cyber Security</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-            
-            {selectedCase && (
-              <div>
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Blockchain Verification</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <BlockchainNode
-                      caseId={selectedCase.caseId}
-                      timestamp={selectedCase.createdAt}
-                      hash={selectedCase.blockchainHash || ''}
-                      previousHash={selectedCase.previousHash || ''}
-                      nodeId={selectedCase.nodeId || 'NODE_001'}
-                      status={selectedCase.blockchainStatus || 'pending'}
-                    />
+
+            <div className="space-y-4">
+              {filteredCases.map((case_: Case) => (
+                <Card
+                  key={case_.caseId}
+                  className="cursor-pointer hover:bg-accent/5"
+                  onClick={() => setSelectedCase(case_)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-sm">{case_.caseId}</span>
+                        <Badge variant={case_.status === "active" ? "success" : "secondary"}>
+                          {case_.status}
+                        </Badge>
+                      </div>
+                      <Badge variant="outline">{case_.priority}</Badge>
+                    </div>
+                    <div className="space-y-1">
+                      <h3 className="font-semibold">{case_.title}</h3>
+                      <div className="text-sm text-muted-foreground">
+                        <div>Assigned to: {case_.assignedTo}</div>
+                        <div>Created: {new Date(case_.createdAt).toLocaleString()}</div>
+                      </div>
+                    </div>
                   </CardContent>
                 </Card>
-              </div>
-            )}
-          </div>
+              ))}
+            </div>
+          </CardContent>
         </TabsContent>
 
         <TabsContent value="blockchain">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {Array.isArray(blockchainNodes) && blockchainNodes.map((node) => (
-              <Card key={node.nodeId} className="bg-card">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-sm">
-                      {node.organization}
-                      <Badge className="ml-2" variant={node.status === 'active' ? 'success' : 'destructive'}>
-                        {node.status}
-                      </Badge>
-                    </CardTitle>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2 text-sm">
-                    <div>Node ID: {node.nodeId}</div>
-                    <div>Type: {node.nodeType}</div>
-                    <div>Last Sync: {new Date(node.lastSyncTimestamp).toLocaleString()}</div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <CardContent className="p-4">
+            {selectedCase ? (
+              <BlockchainNode
+                caseId={selectedCase.caseId}
+                timestamp={selectedCase.createdAt}
+                hash={selectedCase.blockchainHash || ''}
+                previousHash={selectedCase.previousHash || ''}
+                nodeId={selectedCase.nodeId || ''}
+                status={selectedCase.blockchainStatus || 'pending'}
+              />
+            ) : (
+              <div className="text-center text-muted-foreground py-8">
+                Select a case to view blockchain verification details
+              </div>
+            )}
+          </CardContent>
         </TabsContent>
       </Tabs>
-    </div>
+    </Card>
   );
 };
 
