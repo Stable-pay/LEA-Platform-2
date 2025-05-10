@@ -287,7 +287,6 @@ const BlockchainDemo = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),
-        body: formData,
         credentials: 'include'
       });
 
