@@ -1,3 +1,6 @@
+
+import { caseResponses } from '../shared/schema';
+
 import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
@@ -191,14 +194,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const newResponse = await storage.createCaseResponse({
+      const newResponse = await db.insert(caseResponses).values({
         caseId: req.body.caseId,
         message: req.body.message,
         department: req.body.department,
         attachments: req.body.attachments || [],
-        timestamp: new Date().toISOString(),
+        timestamp: new Date(),
         status: 'pending'
-      });
+      }).returning();
 
       res.setHeader('Content-Type', 'application/json');
       res.json(newResponse);
