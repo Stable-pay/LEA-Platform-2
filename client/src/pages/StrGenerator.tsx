@@ -281,3 +281,14 @@ const StrGenerator = () => {
 };
 
 export default StrGenerator;
+import StrFilingForm from "@/components/StrFilingForm";
+
+const StrGenerator = () => {
+  return (
+    <div className="container mx-auto py-6">
+      <StrFilingForm />
+    </div>
+  );
+};
+
+export default StrGenerator;
