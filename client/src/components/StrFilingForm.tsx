@@ -43,16 +43,16 @@ const StrFilingForm = () => {
   const [files, setFiles] = useState<File[]>([]);
 
   // Fetch patterns with proper error and loading handling
-  const { data: patterns, isLoading: patternsLoading } = useQuery({
+  const { data: patterns = [], isLoading: patternsLoading } = useQuery({
     queryKey: ['patterns'],
     queryFn: async () => {
       const res = await fetch('/api/patterns');
       if (!res.ok) {
         throw new Error('Failed to fetch patterns');
       }
-      return res.json();
-    },
-    initialData: []
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    }
   });
 
   // Fetch cases for search
