@@ -395,18 +395,7 @@ const BlockchainDemo = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <Card className="lg:col-span-2">
-            <CardHeader>
-              <CardTitle>Network Topology</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="h-[400px] bg-muted/30 rounded-lg flex items-center justify-center">
-                <p className="text-muted-foreground">Network visualization goes here</p>
-              </div>
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 gap-6">
           <Card>
             <CardHeader>
               <CardTitle>Node Status</CardTitle>
