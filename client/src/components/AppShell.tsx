@@ -319,7 +319,7 @@ function getPageTitle() {
   const [location] = useLocation();
   switch (location) {
     case "/":
-      return "Dashboard";
+      return "LEA Information Sharing & Intel Platform";
     case "/case-management":
       return "Case Management";
     case "/case-filing":
