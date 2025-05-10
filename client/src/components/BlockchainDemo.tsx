@@ -67,9 +67,36 @@ interface NetworkNode {
   transactions: number;
 }
 
+interface Block {
+  blockNumber: number;
+  hash: string;
+  timestamp: string;
+  txCount: number;
+}
+
+interface Transaction {
+  txId: string;
+  type: string;
+  status: string;
+  channel: string;
+  submitter: string;
+  timestamp: string;
+}
+
 const BlockchainDemo = () => {
   const [nodes, setNodes] = useState<NetworkNode[]>([]);
   const [departments, setDepartments] = useState<string[]>([]);
+  const [blocks, setBlocks] = useState<Block[]>([
+    { blockNumber: 1, hash: "0x123abc", timestamp: "2024-01-01 10:00", txCount: 5 },
+    { blockNumber: 2, hash: "0x456def", timestamp: "2024-01-01 10:05", txCount: 3 },
+    { blockNumber: 3, hash: "0x789ghi", timestamp: "2024-01-01 10:10", txCount: 7 },
+  ]);
+  const [transactions, setTransactions] = useState<Transaction[]>([
+    { txId: "0xabc123", type: "transfer", status: "SUCCESS", channel: "mychannel", submitter: "org1", timestamp: "2024-01-01 10:01" },
+    { txId: "0xdef456", type: "invoke", status: "FAILED", channel: "mychannel", submitter: "org2", timestamp: "2024-01-01 10:06" },
+    { txId: "0xghi789", type: "transfer", status: "SUCCESS", channel: "mychannel", submitter: "org1", timestamp: "2024-01-01 10:11" },
+  ]);
+  const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
 
   useEffect(() => {
     const fetchDepartments = async () => {
@@ -430,6 +457,8 @@ const BlockchainDemo = () => {
                 {key} ({caseCounts[key as keyof typeof caseCounts]})
               </TabsTrigger>
             ))}
+            <TabsTrigger value="blocks" className="text-xs sm:text-sm">Blocks</TabsTrigger>
+            <TabsTrigger value="transactions" className="text-xs sm:text-sm">Transactions</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all">
@@ -504,241 +533,57 @@ const BlockchainDemo = () => {
               </ScrollArea>
             </TabsContent>
           ))}
-        </Tabs>
 
-        {selectedCase && (
-          <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
-            <DialogContent className="w-[95vw] max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>{selectedCase.title}</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                {canViewCaseDetails(selectedCase) ? (
-                  <>
-                    <div className="bg-muted/30 p-4 rounded-lg space-y-4">
-                        <div>
-                          <h4 className="font-semibold mb-3">Case Details</h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Case ID</p>
-                              <p className="font-medium">{selectedCase.caseId}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">Date Reported</p>
-                              <p className="font-medium">{format(new Date(selectedCase.dateReported), "PPp")}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">Reported By</p>
-                              <p className="font-medium">{selectedCase.reportedBy}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">Estimated Loss</p>
-                              <p className="font-medium">₹{selectedCase.estimatedLoss.toLocaleString()}</p>
-                            </div>
-                          </div>
-                          <div className="bg-background/50 p-4 rounded">
-                            <h5 className="font-medium mb-2">Description</h5>
-                            <p className="whitespace-pre-wrap">{selectedCase.details}</p>
-                          </div>
-                        </div>
+      <TabsContent value="blocks">
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {blocks.map((block) => (
+              <Card key={block.hash} className="cursor-pointer hover:bg-accent/5" onClick={() => setSelectedBlock(block)}>
+                <CardContent className="p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <Badge variant="outline">Block #{block.blockNumber}</Badge>
+                    <span className="text-sm text-muted-foreground">{block.timestamp}</span>
+                  </div>
+                  <div className="text-sm space-y-1">
+                    <div className="font-mono text-xs truncate">{block.hash}</div>
+                    <div>{block.txCount} transactions</div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </TabsContent>
 
-                        {selectedCase.attachments && selectedCase.attachments.length > 0 && (
-                          <div>
-                            <h5 className="font-semibold mb-2">Case Attachments</h5>
-                            <div className="flex flex-wrap gap-2">
-                              {selectedCase.attachments.map((file, idx) => (
-                                <div key={idx} className="flex items-center gap-1 p-1 bg-background rounded">
-                                  <Badge variant="secondary" className="cursor-pointer hover:bg-accent">
-                                    {file.name}
-                                  </Badge>
-                                  <a 
-                                    href={URL.createObjectURL(file)}
-                                    download={file.name}
-                                    className="text-xs text-blue-500 hover:text-blue-700"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    Download
-                                  </a>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        <div>
-                          <h5 className="font-semibold mb-2">Blockchain Details</h5>
-                          <div className="bg-background/50 p-3 rounded space-y-2">
-                            <div>
-                              <p className="text-sm text-muted-foreground">Wallet Address</p>
-                              <p className="font-mono text-sm break-all">{selectedCase.walletAddress}</p>
-                            </div>
-                            <div>
-                              <p className="text-sm text-muted-foreground">Transaction Hash</p>
-                              <p className="font-mono text-sm break-all">{selectedCase.transactionHash}</p>
-                            </div>
-                          </div>
-                        </div>
+      <TabsContent value="transactions">
+        <div className="space-y-4">
+          <ScrollArea className="h-[500px]">
+            <div className="space-y-2">
+              {transactions.map((tx) => (
+                <Card key={tx.txId}>
+                  <CardContent className="p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="flex items-center gap-2">
+                        <Badge>{tx.type}</Badge>
+                        <span className="text-sm font-mono">{tx.txId}</span>
                       </div>
-
-                    <div className="bg-muted/30 p-4 rounded-lg">
-                      <h4 className="font-semibold mb-3">Participating Departments</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Assigned</Badge>
-                          <span>{DEPARTMENTS[selectedCase.assignedTo as keyof typeof DEPARTMENTS]}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Initiator</Badge>
-                          <span>{DEPARTMENTS[selectedCase.initiator as keyof typeof DEPARTMENTS]}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Badge variant="outline">Confirmer</Badge>
-                          <span>{DEPARTMENTS[selectedCase.confirmer as keyof typeof DEPARTMENTS]}</span>
-                        </div>
-                      </div>
+                      <Badge variant={tx.status === "SUCCESS" ? "success" : "destructive"}>
+                        {tx.status}
+                      </Badge>
                     </div>
-
-                    {selectedCase.responses && selectedCase.responses.length > 0 && (
-                      <div className="space-y-4">
-                        <h4 className="font-semibold">Department Responses</h4>
-                        {selectedCase.responses.map((response, idx) => (
-                          <Card key={idx}>
-                            <CardContent className="p-4">
-                              <div className="flex justify-between items-center mb-2">
-                                <Badge>{DEPARTMENTS[response.department as keyof typeof DEPARTMENTS]}</Badge>
-                                <span className="text-sm text-muted-foreground">
-                                  {format(new Date(response.timestamp), "PPp")}
-                                </span>
-                              </div>
-                              <p>{response.message}</p>
-                              <div className="mt-2">
-                              <h6 className="text-sm font-semibold mb-1">Attachments</h6>
-                              <div className="flex flex-wrap gap-2">
-                                {response.attachments.map((file, fileIdx) => (
-                                  <div key={fileIdx} className="flex items-center gap-1 p-1 bg-muted rounded">
-                                    <Badge variant="secondary" className="cursor-pointer hover:bg-accent">
-                                      {file.name}
-                                    </Badge>
-                                    <a 
-                                      href={URL.createObjectURL(file)}
-                                      download={file.name}
-                                      className="text-xs text-blue-500 hover:text-blue-700"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      Download
-                                    </a>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
-                    )}
-
-{selectedCase.responses && selectedCase.responses.length > 0 && (
-  <div className="space-y-4">
-    <div className="flex items-center gap-2">
-      <h4 className="font-semibold">Department Responses</h4>
-      <Badge variant="outline">Chain of Custody</Badge>
-    </div>
-    <div className="grid gap-4">
-      {/* Initiator Response */}
-      <Card className="bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Badge>Initiator</Badge>
-            {DEPARTMENTS[selectedCase.initiator as keyof typeof DEPARTMENTS]}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selectedCase.responses.find(r => r.department === selectedCase.initiator) ? (
-            <div className="text-sm">
-              {selectedCase.responses.find(r => r.department === selectedCase.initiator)?.message}
+                    <div className="text-sm text-muted-foreground">
+                      <div>Channel: {tx.channel}</div>
+                      <div>Submitter: {tx.submitter}</div>
+                      <div>Timestamp: {tx.timestamp}</div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">Awaiting response...</div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Confirmer Response */}
-      <Card className="bg-muted/30">
-        <CardHeader>
-          <CardTitle className="text-sm flex items-center gap-2">
-            <Badge>Confirmer</Badge>
-            {DEPARTMENTS[selectedCase.confirmer as keyof typeof DEPARTMENTS]}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {selectedCase.responses.find(r => r.department === selectedCase.confirmer) ? (
-            <div className="text-sm">
-              {selectedCase.responses.find(r => r.department === selectedCase.confirmer)?.message}
-            </div>
-          ) : (
-            <div className="text-sm text-muted-foreground">Awaiting response...</div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  </div>
-)}
-
-{canRespondToCase(selectedCase) && (
-  <div className="space-y-4 bg-muted/30 p-4 rounded-lg mt-4">
-    <div className="flex items-center gap-2 mb-4">
-      <h4 className="font-semibold">Submit Department Response</h4>
-      <Badge variant="outline">
-        {getDepartmentRole(selectedCase)}
-      </Badge>
-    </div>
-                        <Textarea
-                          placeholder="Enter your department's official response..."
-                          value={responseDetails}
-                          onChange={(e) => setResponseDetails(e.target.value)}
-                          className="min-h-[100px]"
-                        />
-                        <div className="space-y-4">
-                          <div className="bg-background/50 p-4 rounded-md">
-                            <h5 className="text-sm font-medium mb-2">Attachments</h5>
-                            <FileUploader
-                              onFilesSelected={setAttachments}
-                              maxFiles={5}
-                              accept=".pdf,.doc,.docx,.jpg,.png"
-                            />
-                            {attachments.length > 0 && (
-                              <div className="mt-2">
-                                <p className="text-sm text-muted-foreground">
-                                  {attachments.length} file(s) selected
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                          <Button 
-                            onClick={submitResponse} 
-                            disabled={!responseDetails.trim()}
-                            className="w-full sm:w-auto"
-                          >
-                            Submit Department Response
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </>
-                ) : (
-                  <Alert>
-                    <AlertTriangle className="w-4 h-4" />
-                    <AlertDescription>
-                      You don't have permission to view the complete case details.
-                      Only participating departments can access this information.
-                    </AlertDescription>
-                  </Alert>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
-        )}
+          </ScrollArea>
+        </div>
+      </TabsContent>
+      </Tabs>
       </CardContent>
     </Card>
   );
