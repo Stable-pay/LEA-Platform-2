@@ -538,6 +538,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Wallet checks API endpoint
+  app.get("/api/wallet-checks", async (_req, res) => {
+    try {
+      const walletChecks = await storage.getWallets();
+      const enrichedChecks = walletChecks.map(wallet => ({
+        address: wallet.address,
+        network: wallet.network,
+        riskLevel: wallet.riskLevel,
+        transactionVolume: wallet.transactionVolume,
+        lastChecked: wallet.lastChecked || new Date(),
+        riskIndicators: wallet.riskIndicators || [],
+        watchlistStatus: wallet.watchlistStatus || 'active'
+      }));
+      res.json(enrichedChecks);
+    } catch (error) {
+      console.error('Error fetching wallet checks:', error);
+      res.status(500).json({ message: "Failed to fetch wallet checks" });
+    }
+  });
+
   // Setup authentication routes
   setupAuth(app);
 
