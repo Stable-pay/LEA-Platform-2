@@ -1,6 +1,8 @@
-
 import { cn } from "@/lib/utils";
 import { ArrowUp, ArrowDown } from "lucide-react";
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface StatsCardProps {
   title: string;
@@ -10,6 +12,7 @@ interface StatsCardProps {
   changePercentage?: number;
   changeText?: string;
   className?: string;
+  route?: string;
 }
 
 const StatsCard = ({
@@ -20,14 +23,30 @@ const StatsCard = ({
   changePercentage,
   changeText = "from last month",
   className,
+  route = "/"
 }: StatsCardProps) => {
+  const navigate = useNavigate();
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleCardClick = (route: string) => {
+    navigate(route);
+  };
+
   const isPositiveChange = changePercentage && changePercentage > 0;
-  
+
   return (
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300 }}
+    >
     <div className={cn(
-      "bg-white rounded-xl shadow-sm border border-neutral-200 p-6 transition-all hover:shadow-md",
+      "bg-white rounded-xl shadow-sm border border-neutral-200 p-6 transition-all hover:shadow-md cursor-pointer",
       className
-    )}>
+    )}
+    onMouseEnter={() => setIsHovered(true)}
+    onMouseLeave={() => setIsHovered(false)}
+    onClick={() => handleCardClick(route)}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className={cn("rounded-lg p-3", iconBgColor)}>
           {icon}
@@ -58,6 +77,7 @@ const StatsCard = ({
         )}
       </div>
     </div>
+    </motion.div>
   );
 };
 

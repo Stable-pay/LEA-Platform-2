@@ -318,3 +318,59 @@ export type BlockchainNode = typeof blockchainNodes.$inferSelect;
 export type BlockchainTransaction = typeof blockchainTransactions.$inferSelect;
 export type KycInformation = typeof kycInformation.$inferSelect;
 export type CourtExport = typeof courtExports.$inferSelect;
+
+// User Activity Tracking
+export const userActivities = pgTable("user_activities", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").references(() => users.id),
+  activityType: text("activity_type").notNull(), // login, view_case, export, etc.
+  entityType: text("entity_type"), // case, wallet, str, etc.
+  entityId: text("entity_id"),
+  metadata: jsonb("metadata"),
+  timestamp: timestamp("timestamp").defaultNow(),
+});
+
+// Case Comments
+export const caseComments = pgTable("case_comments", {
+  id: serial("id").primaryKey(),
+  caseId: text("case_id").references(() => cases.caseId),
+  userId: integer("user_id").references(() => users.id),
+  comment: text("comment").notNull(),
+  attachments: jsonb("attachments"),
+  timestamp: timestamp("timestamp").defaultNow(),
+  lastEdited: timestamp("last_edited"),
+});
+
+// Case Assignments History
+export const caseAssignments = pgTable("case_assignments", {
+  id: serial("id").primaryKey(),
+  caseId: text("case_id").references(() => cases.caseId),
+  assignedTo: text("assigned_to").notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  notes: text("notes"),
+});
+
+// Wallet Watch List
+export const walletWatchlist = pgTable("wallet_watchlist", {
+  id: serial("id").primaryKey(),
+  walletAddress: text("wallet_address").references(() => wallets.address),
+  addedBy: integer("added_by").references(() => users.id),
+  watchReason: text("watch_reason"),
+  riskLevel: text("risk_level").notNull(),
+  addedAt: timestamp("added_at").defaultNow(),
+  lastChecked: timestamp("last_checked"),
+  alertsEnabled: boolean("alerts_enabled").default(true),
+});
+
+// Create insert schemas for new tables
+export const insertUserActivitySchema = createInsertSchema(userActivities).omit({ id: true });
+export const insertCaseCommentSchema = createInsertSchema(caseComments).omit({ id: true });
+export const insertCaseAssignmentSchema = createInsertSchema(caseAssignments).omit({ id: true });
+export const insertWalletWatchlistSchema = createInsertSchema(walletWatchlist).omit({ id: true });
+
+// Define types for new tables
+export type UserActivity = typeof userActivities.$inferSelect;
+export type CaseComment = typeof caseComments.$inferSelect;
+export type CaseAssignment = typeof caseAssignments.$inferSelect;
+export type WalletWatchlist = typeof walletWatchlist.$inferSelect;
