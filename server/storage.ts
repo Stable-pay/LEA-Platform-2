@@ -615,13 +615,14 @@ export const storage = {
   // Wallet operations
   async getWallets(limit = 20, offset = 0) {
     try {
-      return await db.select().from(schema.wallets)
+      const result = await db.select().from(schema.wallets)
         .orderBy(desc(schema.wallets.riskScore))
         .limit(limit)
         .offset(offset);
+      return result || [];
     } catch (error) {
       console.error('Failed to fetch wallets:', error);
-      throw new Error('Failed to fetch wallets');
+      return []; // Return empty array instead of throwing
     }
   },
 
