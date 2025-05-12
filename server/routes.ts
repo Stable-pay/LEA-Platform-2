@@ -1,4 +1,3 @@
-
 import { caseResponses } from '../shared/schema';
 
 import type { Express, Request, Response, NextFunction } from "express";
@@ -568,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/wallet-checks", async (_req, res) => {
     try {
       const wallets = await storage.getWallets();
-      
+
       // Provide sample data if no wallets exist
       if (!wallets || wallets.length === 0) {
         return res.json([{
@@ -672,6 +671,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     } catch (error) {
       res.status(500).json({ message: "Failed to verify on blockchain", error });
+    }
+  });
+
+  // Email Routes
+  app.post("/api/emails/send", isAuthenticated, async (req, res) => {
+    try {
+      const { to, subject, body, caseId, department } = req.body;
+
+      // Store email in database
+      const email = await storage.createEmail({
+        to,
+        subject,
+        body,
+        caseId,
+        senderDepartment: department,
+        status: 'sent',
+        timestamp: new Date()
+      });
+
+      // Add timeline event if case related
+      if (caseId) {
+        await storage.createCaseTimelineEvent({
+          caseId,
+          title: "Email Sent",
+          description: `Email sent to ${to}: ${subject}`,
+          status: "info",
+          createdBy: department
+        });
+      }
+
+      res.status(201).json(email);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to send email", error });
+    }
+  });
+
+  app.post("/api/emails/draft", isAuthenticated, async (req, res) => {
+    try {
+      const { to, subject, body, caseId, department } = req.body;
+
+      const draft = await storage.createEmail({
+        to,
+        subject,
+        body,
+        caseId,
+        senderDepartment: department,
+        status: 'draft',
+        timestamp: new Date()
+      });
+
+      res.status(201).json(draft);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to save draft", error });
     }
   });
 
