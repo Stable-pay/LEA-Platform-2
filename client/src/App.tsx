@@ -1,3 +1,4 @@
+
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Route, Switch } from 'wouter';
 import { queryClient } from '@/lib/queryClient';
@@ -26,18 +27,36 @@ export default function App() {
         <TooltipProvider>
           <AppShell>
             <Switch>
-              <Route path="/" component={DepartmentLogin} />
-              <Route path="/dashboard" component={Dashboard} />
               <Route path="/login" component={DepartmentLogin} />
-              <Route path="/case-management" component={CaseManagement} />
-              <Route path="/case-filing" component={CaseFiling} />
-              <Route path="/analytics" component={Analytics} />
-              <Route path="/wallet-check" component={WalletCheck} />
-              <Route path="/pattern-scan" component={PatternScan} />
-              <Route path="/str-generator" component={StrGenerator} />
-              <Route path="/scam-heatmap" component={ScamHeatmap} />
-              <Route path="/network-graph" component={NetworkGraph} />
+              <Route path="/dashboard">
+                {() => <ProtectedRoute><Dashboard /></ProtectedRoute>}
+              </Route>
+              <Route path="/case-management">
+                {() => <ProtectedRoute><CaseManagement /></ProtectedRoute>}
+              </Route>
+              <Route path="/case-filing">
+                {() => <ProtectedRoute><CaseFiling /></ProtectedRoute>}
+              </Route>
+              <Route path="/analytics">
+                {() => <ProtectedRoute><Analytics /></ProtectedRoute>}
+              </Route>
+              <Route path="/wallet-check">
+                {() => <ProtectedRoute><WalletCheck /></ProtectedRoute>}
+              </Route>
+              <Route path="/pattern-scan">
+                {() => <ProtectedRoute><PatternScan /></ProtectedRoute>}
+              </Route>
+              <Route path="/str-generator">
+                {() => <ProtectedRoute><StrGenerator /></ProtectedRoute>}
+              </Route>
+              <Route path="/scam-heatmap">
+                {() => <ProtectedRoute><ScamHeatmap /></ProtectedRoute>}
+              </Route>
+              <Route path="/network-graph">
+                {() => <ProtectedRoute><NetworkGraph /></ProtectedRoute>}
+              </Route>
               <Route path="/auth" component={AuthPage} />
+              <Route path="/" component={DepartmentLogin} />
               <Route component={NotFound} />
             </Switch>
           </AppShell>

@@ -1,35 +1,28 @@
-
-import { useState, useEffect } from "react";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
-} from "@/components/ui/card";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatWalletAddress } from "@/lib/utils";
-import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { formatWalletAddress } from "@/lib/utils";
 
-const WalletCheck = () => {
+export default function WalletCheck() {
+  const [selectedTab, setSelectedTab] = useState("analysis");
   const [walletAddress, setWalletAddress] = useState("");
   const [network, setNetwork] = useState("");
   const [transactionVolume, setTransactionVolume] = useState("");
   const [riskLevel, setRiskLevel] = useState("");
   const [analysisNotes, setAnalysisNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentWallets, setRecentWallets] = useState<any[]>([]);
-  const [selectedTab, setSelectedTab] = useState("analysis");
-  const [transactionHistory, setTransactionHistory] = useState<any[]>([]);
-  const [connectedWallets, setConnectedWallets] = useState<any[]>([]);
   const [riskIndicators, setRiskIndicators] = useState<string[]>([]);
   const { toast } = useToast();
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [recentWallets, setRecentWallets] = useState<any[]>([]);
+  const [transactionHistory, setTransactionHistory] = useState<any[]>([]);
+  const [connectedWallets, setConnectedWallets] = useState<any[]>([]);
   const RISK_INDICATORS = [
     "Mixer Usage",
     "High Velocity Trading",
@@ -85,7 +78,8 @@ const WalletCheck = () => {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!walletAddress || !network || !riskLevel) {
       toast({
         title: "Error",
@@ -100,7 +94,7 @@ const WalletCheck = () => {
       const response = await fetch('/api/wallet-checks', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           address: walletAddress,
@@ -175,7 +169,6 @@ const WalletCheck = () => {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-500">{walletStats.riskScore}</div>
-            <Progress value={walletStats.riskScore} className="mt-2" />
           </CardContent>
         </Card>
         
@@ -220,7 +213,7 @@ const WalletCheck = () => {
               </TabsList>
 
               <TabsContent value="analysis">
-                <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-4" onSubmit={handleSubmit}>
                   <div>
                     <label className="text-sm font-medium leading-none mb-2 block">
                       Wallet Address*
@@ -229,6 +222,7 @@ const WalletCheck = () => {
                       placeholder="Enter wallet address" 
                       value={walletAddress}
                       onChange={(e) => setWalletAddress(e.target.value)}
+                      required
                     />
                   </div>
 
@@ -245,7 +239,6 @@ const WalletCheck = () => {
                         <SelectItem value="bitcoin">Bitcoin</SelectItem>
                         <SelectItem value="binance">Binance Smart Chain</SelectItem>
                         <SelectItem value="polygon">Polygon</SelectItem>
-                        <SelectItem value="solana">Solana</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -318,8 +311,7 @@ const WalletCheck = () => {
 
                   <div className="flex gap-2">
                     <Button 
-                      type="button"
-                      onClick={handleSubmit}
+                      type="submit"
                       disabled={isSubmitting}
                       className="flex-1"
                     >
@@ -419,6 +411,4 @@ const WalletCheck = () => {
       </div>
     </div>
   );
-};
-
-export default WalletCheck;
+}

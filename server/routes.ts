@@ -550,7 +550,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Wallet checks API endpoint
+  // Wallet checks API endpoints
+  app.post("/api/wallet-checks", async (req, res) => {
+    try {
+      const wallet = await storage.createWallet({
+        ...req.body,
+        lastChecked: new Date(),
+        watchlistStatus: 'active'
+      });
+      res.status(201).json(wallet);
+    } catch (error) {
+      console.error('Error creating wallet check:', error);
+      res.status(500).json({ message: "Failed to create wallet check" });
+    }
+  });
+
   app.get("/api/wallet-checks", async (_req, res) => {
     try {
       const wallets = await storage.getWallets();
