@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
+import { Loader2, Wand2 } from 'lucide-react';
 
 interface EmailFormData {
   to: string;
@@ -17,8 +18,52 @@ interface EmailFormData {
 
 export const EmailComposer = ({ caseId, department }: { caseId?: string, department: string }) => {
   const [isDraft, setIsDraft] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
-  const { register, handleSubmit, reset } = useForm<EmailFormData>();
+  const { register, handleSubmit, reset, setValue, watch } = useForm<EmailFormData>();
+
+  const generateEmailContent = async () => {
+    const subject = watch('subject');
+    if (!subject) {
+      toast({
+        title: "Subject Required",
+        description: "Please enter a subject to generate content",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/generate-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subject,
+          caseId,
+          department,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to generate email');
+      
+      const { content } = await response.json();
+      setValue('body', content);
+      
+      toast({
+        title: "Email Generated",
+        description: "AI has generated email content based on your subject",
+      });
+    } catch (error) {
+      toast({
+        title: "Generation Failed",
+        description: "Failed to generate email content",
+        variant: "destructive",
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   const sendEmail = useMutation({
     mutationFn: async (data: EmailFormData) => {
@@ -73,7 +118,23 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
               required
             />
           </div>
-          <div>
+          <div className="space-y-2">
+            <div className="flex justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={generateEmailContent}
+                disabled={isGenerating}
+              >
+                {isGenerating ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Wand2 className="h-4 w-4 mr-2" />
+                )}
+                Generate with AI
+              </Button>
+            </div>
             <Textarea
               {...register('body')}
               placeholder="Email body"

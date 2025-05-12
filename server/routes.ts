@@ -647,6 +647,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // This would be done by the blockchain network in a real implementation
           const updatedTransaction = {
             ...transaction,
+
+  // AI Email Generation endpoint
+  app.post("/api/generate-email", isAuthenticated, async (req, res) => {
+    try {
+      const { subject, caseId, department } = req.body;
+      
+      let prompt = `Write a professional email with the subject: "${subject}". `;
+      
+      if (caseId) {
+        const caseDetails = await storage.getCaseByReferenceId(caseId);
+        if (caseDetails) {
+          prompt += `This email is regarding case ${caseId} about ${caseDetails.title}. `;
+        }
+      }
+      
+      prompt += `Write from the perspective of ${department} department. Keep it concise and professional.`;
+
+      // You can integrate with your preferred AI service here
+      // For now, returning a template response
+      const content = `Dear Sir/Madam,
+
+I am writing regarding ${subject}.
+
+Based on our department's review, we would like to inform you about the current status and next steps.
+
+Please let us know if you need any additional information.
+
+Best regards,
+${department} Department`;
+
+      res.json({ content });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to generate email content", error });
+    }
+  });
+
+
             status: "confirmed",
             signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
           };
