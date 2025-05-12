@@ -16,7 +16,12 @@ interface EmailFormData {
   caseId?: string;
 }
 
-export const EmailComposer = ({ caseId, department }: { caseId?: string, department: string }) => {
+interface EmailComposerProps {
+  caseId?: string;
+  department: string;
+}
+
+export function EmailComposer({ caseId, department }: EmailComposerProps) {
   const [isDraft, setIsDraft] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -180,4 +185,4 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
       </CardContent>
     </Card>
   );
-};
+}
