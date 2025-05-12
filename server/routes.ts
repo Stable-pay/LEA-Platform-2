@@ -652,9 +652,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/generate-email", isAuthenticated, async (req, res) => {
     try {
       const { subject, caseId, department } = req.body;
-      
+
       let prompt = `Write a professional email for law enforcement communication with the subject: "${subject}". `;
-      
+
       const departmentContext = {
         'ED': 'Focus on financial investigation aspects and regulatory compliance.',
         'FIU': 'Emphasize suspicious transaction patterns and financial intelligence.',
@@ -670,7 +670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           prompt += `This email is regarding case ${caseId} (${caseDetails.title}). Include relevant case details and next steps. `;
         }
       }
-      
+
       prompt += `Write from the perspective of ${department} department. ${departmentContext[department] || ''} Keep it formal, precise, and action-oriented.`;
 
       // You can integrate with your preferred AI service here
