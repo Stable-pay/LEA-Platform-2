@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
-import { EmailComposer } from '@/components/EmailComposer';
+import EmailComposer from '@/components/EmailComposer';
 import { BlockchainNode } from '@/components/BlockchainNode';
 
 interface Case {

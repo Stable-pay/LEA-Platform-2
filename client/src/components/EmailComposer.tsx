@@ -16,12 +16,16 @@ interface EmailFormData {
   caseId?: string;
 }
 
+import { useState } from 'react';
+import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+
 interface EmailComposerProps {
   caseId?: string;
   department: string;
 }
 
-export function EmailComposer({ caseId, department }: EmailComposerProps) {
+export default function EmailComposer({ caseId, department }: EmailComposerProps) {
   const [isDraft, setIsDraft] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
