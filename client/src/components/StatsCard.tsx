@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { ArrowUp, ArrowDown } from "lucide-react";
 import { useState } from 'react';
-import { useNavigate } from 'wouter';
+import { useLocation } from 'wouter';
 import { motion } from 'framer-motion';
 
 interface StatsCardProps {
@@ -25,7 +25,7 @@ const StatsCard = ({
   className,
   route = "/"
 }: StatsCardProps) => {
-  const [navigate, setLocation] = useNavigate();
+  const [, setLocation] = useLocation();
   const [isHovered, setIsHovered] = useState(false);
 
   const handleCardClick = (route: string) => {
