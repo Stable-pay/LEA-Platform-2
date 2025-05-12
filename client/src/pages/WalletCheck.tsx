@@ -119,12 +119,27 @@ const WalletCheck = () => {
           title: "Success",
           description: "Wallet check submitted successfully",
         });
-        fetchRecentWallets();
-        fetchWalletDetails();
+        // Reset form
+        setWalletAddress("");
+        setNetwork("");
+        setTransactionVolume("");
+        setRiskLevel("");
+        setAnalysisNotes("");
+        setRiskIndicators([]);
+        
+        // Refresh data
+        await Promise.all([
+          fetchRecentWallets(),
+          fetchWalletDetails()
+        ]);
+        
+        // Reset selected tab
+        setSelectedTab("analysis");
       } else {
         throw new Error('Failed to submit wallet check');
       }
     } catch (error) {
+      console.error('Submit error:', error);
       toast({
         title: "Error",
         description: "Failed to submit wallet check",
