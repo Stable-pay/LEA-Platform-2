@@ -1,102 +1,90 @@
 
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { FileUploader } from "@/components/ui/file-uploader";
-
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Loader2, ArrowRight } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Button } from "@/components/ui/button";
+import { FileUploader } from "@/components/ui/file-uploader";
 
 const strFormSchema = z.object({
+  strId: z.string().optional(),
   caseReference: z.string().min(1, "Case reference is required"),
   reportType: z.string().min(1, "Report type is required"),
+  primaryWallet: z.string().min(1, "Primary wallet address is required"),
   description: z.string().min(10, "Description must be at least 10 characters"),
-  amount: z.coerce.number().min(0, "Amount must be a positive number"),
-  riskLevel: z.string().min(1, "Risk level is required"),
-  patternId: z.string().min(1, "Pattern selection is required"),
-  primaryWallet: z.string().min(1, "Primary wallet is required"),
+  transactionDate: z.string().min(1, "Transaction date is required"),
+  amount: z.string().min(1, "Amount is required"),
   includeBlockchain: z.boolean().default(true),
   includeKyc: z.boolean().default(true),
   includePattern: z.boolean().default(true),
   includeExchange: z.boolean().default(true),
-  vaspProvider: z.string().min(1, "VASP selection is required")
+  status: z.string().default("draft"),
 });
 
-const StrFilingForm = () => {
-  const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = useState(false);
+const reportTypes = [
+  "Crypto Scam",
+  "Money Laundering",
+  "Exchange Fraud",
+  "Unauthorized Access",
+  "Market Manipulation",
+  "Ransomware Payment",
+  "Terrorist Financing",
+  "Other",
+];
+
+export default function StrFilingForm() {
   const [files, setFiles] = useState<File[]>([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { toast } = useToast();
 
-  // Fetch patterns with proper error and loading handling
-  const { data: patterns = [], isLoading: patternsLoading } = useQuery({
-    queryKey: ['patterns'],
-    queryFn: async () => {
-      const res = await fetch('/api/patterns');
-      if (!res.ok) {
-        throw new Error('Failed to fetch patterns');
-      }
-      const data = await res.json();
-      return Array.isArray(data) ? data.map(p => ({
-        ...p,
-        riskLevel: p.riskLevel.toLowerCase()
-      })) : [];
-    }
-  });
-
-  // Fetch cases for search
-  const { data: cases } = useQuery({
-    queryKey: ['cases'],
-    queryFn: () => fetch('/api/cases').then(res => res.json())
-  });
-
-  const form = useForm({
+  const form = useForm<z.infer<typeof strFormSchema>>({
     resolver: zodResolver(strFormSchema),
     defaultValues: {
-      caseReference: "",
-      reportType: "initial",
-      description: "",
-      amount: 0,
-      riskLevel: "medium",
-      patternId: "",
-      primaryWallet: "",
       includeBlockchain: true,
       includeKyc: true,
       includePattern: true,
       includeExchange: true,
-      vaspProvider: ""
+      status: "draft",
     },
   });
 
-  const handleFilesSelected = (selectedFiles: File[]) => {
-    setFiles(selectedFiles);
-  };
-
   const createStrMutation = useMutation({
     mutationFn: async (values: z.infer<typeof strFormSchema>) => {
-      const formData = new FormData();
-      files.forEach(file => formData.append('files', file));
-      Object.entries(values).forEach(([key, value]) => {
-        formData.append(key, value.toString());
-      });
-
       const response = await fetch('/api/str-reports', {
         method: 'POST',
-        body: formData
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+        credentials: 'include'
       });
 
       if (!response.ok) {
@@ -109,7 +97,7 @@ const StrFilingForm = () => {
       setIsSubmitting(false);
       toast({
         title: "STR Report Created",
-        description: "The report has been submitted successfully",
+        description: "The report has been saved successfully",
         variant: "success",
       });
       form.reset();
@@ -134,136 +122,107 @@ const StrFilingForm = () => {
     <Card className="w-full shadow-md">
       <CardHeader>
         <CardTitle>File New STR Report</CardTitle>
-        <CardDescription>Submit a new Suspicious Transaction Report</CardDescription>
+        <CardDescription>Submit a new Suspicious Transaction Report with blockchain evidence</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="caseReference"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Case Reference</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <FormField
+                control={form.control}
+                name="caseReference"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Case Reference</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select case" />
-                      </SelectTrigger>
+                      <Input placeholder="Enter case reference ID" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      {cases?.map((c: any) => (
-                        <SelectItem key={c.caseId} value={c.caseId}>
-                          {c.caseId} - {c.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="patternId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Suspicious Pattern</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select pattern" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="max-h-[300px] overflow-y-auto">
-                      {patternsLoading ? (
-                        <SelectItem value="loading">Loading patterns...</SelectItem>
-                      ) : patterns?.length > 0 ? (
-                        patterns.map((p: any) => (
-                          <SelectItem 
-                            key={p.patternId} 
-                            value={p.patternId}
-                            className="flex items-center gap-2"
-                          >
-                            <span className="flex-1 truncate">{p.pattern}</span>
-                            <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${
-                              p.riskLevel.toLowerCase() === 'high' ? 'bg-red-100 text-red-700' :
-                              p.riskLevel.toLowerCase() === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-blue-100 text-blue-700'
-                            }`}>
-                              {p.riskLevel}
-                            </span>
+              <FormField
+                control={form.control}
+                name="reportType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Report Type</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select report type" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {reportTypes.map((type) => (
+                          <SelectItem key={type} value={type}>
+                            {type}
                           </SelectItem>
-                        ))
-                      ) : (
-                        <SelectItem value="no-patterns">No patterns available</SelectItem>
-                      )}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="riskLevel"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Risk Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="primaryWallet"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Primary Wallet Address</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select risk level" />
-                      </SelectTrigger>
+                      <Input placeholder="Enter wallet address" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="critical">Critical</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormDescription>
+                      The main wallet address involved in suspicious activity
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="vaspProvider"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>VASP Provider</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+              <FormField
+                control={form.control}
+                name="amount"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transaction Amount (INR)</FormLabel>
                     <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select VASP" />
-                      </SelectTrigger>
+                      <Input type="number" placeholder="Enter amount" {...field} />
                     </FormControl>
-                    <SelectContent>
-                      <SelectItem value="binance">Binance</SelectItem>
-                      <SelectItem value="wazirx">WazirX</SelectItem>
-                      <SelectItem value="zebpay">ZebPay</SelectItem>
-                      <SelectItem value="coindcx">CoinDCX</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="transactionDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Transaction Date</FormLabel>
+                    <FormControl>
+                      <Input type="datetime-local" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel>Detailed Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Describe the suspicious activity"
-                      className="min-h-[100px]"
+                    <Textarea 
+                      placeholder="Provide detailed description of suspicious activity"
+                      className="min-h-[150px]"
                       {...field}
                     />
                   </FormControl>
@@ -272,56 +231,85 @@ const StrFilingForm = () => {
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Transaction Amount (INR)</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      placeholder="Enter amount"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <FormField
+                control={form.control}
+                name="includeBlockchain"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox 
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Include Blockchain Data</FormLabel>
+                  </FormItem>
+                )}
+              />
 
-            <div className="space-y-2">
-              <FormLabel>Supporting Documents</FormLabel>
-              <FileUploader
-                onFilesSelected={handleFilesSelected}
-                maxFiles={5}
-                accept=".pdf,.doc,.docx,.jpg,.png"
+              <FormField
+                control={form.control}
+                name="includeKyc"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox 
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Include KYC Info</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="includePattern"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox 
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Include Pattern Analysis</FormLabel>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="includeExchange"
+                render={({ field }) => (
+                  <FormItem className="flex items-center space-x-2">
+                    <FormControl>
+                      <Checkbox 
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormLabel className="!mt-0">Include Exchange Data</FormLabel>
+                  </FormItem>
+                )}
               />
             </div>
 
-            <div className="flex justify-end space-x-2 mt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.reset();
-                  setFiles([]);
-                }}
-                disabled={isSubmitting}
-              >
+            <FileUploader
+              value={files}
+              onChange={setFiles}
+              maxFiles={5}
+              maxSize={5242880}
+            />
+
+            <div className="flex justify-end space-x-4">
+              <Button variant="outline" type="button" onClick={() => form.reset()}>
                 Reset
               </Button>
               <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Submitting...
-                  </>
-                ) : (
-                  <>
-                    Submit Report <ArrowRight className="ml-2 h-4 w-4" />
-                  </>
-                )}
+                {isSubmitting ? "Submitting..." : "Submit Report"}
               </Button>
             </div>
           </form>
@@ -329,6 +317,4 @@ const StrFilingForm = () => {
       </CardContent>
     </Card>
   );
-};
-
-export default StrFilingForm;
+}
