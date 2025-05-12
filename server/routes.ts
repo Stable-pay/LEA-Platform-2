@@ -653,16 +653,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { subject, caseId, department } = req.body;
       
-      let prompt = `Write a professional email with the subject: "${subject}". `;
+      let prompt = `Write a professional email for law enforcement communication with the subject: "${subject}". `;
       
+      const departmentContext = {
+        'ED': 'Focus on financial investigation aspects and regulatory compliance.',
+        'FIU': 'Emphasize suspicious transaction patterns and financial intelligence.',
+        'I4C': 'Address cybercrime investigation and digital forensics aspects.',
+        'IT': 'Focus on technical infrastructure and system security.',
+        'VASP': 'Cover virtual asset service provider compliance and monitoring.',
+        'BANK': 'Address banking transaction monitoring and compliance.'
+      };
+
       if (caseId) {
         const caseDetails = await storage.getCaseByReferenceId(caseId);
         if (caseDetails) {
-          prompt += `This email is regarding case ${caseId} about ${caseDetails.title}. `;
+          prompt += `This email is regarding case ${caseId} (${caseDetails.title}). Include relevant case details and next steps. `;
         }
       }
       
-      prompt += `Write from the perspective of ${department} department. Keep it concise and professional.`;
+      prompt += `Write from the perspective of ${department} department. ${departmentContext[department] || ''} Keep it formal, precise, and action-oriented.`;
 
       // You can integrate with your preferred AI service here
       // For now, returning a template response
