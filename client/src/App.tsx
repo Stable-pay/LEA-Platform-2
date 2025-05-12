@@ -1,4 +1,3 @@
-
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Route, Switch } from 'wouter';
 import { queryClient } from '@/lib/queryClient';
@@ -12,7 +11,7 @@ import ScamHeatmap from '@/pages/ScamHeatmap';
 import StrGenerator from '@/pages/StrGenerator';
 import WalletCheck from '@/pages/WalletCheck';
 import AppShell from '@/components/AppShell';
-import { ProtectedRoute } from '@/lib/protected-route';
+import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
 import CaseFiling from "@/pages/case-filing";
 import AuthPage from "@/pages/auth-page";
