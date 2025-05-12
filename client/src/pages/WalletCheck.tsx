@@ -150,8 +150,55 @@ const WalletCheck = () => {
     }
   };
 
+  const [walletStats, setWalletStats] = useState({
+    riskScore: 0,
+    transactionCount: 0,
+    connectedAddresses: 0,
+    lastActivity: null,
+    exchangeInteractions: [],
+    mixerExposure: 0
+  });
+
+  const analyzeMixerExposure = async (address: string) => {
+    // Implementation for mixer exposure analysis
+    const response = await fetch(`/api/wallet-analysis/mixer-exposure/${address}`);
+    const data = await response.json();
+    return data.exposureScore;
+  };
+
   return (
     <div className="container mx-auto py-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Risk Score</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-red-500">{walletStats.riskScore}</div>
+            <Progress value={walletStats.riskScore} className="mt-2" />
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Transaction Volume</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold">{walletStats.transactionCount}</div>
+            <p className="text-sm text-gray-500">Last 30 days</p>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader>
+            <CardTitle>Mixer Exposure</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-3xl font-bold text-amber-500">{walletStats.mixerExposure}%</div>
+            <p className="text-sm text-gray-500">Interaction with mixing services</p>
+          </CardContent>
+        </Card>
+      </div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Wallet Risk Assessment</h1>
         <p className="text-muted-foreground">

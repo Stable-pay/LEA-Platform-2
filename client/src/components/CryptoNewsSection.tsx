@@ -1,56 +1,94 @@
 
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
-import { ScrollArea } from "./ui/scroll-area";
-import { format } from "date-fns";
+import { useState, useEffect } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 
-export function CryptoNewsSection() {
-  const { data: news = [] } = useQuery({
-    queryKey: ['crypto-news'],
-    queryFn: async () => {
-      const res = await fetch('/api/crypto-news');
-      if (!res.ok) throw new Error('Failed to fetch news');
-      return res.json();
-    },
-  });
+interface NewsItem {
+  id: string;
+  title: string;
+  category: string;
+  source: string;
+  summary: string;
+  relevantFor: string[];
+  date: Date;
+  priority?: 'high' | 'medium' | 'low';
+  relatedCases?: string[];
+}
+
+export const CryptoNewsSection = () => {
+  const [news, setNews] = useState<NewsItem[]>([]);
+  const [selectedDepartment, setSelectedDepartment] = useState('all');
+
+  useEffect(() => {
+    fetch('/api/crypto-news')
+      .then(res => res.json())
+      .then(data => setNews(data));
+  }, []);
+
+  const filterNewsByDepartment = (items: NewsItem[]) => {
+    if (selectedDepartment === 'all') return items;
+    return items.filter(item => item.relevantFor.includes(selectedDepartment));
+  };
+
+  const getPriorityColor = (priority?: string) => {
+    switch (priority) {
+      case 'high': return 'bg-red-500';
+      case 'medium': return 'bg-yellow-500';
+      case 'low': return 'bg-green-500';
+      default: return 'bg-blue-500';
+    }
+  };
 
   return (
-    <Card>
+    <Card className="shadow-lg">
       <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <span>Crypto Regulatory News & Updates</span>
-          <Badge variant="outline">Live Feed</Badge>
+        <CardTitle className="flex justify-between items-center">
+          <span>Crypto Intelligence Feed</span>
+          <Badge>Live Updates</Badge>
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="space-y-4">
-            {news.map((item: any) => (
-              <Card key={item.id} className="p-4 hover:bg-muted/50 transition-colors">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-sm">{item.title}</h3>
-                  <Badge variant="secondary" className="text-xs">
-                    {item.category}
-                  </Badge>
-                </div>
-                <p className="text-sm text-muted-foreground mb-2">{item.summary}</p>
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
-                  <span>Source: {item.source}</span>
-                  <span>{format(new Date(item.date), 'MMM d, yyyy')}</span>
-                </div>
-                <div className="flex gap-2 mt-2">
-                  {item.relevantFor.map((dept: string) => (
-                    <Badge key={dept} variant="outline" className="text-xs">
-                      {dept}
-                    </Badge>
+        <Tabs defaultValue="all" className="w-full">
+          <TabsList className="grid grid-cols-4 gap-4 mb-4">
+            <TabsTrigger value="all">All News</TabsTrigger>
+            <TabsTrigger value="regulation">Regulation</TabsTrigger>
+            <TabsTrigger value="enforcement">Enforcement</TabsTrigger>
+            <TabsTrigger value="technology">Technology</TabsTrigger>
+          </TabsList>
+
+          {['all', 'regulation', 'enforcement', 'technology'].map(category => (
+            <TabsContent key={category} value={category}>
+              <div className="space-y-4">
+                {filterNewsByDepartment(news)
+                  .filter(item => category === 'all' || item.category.toLowerCase() === category)
+                  .map(item => (
+                    <Card key={item.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="font-semibold">{item.title}</h3>
+                        <Badge className={getPriorityColor(item.priority)}>
+                          {item.priority || 'info'}
+                        </Badge>
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{item.summary}</p>
+                      <div className="flex justify-between items-center text-xs text-gray-500">
+                        <span>{new Date(item.date).toLocaleDateString()}</span>
+                        <span>{item.source}</span>
+                      </div>
+                      <div className="mt-2 flex gap-2">
+                        {item.relevantFor.map(dept => (
+                          <Badge key={dept} variant="outline">{dept}</Badge>
+                        ))}
+                      </div>
+                    </Card>
                   ))}
-                </div>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+              </div>
+            </TabsContent>
+          ))}
+        </Tabs>
       </CardContent>
     </Card>
   );
-}
+};
+
+export default CryptoNewsSection;

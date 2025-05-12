@@ -51,6 +51,62 @@ export const CRYPTO_NEWS_FEED = [
   }
 ];
 
+export const DEPARTMENT_DETAILS = {
+  ED: {
+    name: "Enforcement Directorate",
+    role: "Financial Crime Investigation",
+    accessLevel: "high",
+    capabilities: ["Asset Seizure", "FEMA Violations", "Money Laundering Investigation"]
+  },
+  FIU: {
+    name: "Financial Intelligence Unit",
+    role: "Financial Intelligence",
+    accessLevel: "high",
+    capabilities: ["STR Analysis", "Pattern Detection", "Cross-Border Transactions"]
+  },
+  I4C: {
+    name: "Indian Cybercrime Coordination Centre",
+    role: "Cybercrime Coordination",
+    accessLevel: "high",
+    capabilities: ["Malware Analysis", "Digital Forensics", "Cyber Intelligence"]
+  },
+  IT: {
+    name: "Income Tax Department",
+    role: "Tax Evasion Investigation",
+    accessLevel: "medium",
+    capabilities: ["Tax Fraud Detection", "Asset Verification", "Financial Audits"]
+  },
+  VASP: {
+    name: "Virtual Asset Service Provider",
+    role: "Crypto Exchange Compliance",
+    accessLevel: "medium",
+    capabilities: ["KYC/AML Compliance", "Transaction Monitoring", "Regulatory Reporting"]
+  },
+  BANK: {
+    name: "Banking Institution",
+    role: "Financial Institution",
+    accessLevel: "medium",
+    capabilities: ["Suspicious Activity Reporting", "Account Monitoring", "Fraud Prevention"]
+  }
+};
+
+export const BLOCKCHAIN_PATTERNS = [
+  {
+    id: "BP-001",
+    name: "Tumblers and Mixers",
+    description: "Use of cryptocurrency mixing services to obscure transaction trails",
+    riskLevel: "critical",
+    indicators: ["Multiple input-output ratios", "Known mixer addresses", "Time-delayed outputs"]
+  },
+  {
+    id: "BP-002",
+    name: "Cross-Chain Movement",
+    description: "Assets moving across multiple blockchains to evade tracking",
+    riskLevel: "high",
+    indicators: ["Bridge usage", "Chain-hopping", "Privacy coin conversion"]
+  }
+];
+
 export const DEPARTMENT_CASE_EXAMPLES = [
   {
     department: "ED",
