@@ -647,9 +647,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // This would be done by the blockchain network in a real implementation
           const updatedTransaction = {
             ...transaction,
+            status: "confirmed",
+            signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
+          };
 
-  // AI Email Generation endpoint
-  app.post("/api/generate-email", isAuthenticated, async (req, res) => {
+          // AI Email Generation endpoint
+          app.post("/api/generate-email", isAuthenticated, async (req, res) => {
     try {
       const { subject, caseId, department } = req.body;
 
