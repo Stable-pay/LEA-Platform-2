@@ -612,7 +612,20 @@ import type {
 } from '@shared/schema';
 
 export const storage = {
-  // Case operations
+  // Wallet operations
+  async getWallets(limit = 20, offset = 0) {
+    try {
+      return await db.select().from(schema.wallets)
+        .orderBy(desc(schema.wallets.riskScore))
+        .limit(limit)
+        .offset(offset);
+    } catch (error) {
+      console.error('Failed to fetch wallets:', error);
+      throw new Error('Failed to fetch wallets');
+    }
+  },
+
+  // Case operations  
   async createCase(data: InsertCase) {
     try {
       const result = await db.insert(schema.cases).values(data).returning();
