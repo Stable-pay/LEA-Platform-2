@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Wand2 } from 'lucide-react';
+import { Loader2, Send, Save, Wand2 } from 'lucide-react';
 
 interface EmailFormData {
   to: string;
@@ -97,9 +97,12 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
   };
 
   return (
-    <Card>
+    <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
-        <CardTitle>Compose Email</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          <Send className="h-5 w-5" />
+          Compose Email
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -109,6 +112,7 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
               placeholder="To"
               type="email"
               required
+              className="w-full"
             />
           </div>
           <div>
@@ -116,6 +120,7 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
               {...register('subject')}
               placeholder="Subject"
               required
+              className="w-full"
             />
           </div>
           <div className="space-y-2">
@@ -126,11 +131,12 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
                 size="sm"
                 onClick={generateEmailContent}
                 disabled={isGenerating}
+                className="gap-2"
               >
                 {isGenerating ? (
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (
-                  <Wand2 className="h-4 w-4 mr-2" />
+                  <Wand2 className="h-4 w-4" />
                 )}
                 Generate with AI
               </Button>
@@ -139,10 +145,11 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
               {...register('body')}
               placeholder="Email body"
               required
-              rows={6}
+              rows={8}
+              className="w-full"
             />
           </div>
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-2">
             <Button
               type="button"
               variant="outline"
@@ -150,15 +157,23 @@ export const EmailComposer = ({ caseId, department }: { caseId?: string, departm
                 setIsDraft(true);
                 handleSubmit(onSubmit)();
               }}
+              className="gap-2"
             >
+              <Save className="h-4 w-4" />
               Save Draft
             </Button>
             <Button
               type="submit"
               onClick={() => setIsDraft(false)}
               disabled={sendEmail.isPending}
+              className="gap-2"
             >
-              {sendEmail.isPending ? "Sending..." : "Send Email"}
+              {sendEmail.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Send className="h-4 w-4" />
+              )}
+              Send Email
             </Button>
           </div>
         </form>
