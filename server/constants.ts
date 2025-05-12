@@ -21,6 +21,36 @@ export const SUSPICIOUS_PATTERNS = [
   { patternId: "SP-019", pattern: "Time-Patterned Transactions", riskLevel: "medium", patternType: "Temporal" },
   { patternId: "SP-020", pattern: "Wash Trading or Self-Trading on DEXs", riskLevel: "high", patternType: "Market" }
 ];
+export const CRYPTO_NEWS_FEED = [
+  {
+    id: "NEWS-001",
+    title: "New Crypto Asset Reporting Framework (CARF) Guidelines Released",
+    category: "Regulation",
+    source: "Financial Action Task Force",
+    summary: "Updated guidelines for crypto asset reporting and compliance",
+    relevantFor: ["FIU", "ED", "IT"],
+    date: new Date("2024-01-15")
+  },
+  {
+    id: "NEWS-002",
+    title: "Major Cryptocurrency Mixer Sanctioned",
+    category: "Enforcement",
+    source: "International Task Force",
+    summary: "Global enforcement action against privacy-focused mixing service",
+    relevantFor: ["ED", "I4C", "FIU"],
+    date: new Date("2024-01-20")
+  },
+  {
+    id: "NEWS-003",
+    title: "Cross-Border Crypto Transaction Monitoring Framework",
+    category: "Compliance",
+    source: "Reserve Bank",
+    summary: "New guidelines for monitoring international crypto flows",
+    relevantFor: ["BANK", "VASP", "FIU"],
+    date: new Date("2024-01-25")
+  }
+];
+
 export const DEPARTMENT_CASE_EXAMPLES = [
   {
     department: "ED",
@@ -31,8 +61,110 @@ export const DEPARTMENT_CASE_EXAMPLES = [
         description: "Investigation into large-scale cryptocurrency transactions between domestic and international exchanges",
         status: "active",
         priority: "high",
-        estimatedLoss: 150000000
+        estimatedLoss: 150000000,
+        walletPatterns: ["Multiple jurisdictions", "High velocity", "Mixer usage"],
+        accessLevel: "restricted"
       },
+      {
+        caseId: "ED-2024-002",
+        title: "VASP Compliance Investigation",
+        description: "Audit of cryptocurrency exchange compliance with FEMA regulations",
+        status: "pending",
+        priority: "medium",
+        estimatedLoss: 75000000,
+        walletPatterns: ["Regulatory non-compliance", "KYC violations"],
+        accessLevel: "department_only"
+      },
+      {
+        caseId: "ED-2024-003",
+        title: "International Crypto Fraud Network",
+        description: "Investigation of organized crypto fraud targeting multiple countries",
+        status: "active",
+        priority: "critical",
+        estimatedLoss: 280000000,
+        walletPatterns: ["Network clustering", "Cross-border flows"],
+        accessLevel: "joint_task_force"
+      }
+    ]
+  },
+  {
+    department: "FIU",
+    cases: [
+      {
+        caseId: "FIU-2024-001",
+        title: "P2P Trading Pattern Analysis",
+        description: "Analysis of peer-to-peer crypto trading patterns indicating potential tax evasion",
+        status: "active",
+        priority: "high",
+        estimatedLoss: 95000000,
+        walletPatterns: ["P2P clustering", "Tax evasion indicators"],
+        accessLevel: "shared_with_it"
+      },
+      {
+        caseId: "FIU-2024-002",
+        title: "Dark Market Investigation",
+        description: "Tracking cryptocurrency flows linked to illegal marketplace activities",
+        status: "investigating",
+        priority: "critical",
+        estimatedLoss: 280000000,
+        walletPatterns: ["Dark market exposure", "Privacy coin conversion"],
+        accessLevel: "multi_agency"
+      },
+      {
+        caseId: "FIU-2024-003",
+        title: "Suspicious Exchange Patterns",
+        description: "Analysis of unusual trading patterns across multiple exchanges",
+        status: "active",
+        priority: "medium",
+        estimatedLoss: 120000000,
+        walletPatterns: ["Exchange hopping", "Wash trading"],
+        accessLevel: "restricted"
+      }
+    ]
+  },
+  {
+    department: "I4C",
+    cases: [
+      {
+        caseId: "I4C-2024-001",
+        title: "Crypto Mining Malware",
+        description: "Investigation into widespread cryptojacking malware affecting government systems",
+        status: "active",
+        priority: "critical",
+        estimatedLoss: 120000000,
+        walletPatterns: ["Mining pool connections", "Malware signatures"],
+        accessLevel: "cyber_division"
+      },
+      {
+        caseId: "I4C-2024-002",
+        title: "Ransomware Payment Tracking",
+        description: "Tracking cryptocurrency payments related to ransomware attacks",
+        status: "investigating",
+        priority: "high",
+        estimatedLoss: 180000000,
+        walletPatterns: ["Ransomware wallet clusters", "Conversion patterns"],
+        accessLevel: "restricted"
+      },
+      {
+        caseId: "I4C-2024-003",
+        title: "DeFi Platform Exploit",
+        description: "Investigation of smart contract exploitation in DeFi platforms",
+        status: "active",
+        priority: "high",
+        estimatedLoss: 250000000,
+        walletPatterns: ["Smart contract interaction", "Flash loan patterns"],
+        accessLevel: "defi_taskforce"
+      }
+    ]
+  },
+  {
+    department: "IT",
+    cases: [
+      {
+        caseId: "IT-2024-001",
+        title: "Undisclosed Crypto Assets",
+        description: "Investigation into undeclared cryptocurrency holdings and trading profits",
+        status: "active",
       {
         caseId: "ED-2024-002",
         title: "VASP Compliance Investigation",

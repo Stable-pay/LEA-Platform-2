@@ -538,6 +538,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Crypto news endpoint
+  app.get("/api/crypto-news", async (_req, res) => {
+    try {
+      const news = CRYPTO_NEWS_FEED.sort((a, b) => 
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+      );
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch crypto news" });
+    }
+  });
+
   // Wallet checks API endpoint
   app.get("/api/wallet-checks", async (_req, res) => {
     try {
