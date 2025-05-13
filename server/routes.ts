@@ -643,7 +643,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Simulate consensus process with delay
       setTimeout(async () => {
         try {
-          // Update transaction status to confirmed
           // This would be done by the blockchain network in a real implementation
           const updatedTransaction = {
             ...transaction,
@@ -702,34 +701,6 @@ ${department} Department`;
       res.json({ content });
     } catch (error) {
       res.status(500).json({ message: "Failed to generate email content", error });
-    }
-  });
-
-
-            status: "confirmed",
-            signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
-          };
-
-          // Broadcast to WebSocket clients if connected
-          if (wss) {
-            wss.clients.forEach(client => {
-              if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({
-                  type: "TRANSACTION_CONFIRMED",
-                  data: updatedTransaction
-                }));
-              }
-            });
-          }
-
-          log("Blockchain transaction confirmed", "blockchain");
-        } catch (error) {
-          log(`Error confirming transaction: ${error}`, "blockchain");
-        }
-      }, 3000); // 3 second simulated consensus delay
-
-    } catch (error) {
-      res.status(500).json({ message: "Failed to verify on blockchain", error });
     }
   });
 
