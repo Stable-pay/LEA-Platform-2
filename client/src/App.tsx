@@ -26,7 +26,6 @@ export default function App() {
         <TooltipProvider>
           <AppShell>
             <Switch>
-              <Route path="/login" component={DepartmentLogin} />
               <Route path="/dashboard">
                 {() => <ProtectedRoute><Dashboard /></ProtectedRoute>}
               </Route>
@@ -54,7 +53,6 @@ export default function App() {
               <Route path="/network-graph">
                 {() => <ProtectedRoute><NetworkGraph /></ProtectedRoute>}
               </Route>
-              <Route path="/auth" component={AuthPage} />
               <Route path="/" component={DepartmentLogin} />
               <Route component={NotFound} />
             </Switch>
