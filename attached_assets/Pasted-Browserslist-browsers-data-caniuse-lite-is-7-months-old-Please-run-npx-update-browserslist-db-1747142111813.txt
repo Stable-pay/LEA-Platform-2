@@ -1,0 +1,56 @@
+Browserslist: browsers data (caniuse-lite) is 7 months old. Please run:
+  npx update-browserslist-db@latest
+  Why you should do it regularly: https://github.com/browserslist/update-db#readme
+1:05:13 PM [express] POST /api/auth/login 200 in 4ms :: {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC…
+1:05:18 PM [express] POST /api/auth/login 200 in 1ms :: {"token":"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVC…
+1:05:23 PM [express] GET /api/cases 200 in 747ms :: [{"id":13,"caseId":"LEA-0011","title":"Crypto Po…
+1:05:25 PM [express] GET /api/departments 304 in 1ms :: ["ED","FIU","I4C","IT","VASP","BANK"]
+Failed to fetch wallets: NeonDbError: column "network" does not exist
+    at execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:68:18)
+    at async Object.getWallets (/home/runner/workspace/server/storage.ts:618:22)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:569:23) {
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '25',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn',
+  sourceError: undefined
+}
+1:05:28 PM [express] GET /api/wallet-checks 200 in 731ms :: [{"address":"0x742d35Cc6634C0532925a3b84…
+Failed to fetch wallets: NeonDbError: column "network" does not exist
+    at execute (file:///home/runner/workspace/node_modules/@neondatabase/serverless/index.mjs:1556:55)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async NeonHttpPreparedQuery.execute (/home/runner/workspace/node_modules/src/neon-http/session.ts:68:18)
+    at async Object.getWallets (/home/runner/workspace/server/storage.ts:618:22)
+    at async <anonymous> (/home/runner/workspace/server/routes.ts:569:23) {
+  severity: 'ERROR',
+  code: '42703',
+  detail: undefined,
+  hint: undefined,
+  position: '25',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'parse_relation.c',
+  line: '3722',
+  routine: 'errorMissingColumn',
+  sourceError: undefined
+}
