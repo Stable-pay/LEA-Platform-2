@@ -1,6 +1,6 @@
 
-import { FC, ReactNode } from 'react';
-import { useLocation, useNavigate } from 'wouter';
+import { FC, ReactNode, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 
 interface ProtectedRouteProps {
@@ -11,8 +11,13 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
   const [, navigate] = useLocation();
   const { isAuthenticated } = useAuth();
 
+  useEffect(() => {
+    if (!isAuthenticated) {
+      navigate('/login');
+    }
+  }, [isAuthenticated, navigate]);
+
   if (!isAuthenticated) {
-    navigate('/login');
     return null;
   }
 
