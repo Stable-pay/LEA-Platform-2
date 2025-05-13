@@ -21,13 +21,15 @@ export default function DepartmentLogin() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const { login } = useAuth();
-  const [, setLocation] = useLocation();
+  const [, navigate] = useLocation();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await login(department, { username, password });
-      setLocation('/dashboard');
+      const result = await login(department, { username, password });
+      if (result) {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Login failed:', error);
     }
