@@ -651,8 +651,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
             signatureHash: `sig-${Date.now()}-${Math.floor(Math.random() * 10000)}`
           };
 
-          // AI Email Generation endpoint
-          app.post("/api/generate-email", isAuthenticated, async (req, res) => {
+          await storage.updateBlockchainTransaction(transaction.id, updatedTransaction);
+        } catch (error) {
+          log(`Error confirming transaction: ${error}`, "blockchain");
+        }
+      }, 3000);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to verify on blockchain", error });
+    }
+  });
+
+  // AI Email Generation endpoint
+  app.post("/api/generate-email", isAuthenticated, async (req, res) => {
     try {
       const { subject, caseId, department } = req.body;
 
