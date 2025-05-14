@@ -24,14 +24,49 @@ export const SUSPICIOUS_PATTERNS = [
 export const CRYPTO_NEWS_FEED = [
   {
     id: "NEWS-001",
-    title: "New Crypto Asset Reporting Framework (CARF) Guidelines Released",
-    category: "regulation",
-    source: "Financial Action Task Force",
-    summary: "Updated guidelines for crypto asset reporting and compliance with focus on cross-border transactions",
-    relevantFor: ["FIU", "ED", "IT"],
+    title: "PMLA Amendment for Virtual Assets",
+    category: "FIU",
+    source: "FIU-IND",
+    summary: "New guidelines under PMLA for virtual asset transactions and reporting requirements",
+    relevantFor: ["FIU", "ED", "VASP"],
     date: new Date("2024-01-15"),
     priority: "high",
-    impact: "Mandatory reporting requirements for VASPs effective from Q2 2024"
+    impact: "Mandatory compliance for all VASPs by Q2 2024",
+    lawReference: "PMLA Act, 2002 - Section 12AA"
+  },
+  {
+    id: "NEWS-002",
+    title: "Cross-Border Crypto Investigation Framework",
+    category: "ED",
+    source: "Enforcement Directorate",
+    summary: "New framework for investigating international crypto transactions under FEMA",
+    relevantFor: ["ED", "FIU", "I4C"],
+    date: new Date("2024-01-20"),
+    priority: "high",
+    impact: "Enhanced powers for cross-border asset tracking",
+    lawReference: "FEMA Act, 1999 - Section 37A"
+  },
+  {
+    id: "NEWS-003",
+    title: "Cyber Forensics Protocol Update",
+    category: "I4C",
+    source: "MHA Cyber Division",
+    summary: "Updated protocol for blockchain forensics and crypto wallet analysis",
+    relevantFor: ["I4C", "ED", "FIU"],
+    date: new Date("2024-01-25"),
+    priority: "medium",
+    lawReference: "IT Act, 2000 - Section 69"
+  },
+  {
+    id: "NEWS-004",
+    title: "Tax Treatment of Crypto Assets",
+    category: "IT",
+    source: "CBDT",
+    summary: "Clarification on taxation of different types of crypto transactions",
+    relevantFor: ["IT", "FIU", "VASP"],
+    date: new Date("2024-01-28"),
+    priority: "high",
+    lawReference: "Income Tax Act, 1961 - Section 115BBH"
   },
   {
     id: "NEWS-002",
