@@ -1,0 +1,44 @@
+react-dom.development.js:18704 The above error occurred in the <BlockchainDemo> component:
+
+    at BlockchainDemo (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/BlockchainDemo.tsx:25:29)
+    at div
+    at _c9 (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/ui/card.tsx:114:12)
+    at div
+    at _c (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/ui/card.tsx:20:11)
+    at div
+    at div
+    at div
+    at Dashboard (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/Dashboard.tsx:27:20)
+    at Dashboard
+    at Route (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d5d7bb37:338:16)
+    at Switch (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=d5d7bb37:394:17)
+    at main
+    at div
+    at div
+    at AppShell (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/AppShell.tsx:96:21)
+    at Provider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…unner/workspace/node_modules/.vite/deps/chunk-PLT6GTVM.js?v=d5d7bb37:38:15)
+    at TooltipProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=d5d7bb37:66:5)
+    at AuthProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/hooks/use-auth.tsx:20:32)
+    at QueryClientProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.d…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=d5d7bb37:2881:3)
+    at App (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/App.tsx?v=eRf6oc1Z5e37wjchCRgZK:44:3)
+    at ThemeProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/ThemeProvider.tsx:25:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+react-dom.development.js:18704 The above error occurred in the <App> component:
+
+    at App (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/App.tsx?v=eRf6oc1Z5e37wjchCRgZK:44:3)
+    at ThemeProvider (https://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/src/components/ThemeProvider.tsx:25:3)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+react-dom.development.js:12056 Uncaught SyntaxError: Failed to construct 'WebSocket': The URL 'wss://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000:5000/ws' is invalid.
+    at BlockchainDemo.tsx:22:16
+client:536 WebSocket connection to 'wss://b4205e83-1543-41d2-8d5b-a4c76af59825-00-naxpodzlazki.sisko.replit.dev:3000/?token=80YVotTVNkKx' failed: 
+client:536 Uncaught (in promise) SyntaxError: Failed to construct 'WebSocket': The URL 'wss://localhost:undefined/?token=80YVotTVNkKx' is invalid.
+    at setupWebSocket (client:536:19)
+    at fallback (client:509:16)
+    at WebSocket.<anonymous> (client:555:7)
+setupWebSocket	@	client:536
+fallback	@	client:509
+(anonymous)	@	client:555
