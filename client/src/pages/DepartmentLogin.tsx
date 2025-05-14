@@ -1,6 +1,5 @@
-
 import { useState } from 'react';
-import { useNavigate } from 'wouter';
+import { useNavigate, useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,9 +12,12 @@ const DepartmentLogin = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
   const { login } = useAuth();
   const { toast } = useToast();
+
+  // Use useLocation to create a navigate function
+  const [, setLocation] = useLocation();
+  const navigate = (path: string) => setLocation(path);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
