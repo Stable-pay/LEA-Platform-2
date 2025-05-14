@@ -55,8 +55,7 @@ app.use((req, res, next) => {
   const server = await registerRoutes(app);
 
 // Setup WebSocket
-import { WebSocket, WebSocketServer } from 'ws';
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({ server, path: '/ws' });
 
 wss.on('connection', (ws: WebSocket) => {
   console.log('Client connected to WebSocket');
