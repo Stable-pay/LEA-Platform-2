@@ -1,9 +1,10 @@
 
 import { useEffect, useState } from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { useQuery } from '@tanstack/react-query';
-import { Shield, Link } from 'lucide-react';
+import { Shield, Link, CheckCircle } from 'lucide-react';
+import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
+import { Badge } from './ui/badge';
+import { Progress } from './ui/progress';
 
 interface BlockchainNodeProps {
   caseId: string;
@@ -16,20 +17,23 @@ interface BlockchainNodeProps {
 
 export const BlockchainNode = ({ caseId, timestamp, hash, previousHash, nodeId, status }: BlockchainNodeProps) => {
   const [verificationCount, setVerificationCount] = useState(0);
+  const [verificationProgress, setVerificationProgress] = useState(0);
 
-  const { data: nodeTransactions } = useQuery({
+  const { data: nodeTransactions, isLoading } = useQuery({
     queryKey: ['blockchain-transactions', nodeId],
     queryFn: async () => {
       const res = await fetch(`/api/blockchain/transactions/${nodeId}`);
       if (!res.ok) throw new Error('Failed to fetch transactions');
       return res.json();
-    }
+    },
+    refetchInterval: status === 'pending' ? 3000 : false
   });
 
   useEffect(() => {
     if (nodeTransactions?.length) {
       const verifiedTx = nodeTransactions.filter((tx: any) => tx.status === 'verified');
       setVerificationCount(verifiedTx.length);
+      setVerificationProgress((verifiedTx.length / nodeTransactions.length) * 100);
     }
   }, [nodeTransactions]);
 
@@ -57,16 +61,26 @@ export const BlockchainNode = ({ caseId, timestamp, hash, previousHash, nodeId, 
         <div className="mt-4">
           <h4 className="font-medium mb-2 flex items-center gap-2">
             <Link className="h-4 w-4" />
-            Chain Verification
+            Chain Verification Progress
           </h4>
+          <Progress value={verificationProgress} className="h-2 mb-2" />
           <div className="space-y-2">
-            {nodeTransactions?.map((tx: any) => (
-              <div key={tx.txHash} className="bg-muted p-2 rounded text-xs">
-                <div>TX Hash: {tx.txHash}</div>
-                <div>Action: {tx.action}</div>
-                <div>Status: {tx.status}</div>
-              </div>
-            ))}
+            {isLoading ? (
+              <div className="text-muted-foreground text-center py-2">Loading transactions...</div>
+            ) : (
+              nodeTransactions?.map((tx: any) => (
+                <div key={tx.txHash} className="bg-muted p-2 rounded text-xs">
+                  <div className="flex items-center justify-between">
+                    <div>TX Hash: {tx.txHash}</div>
+                    <Badge variant={tx.status === 'verified' ? 'success' : 'secondary'}>
+                      {tx.status}
+                    </Badge>
+                  </div>
+                  <div>Action: {tx.action}</div>
+                  <div>Timestamp: {new Date(tx.timestamp).toLocaleString()}</div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </CardContent>

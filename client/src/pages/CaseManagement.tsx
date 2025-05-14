@@ -46,9 +46,40 @@ const CaseManagement = () => {
   });
 
   const verifyOnBlockchain = async (caseId: string) => {
-    // Implement your blockchain verification logic here
-    console.log(`Verifying case ${caseId} on blockchain...`);
-    // You might want to call an API endpoint to trigger the verification process
+    try {
+      const response = await fetch('/api/blockchain/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          entityType: 'case',
+          entityId: caseId,
+          action: 'verify',
+          metadata: {
+            verifiedAt: new Date().toISOString(),
+            verifiedBy: user?.username
+          }
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Verification failed');
+      }
+
+      toast({
+        title: "Verification Started",
+        description: "The case is being verified on the blockchain.",
+      });
+
+      queryClient.invalidateQueries(['cases']);
+    } catch (error) {
+      toast({
+        title: "Verification Failed",
+        description: "Failed to initiate blockchain verification.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

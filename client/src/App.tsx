@@ -20,6 +20,26 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import DepartmentLogin from "@/pages/DepartmentLogin";
 
 export default function App() {
+  useEffect(() => {
+    const ws = new WebSocket(`ws://${window.location.hostname}:5000/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      
+      if (data.type === 'BLOCKCHAIN_UPDATE') {
+        queryClient.invalidateQueries(['blockchain-transactions']);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
