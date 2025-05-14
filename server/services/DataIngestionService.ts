@@ -1,35 +1,46 @@
 
-import { WebSocket } from 'ws';
-import { z } from 'zod';
+import WebSocket from 'ws';
+import { DEPARTMENT_DETAILS } from '../constants';
+import { BlockchainTransaction, Transaction, Wallet } from '@/shared/schema';
 
 interface DataSource {
-  type: 'financial' | 'social' | 'osint' | 'darkweb' | 'crypto';
+  type: 'financial' | 'crypto' | 'social' | 'osint' | 'darkweb';
   endpoint: string;
-  credentials?: {
-    apiKey?: string;
-    secret?: string;
-  };
 }
 
 export class DataIngestionService {
   private sources: Map<string, DataSource> = new Map();
   private connections: Map<string, WebSocket> = new Map();
+  private eventHandlers: Map<string, Function[]> = new Map();
 
   constructor() {
     this.initializeDataSources();
+    this.setupEventHandlers();
   }
 
   private initializeDataSources() {
-    // Initialize default data sources
-    this.addDataSource('financial', {
-      type: 'financial',
-      endpoint: process.env.FINANCIAL_DATA_ENDPOINT || ''
+    const sources = {
+      financial: process.env.FINANCIAL_DATA_ENDPOINT,
+      crypto: process.env.CRYPTO_DATA_ENDPOINT,
+      social: process.env.SOCIAL_DATA_ENDPOINT,
+      osint: process.env.OSINT_DATA_ENDPOINT,
+      darkweb: process.env.DARKWEB_DATA_ENDPOINT
+    };
+
+    Object.entries(sources).forEach(([type, endpoint]) => {
+      if (endpoint) {
+        this.addDataSource(type, {
+          type: type as any,
+          endpoint
+        });
+      }
     });
-    
-    this.addDataSource('crypto', {
-      type: 'crypto',
-      endpoint: process.env.CRYPTO_DATA_ENDPOINT || ''
-    });
+  }
+
+  private setupEventHandlers() {
+    this.eventHandlers.set('transaction', []);
+    this.eventHandlers.set('wallet', []);
+    this.eventHandlers.set('pattern', []);
   }
 
   public addDataSource(id: string, source: DataSource) {
@@ -45,6 +56,11 @@ export class DataIngestionService {
         this.processData(id, data);
       });
 
+      ws.on('error', (error) => {
+        console.error(`WebSocket error for source ${id}:`, error);
+        setTimeout(() => this.connectToSource(id, source), 5000);
+      });
+
       this.connections.set(id, ws);
     } catch (error) {
       console.error(`Failed to connect to source ${id}:`, error);
@@ -58,13 +74,21 @@ export class DataIngestionService {
 
       const parsedData = JSON.parse(data);
       
-      // Process based on source type
       switch (source.type) {
         case 'financial':
           await this.processFinancialData(parsedData);
           break;
         case 'crypto':
           await this.processCryptoData(parsedData);
+          break;
+        case 'social':
+          await this.processSocialData(parsedData);
+          break;
+        case 'osint':
+          await this.processOsintData(parsedData);
+          break;
+        case 'darkweb':
+          await this.processDarkwebData(parsedData);
           break;
       }
     } catch (error) {
@@ -73,10 +97,63 @@ export class DataIngestionService {
   }
 
   private async processFinancialData(data: any) {
-    // Implement financial data processing
+    const transaction: Transaction = {
+      txHash: data.hash,
+      fromWallet: data.from,
+      toWallet: data.to,
+      amount: data.amount,
+      currency: data.currency,
+      timestamp: new Date(data.timestamp),
+      suspicious: data.risk_score > 70
+    };
+
+    this.notifyEventHandlers('transaction', transaction);
   }
 
   private async processCryptoData(data: any) {
-    // Implement crypto data processing
+    const wallet: Wallet = {
+      address: data.address,
+      network: data.network,
+      riskScore: data.risk_score,
+      riskLevel: this.calculateRiskLevel(data.risk_score),
+      transactionVolume: data.volume,
+      lastActivity: new Date(data.last_activity),
+      tags: data.tags,
+      scamPatterns: data.patterns
+    };
+
+    this.notifyEventHandlers('wallet', wallet);
+  }
+
+  private async processSocialData(data: any) {
+    // Process social media intelligence
+  }
+
+  private async processOsintData(data: any) {
+    // Process open source intelligence
+  }
+
+  private async processDarkwebData(data: any) {
+    // Process dark web monitoring data
+  }
+
+  private calculateRiskLevel(score: number): string {
+    if (score >= 80) return 'critical';
+    if (score >= 60) return 'high';
+    if (score >= 40) return 'medium';
+    return 'low';
+  }
+
+  public onData(event: string, handler: Function) {
+    const handlers = this.eventHandlers.get(event) || [];
+    handlers.push(handler);
+    this.eventHandlers.set(event, handlers);
+  }
+
+  private notifyEventHandlers(event: string, data: any) {
+    const handlers = this.eventHandlers.get(event) || [];
+    handlers.forEach(handler => handler(data));
   }
 }
+
+export default DataIngestionService;
