@@ -25,9 +25,8 @@ import CompliancePortal from "@/pages/CompliancePortal";
 
 export default function App() {
   useEffect(() => {
-    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const port = process.env.NODE_ENV === 'production' ? '' : ':5000';
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}${port}/ws`);
+    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
 
     ws.onmessage = (event) => {
       try {

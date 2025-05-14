@@ -19,7 +19,8 @@ export const BlockchainDemo = () => {
   const { user } = useAuth();
 
   useEffect(() => {
-    const ws = new WebSocket('wss://0.0.0.0:5000/ws');
+    const wsUrl = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+    const ws = new WebSocket(wsUrl);
 
     ws.onopen = () => {
       console.log('Connected to blockchain network');
