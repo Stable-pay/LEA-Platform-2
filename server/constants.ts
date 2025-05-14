@@ -25,11 +25,35 @@ export const CRYPTO_NEWS_FEED = [
   {
     id: "NEWS-001",
     title: "New Crypto Asset Reporting Framework (CARF) Guidelines Released",
-    category: "Regulation",
+    category: "regulation",
     source: "Financial Action Task Force",
-    summary: "Updated guidelines for crypto asset reporting and compliance",
+    summary: "Updated guidelines for crypto asset reporting and compliance with focus on cross-border transactions",
     relevantFor: ["FIU", "ED", "IT"],
-    date: new Date("2024-01-15")
+    date: new Date("2024-01-15"),
+    priority: "high",
+    impact: "Mandatory reporting requirements for VASPs effective from Q2 2024"
+  },
+  {
+    id: "NEWS-002",
+    title: "Major Cryptocurrency Mixer Sanctioned",
+    category: "enforcement",
+    source: "International Task Force",
+    summary: "Global enforcement action against privacy-focused mixing service used in multiple fraud cases",
+    relevantFor: ["ED", "I4C", "FIU"],
+    date: new Date("2024-01-20"),
+    priority: "high",
+    impact: "Service shutdown affecting ₹200 Cr worth transactions"
+  },
+  {
+    id: "NEWS-003",
+    title: "New AI-Powered Transaction Monitoring Guidelines",
+    category: "regulation",
+    source: "Reserve Bank",
+    summary: "Framework for using artificial intelligence in crypto transaction surveillance",
+    relevantFor: ["BANK", "VASP", "FIU"],
+    date: new Date("2024-01-25"),
+    priority: "medium",
+    impact: "Implementation deadline: June 2024"
   },
   {
     id: "NEWS-002",
