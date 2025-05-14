@@ -22,7 +22,8 @@ import DepartmentLogin from "@/pages/DepartmentLogin";
 
 export default function App() {
   useEffect(() => {
-    const ws = new WebSocket(`ws://${window.location.hostname}:5000/ws`);
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.hostname}:5000/ws`);
     
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
