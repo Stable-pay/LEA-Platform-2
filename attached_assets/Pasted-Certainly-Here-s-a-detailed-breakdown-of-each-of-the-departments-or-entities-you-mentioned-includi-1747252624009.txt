@@ -1,0 +1,85 @@
+Certainly! Here's a detailed breakdown of each of the departments or entities you mentioned, including their roles and the laws under which they operate:
+
+1. FIU-IND (Financial Intelligence Unit – India)
+
+   * Role: FIU-IND is India’s central national agency responsible for receiving, processing, analyzing, and disseminating information relating to suspected financial transactions. It primarily focuses on combating money laundering and terrorist financing.
+   * Legal Framework: Operates under the Prevention of Money Laundering Act (PMLA), 2002.
+   * Key Responsibilities:
+
+     * Collect and analyze financial transaction data.
+     * Share intelligence with enforcement and regulatory agencies.
+     * Ensure compliance by reporting entities (including banks, VASPs, casinos, etc.)
+
+2. ED (Enforcement Directorate)
+
+   * Role: ED is a law enforcement and economic intelligence agency responsible for enforcing economic laws and fighting economic crime in India.
+   * Legal Framework: Operates primarily under:
+
+     * Prevention of Money Laundering Act (PMLA), 2002
+     * Foreign Exchange Management Act (FEMA), 1999
+     * Fugitive Economic Offenders Act (FEOA), 2018
+   * Key Responsibilities:
+
+     * Investigate money laundering and foreign exchange violations.
+     * Attach and confiscate properties involved in money laundering.
+     * Prosecute individuals/entities under PMLA and FEMA.
+
+3. I4C (Indian Cyber Crime Coordination Centre)
+
+   * Role: A Government of India initiative under the Ministry of Home Affairs to combat cybercrime comprehensively across the country.
+   * Legal Framework: Not a statutory body but functions under MHA's cybercrime prevention mandate.
+   * Key Responsibilities:
+
+     * Coordinate cybercrime response across states and union territories.
+     * Provide a centralized cybercrime reporting platform (cybercrime.gov.in).
+     * Facilitate capacity building and training in cyber forensics.
+
+4. Income Tax India (CBDT – Central Board of Direct Taxes)
+
+   * Role: Responsible for administration and implementation of direct taxes (primarily income tax).
+   * Legal Framework: Operates under the Income Tax Act, 1961.
+   * Key Responsibilities:
+
+     * Collection and enforcement of income tax.
+     * Taxpayer services and compliance.
+     * Investigation of tax evasion and black money.
+
+5. VASP-India (Virtual Asset Service Provider - India)
+
+   * Role: This is a category of financial entities that deal with virtual assets like cryptocurrencies. In India, VASPs are increasingly regulated under AML/CFT norms.
+   * Legal Framework:
+
+     * Notified under PMLA, 2002 (March 2023 notification).
+     * Required to register with FIU-IND.
+   * Key Responsibilities:
+
+     * Comply with AML/CFT obligations including KYC, STRs.
+     * Report suspicious transactions to FIU-IND.
+     * Implement Travel Rule compliance for virtual asset transfers.
+
+6. Bank
+
+   * Role: A financial institution licensed to receive deposits and make loans. In India, banks are critical pillars of financial infrastructure.
+   * Legal Framework:
+
+     * Regulated under the Banking Regulation Act, 1949.
+     * Supervised by the Reserve Bank of India (RBI).
+   * Key Responsibilities:
+
+     * Accept deposits, issue loans, and provide financial services.
+     * Maintain statutory reserves (CRR/SLR).
+     * Comply with KYC/AML guidelines issued by RBI.
+
+7. GST Intelligence (Directorate General of GST Intelligence – DGGI)
+
+   * Role: Investigative arm of the Central Board of Indirect Taxes and Customs (CBIC) focused on detecting and preventing tax evasion under GST.
+   * Legal Framework:
+
+     * Operates under the Central Goods and Services Tax (CGST) Act, 2017.
+   * Key Responsibilities:
+
+     * Investigate GST frauds, fake invoicing, and input tax credit misuse.
+     * Conduct raids, searches, and seizures.
+     * Support prosecution and adjudication in GST offenses.
+
+Let me know if you’d like a downloadable summary of this information or a visual chart/infographic.
