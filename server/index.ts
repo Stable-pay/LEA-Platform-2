@@ -1,5 +1,20 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
+import { DataIngestionService } from "./services/DataIngestionService";
+import { AnalyticsEngine } from "./services/AnalyticsEngine";
+import { NetworkAnalysis } from "./services/NetworkAnalysis";
+
+// Initialize intelligence services
+const dataIngestion = new DataIngestionService();
+const analytics = AnalyticsEngine.getInstance();
+const networkAnalysis = new NetworkAnalysis();
+
+// Make services available to routes
+export const services = {
+  dataIngestion,
+  analytics,
+  networkAnalysis
+};
 import { setupVite, serveStatic, log } from "./vite";
 
 const app = express();
