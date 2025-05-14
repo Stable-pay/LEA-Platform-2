@@ -1,99 +1,66 @@
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-import { createContext, useContext, useState, useEffect } from 'react';
-
-interface DepartmentUser {
+interface User {
   id: string;
-  name: string;
+  username: string;
   department: string;
   role: string;
-  token: string;
 }
 
 interface AuthContextType {
-  user: DepartmentUser | null;
+  user: User | null;
   isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (department: string, credentials: { username: string; password: string }) => Promise<void>;
+  login: (department: string, credentials: { username: string; password: string }) => Promise<boolean>;
   logout: () => void;
 }
 
-const AuthContext = createContext<AuthContextType>({} as AuthContextType);
+const AuthContext = createContext<AuthContextType | null>(null);
 
-export const useAuth = () => useContext(AuthContext);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null);
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<DepartmentUser | null>(() => {
-    const savedUser = localStorage.getItem('user');
-    return savedUser ? JSON.parse(savedUser) : null;
-  });
-  const [isLoading, setIsLoading] = useState(true);
-
-  useEffect(() => {
-    const verifyToken = async () => {
-      if (user?.token) {
-        try {
-          const response = await fetch('/api/auth/verify', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${user.token}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          
-          if (!response.ok) {
-            setUser(null);
-            localStorage.removeItem('user');
-          }
-        } catch (error) {
-          setUser(null);
-          localStorage.removeItem('user');
-        }
-      }
-      setIsLoading(false);
-    };
-
-    verifyToken();
-  }, [user?.token]);
-
-  const login = async (department: string, credentials: { username: string; password: string }) => {
+  const login = useCallback(async (department: string, credentials: { username: string; password: string }) => {
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ department, ...credentials })
+        body: JSON.stringify({ department, ...credentials }),
       });
 
       if (!response.ok) {
-        throw new Error('Invalid credentials');
+        throw new Error('Authentication failed');
       }
 
       const userData = await response.json();
-      const userWithDepartment = { ...userData, department };
-      setUser(userWithDepartment);
-      localStorage.setItem('user', JSON.stringify(userWithDepartment));
+      setUser(userData);
+      return true;
     } catch (error) {
-      throw error;
+      console.error('Login error:', error);
+      return false;
     }
-  };
+  }, []);
 
-  const logout = async () => {
-    try {
-      await fetch('/api/auth/logout', { method: 'POST' });
-    } finally {
-      setUser(null);
-      localStorage.removeItem('user');
-    }
-  };
+  const logout = useCallback(() => {
+    setUser(null);
+    fetch('/api/auth/logout', { method: 'POST' });
+  }, []);
 
   return (
     <AuthContext.Provider value={{
       user,
       isAuthenticated: !!user,
-      isLoading,
       login,
       logout
     }}>
       {children}
     </AuthContext.Provider>
   );
-};
+}
+
+export function useAuth() {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+}

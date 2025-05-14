@@ -1,103 +1,104 @@
+
 import { useState } from 'react';
-import { useNavigate, useLocation } from 'wouter';
+import { useLocation } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Shield, ArrowRight } from 'lucide-react';
 
-const DepartmentLogin = () => {
+const departments = [
+  { id: 'ED', name: 'Enforcement Directorate' },
+  { id: 'FIU', name: 'Financial Intelligence Unit' },
+  { id: 'I4C', name: 'Indian Cybercrime Coordination Centre' },
+  { id: 'IT', name: 'Income Tax Department' },
+  { id: 'VASP', name: 'Virtual Asset Service Provider' },
+  { id: 'BANK', name: 'Banking Institution' }
+];
+
+export default function DepartmentLogin() {
   const [department, setDepartment] = useState('');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const { login } = useAuth();
+  const [, navigate] = useLocation();
   const { toast } = useToast();
-
-  // Use useLocation to create a navigate function
-  const [, setLocation] = useLocation();
-  const navigate = (path: string) => setLocation(path);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!department || !username || !password) {
-      toast({
-        title: "Validation Error",
-        description: "Please fill in all fields",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsLoading(true);
     try {
-      await login(department, { username, password });
-      toast({
-        title: "Success",
-        description: "Logged in successfully"
-      });
-      navigate('/dashboard');
+      const result = await login(department, { username, password });
+      if (result) {
+        toast({
+          title: "Login Successful",
+          description: `Welcome to ${department} Dashboard`,
+        });
+        navigate('/dashboard');
+      }
     } catch (error) {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Login failed",
-        variant: "destructive"
+        title: "Login Failed",
+        description: error instanceof Error ? error.message : "Invalid credentials",
+        variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-neutral-50">
       <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Department Login</CardTitle>
+        <CardHeader className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Shield className="h-6 w-6 text-primary" />
+            <CardTitle className="text-2xl">LEA Intelligence Platform</CardTitle>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-2">
-              <Select value={department} onValueChange={setDepartment}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Department" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ED">Enforcement Directorate</SelectItem>
-                  <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
-                  <SelectItem value="I4C">I4C</SelectItem>
-                  <SelectItem value="IT">Income Tax</SelectItem>
-                  <SelectItem value="VASP">VASP</SelectItem>
-                  <SelectItem value="BANK">Bank</SelectItem>
-                </SelectContent>
-              </Select>
+              <label className="text-sm font-medium">Department</label>
+              <select
+                className="w-full p-2 border rounded-md"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                required
+              >
+                <option value="">Select Department</option>
+                {departments.map((dept) => (
+                  <option key={dept.id} value={dept.id}>
+                    {dept.name}
+                  </option>
+                ))}
+              </select>
             </div>
+            
             <div className="space-y-2">
+              <label className="text-sm font-medium">Username</label>
               <Input
                 type="text"
-                placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                disabled={isLoading}
+                required
               />
             </div>
+
             <div className="space-y-2">
+              <label className="text-sm font-medium">Password</label>
               <Input
                 type="password"
-                placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
+                required
               />
             </div>
-            <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? "Logging in..." : "Login"}
+
+            <Button type="submit" className="w-full">
+              Login <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </form>
         </CardContent>
       </Card>
     </div>
   );
-};
-
-export default DepartmentLogin;
+}
