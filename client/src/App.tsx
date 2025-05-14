@@ -34,8 +34,11 @@ export default function App() {
     ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-      if (data.type === 'BLOCKCHAIN_UPDATE') {
-        queryClient.invalidateQueries(['blockchain-transactions']);
+        if (data.type === 'BLOCKCHAIN_UPDATE') {
+          queryClient.invalidateQueries(['blockchain-transactions']);
+        }
+      } catch (error) {
+        console.error('WebSocket message error:', error);
       }
     };
 
