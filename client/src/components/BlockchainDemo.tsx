@@ -537,43 +537,4 @@ const BlockchainDemo = () => {
   );
 };
 
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-const BlockchainDemo = () => {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    // Fetch blockchain data
-    const fetchData = async () => {
-      try {
-        const response = await fetch('/api/blockchain/transactions');
-        const json = await response.json();
-        setData(json);
-      } catch (error) {
-        console.error('Error fetching blockchain data:', error);
-      }
-    };
-    fetchData();
-  }, []);
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Blockchain Transactions</CardTitle>
-      </CardHeader>
-      <CardContent>
-        {/* Display blockchain data */}
-        <div className="space-y-4">
-          {data.map((transaction, index) => (
-            <div key={index} className="p-4 border rounded">
-              {JSON.stringify(transaction)}
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default BlockchainDemo;o;
+export default BlockchainDemo;
