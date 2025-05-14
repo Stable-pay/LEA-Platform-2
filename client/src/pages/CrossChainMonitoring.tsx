@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CrossChainExplorer } from "@/components/CrossChainExplorer";
+import CrossChainExplorer from "@/components/CrossChainExplorer";
 
 export default function CrossChainMonitoring() {
   return (
