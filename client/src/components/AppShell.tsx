@@ -100,6 +100,18 @@ const AppShell = ({ children }: AppShellProps) => {
     return () => window.removeEventListener("resize", checkIfMobile);
   }, []);
 
+  const navigationItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: 'home' },
+    { name: 'Case Management', href: '/case-management', icon: 'cases' },
+    { name: 'Blockchain Analytics', href: '/blockchain-analytics', icon: 'blockchain' },
+    { name: 'Cross-Chain Monitoring', href: '/cross-chain-monitoring', icon: 'monitoring' },
+    { name: 'Intelligence Hub', href: '/intelligence-hub', icon: 'intelligence' },
+    { name: 'Risk Assessment', href: '/risk-assessment', icon: 'risk' },
+    { name: 'Compliance Portal', href: '/compliance-portal', icon: 'compliance' },
+    { name: 'Analytics', href: '/analytics', icon: 'analytics' },
+    { name: 'Pattern Scan', href: '/pattern-scan', icon: 'scan' },
+  ]
+
   return (
     <div className="flex h-screen overflow-hidden">
       {/* Sidebar Navigation */}
