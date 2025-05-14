@@ -7,13 +7,15 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Search, RefreshCw, AlertTriangle } from 'lucide-react';
+import { Search, RefreshCw, AlertTriangle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/use-auth';
 import { BlockchainNode } from '@/components/BlockchainNode';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface Case {
   caseId: string;
@@ -51,16 +53,18 @@ const CaseManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: cases = [], isLoading } = useQuery({
+  const { data: cases = [], isLoading, error } = useQuery({
     queryKey: ['cases'],
     queryFn: async () => {
       const res = await fetch('/api/cases');
       if (!res.ok) throw new Error('Failed to fetch cases');
       return res.json();
     },
+    retry: 2,
+    staleTime: 30000,
   });
 
-  const { data: responses = [] } = useQuery({
+  const { data: responses = [], isLoading: isLoadingResponses, error: responsesError } = useQuery({
     queryKey: ['case-responses', selectedCase?.caseId],
     queryFn: async () => {
       if (!selectedCase?.caseId) return [];
@@ -69,6 +73,7 @@ const CaseManagement = () => {
       return res.json();
     },
     enabled: !!selectedCase?.caseId,
+    retry: 1,
   });
 
   const submitResponseMutation = useMutation({
@@ -87,23 +92,27 @@ const CaseManagement = () => {
         body: formData
       });
 
-      if (!res.ok) throw new Error('Failed to submit response');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || 'Failed to submit response');
+      }
       return res.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['case-responses'] });
       toast({
-        title: "Response Submitted",
+        title: "Success",
         description: "Your response has been added to the case",
+        variant: "default",
       });
       setShowResponseDialog(false);
       setResponseMessage("");
       setAttachments([]);
     },
-    onError: () => {
+    onError: (error) => {
       toast({
         title: "Error",
-        description: "Failed to submit response",
+        description: error.message || "Failed to submit response",
         variant: "destructive",
       });
     }
@@ -111,7 +120,14 @@ const CaseManagement = () => {
 
   const handleResponseSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!responseMessage.trim()) return;
+    if (!responseMessage.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Please enter a response message",
+        variant: "destructive",
+      });
+      return;
+    }
 
     submitResponseMutation.mutate({
       message: responseMessage,
@@ -126,20 +142,38 @@ const CaseManagement = () => {
     return matchesSearch && matchesDepartment;
   });
 
+  if (error) {
+    return (
+      <Alert variant="destructive" className="m-4">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>Error</AlertTitle>
+        <AlertDescription>
+          Failed to load cases. Please try again later.
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 space-y-4">
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Case Management</CardTitle>
+          <CardTitle className="flex items-center justify-between">
+            Case Management
+            {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex gap-4 mb-6">
-            <Input
-              placeholder="Search cases..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
-            />
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search cases..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Department" />
@@ -153,113 +187,168 @@ const CaseManagement = () => {
             </Select>
           </div>
 
-          <div className="grid gap-4">
-            {filteredCases.map((case_) => (
-              <Card key={case_.caseId} className="cursor-pointer hover:bg-accent/5" onClick={() => setSelectedCase(case_)}>
-                <CardContent className="p-4">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <Badge variant="outline">{case_.caseId}</Badge>
-                      <h3 className="text-lg font-semibold mt-2">{case_.title}</h3>
-                    </div>
-                    <Badge>{case_.priority}</Badge>
-                  </div>
-                  <div className="mt-2 text-sm text-muted-foreground">
-                    <p>Assigned to: {case_.assignedTo}</p>
-                    <p>Status: {case_.status}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <ScrollArea className="h-[600px] pr-4">
+            <div className="space-y-4">
+              {filteredCases.length === 0 && !isLoading ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  No cases found matching your criteria
+                </div>
+              ) : (
+                filteredCases.map((case_) => (
+                  <Card 
+                    key={case_.caseId} 
+                    className="cursor-pointer hover:bg-accent/5 transition-all"
+                    onClick={() => setSelectedCase(case_)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center">
+                        <div>
+                          <Badge variant="outline" className="mb-2">{case_.caseId}</Badge>
+                          <h3 className="text-lg font-semibold">{case_.title}</h3>
+                        </div>
+                        <Badge 
+                          variant={case_.priority === 'high' ? 'destructive' : 'default'}
+                        >
+                          {case_.priority}
+                        </Badge>
+                      </div>
+                      <div className="mt-2 text-sm text-muted-foreground">
+                        <p>Assigned to: {case_.assignedTo}</p>
+                        <p>Status: {case_.status}</p>
+                        <p className="text-xs">
+                          Created: {new Date(case_.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))
+              )}
+            </div>
+          </ScrollArea>
         </CardContent>
       </Card>
 
       <Dialog open={!!selectedCase} onOpenChange={(open) => !open && setSelectedCase(null)}>
-        <DialogContent className="max-w-3xl">
+        <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Case Details - {selectedCase?.caseId}</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              Case Details - {selectedCase?.caseId}
+              {isLoadingResponses && <Loader2 className="h-4 w-4 animate-spin" />}
+            </DialogTitle>
           </DialogHeader>
           
-          <Tabs defaultValue="details">
-            <TabsList>
+          <Tabs defaultValue="details" className="mt-4">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="details">Details</TabsTrigger>
               <TabsTrigger value="responses">Responses</TabsTrigger>
               <TabsTrigger value="blockchain">Blockchain</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details">
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold">{selectedCase?.title}</h3>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Status</Label>
-                    <p>{selectedCase?.status}</p>
+              <Card>
+                <CardContent className="pt-6">
+                  <h3 className="text-xl font-semibold mb-4">{selectedCase?.title}</h3>
+                  <div className="grid grid-cols-2 gap-6">
+                    <div>
+                      <Label className="text-muted-foreground">Status</Label>
+                      <p className="text-lg">{selectedCase?.status}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Priority</Label>
+                      <p className="text-lg">{selectedCase?.priority}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Assigned To</Label>
+                      <p className="text-lg">{selectedCase?.assignedTo}</p>
+                    </div>
+                    <div>
+                      <Label className="text-muted-foreground">Created At</Label>
+                      <p className="text-lg">
+                        {new Date(selectedCase?.createdAt || '').toLocaleDateString()}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <Label>Priority</Label>
-                    <p>{selectedCase?.priority}</p>
-                  </div>
-                  <div>
-                    <Label>Assigned To</Label>
-                    <p>{selectedCase?.assignedTo}</p>
-                  </div>
-                  <div>
-                    <Label>Created At</Label>
-                    <p>{new Date(selectedCase?.createdAt || '').toLocaleDateString()}</p>
-                  </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="responses">
-              <div className="space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="text-lg font-semibold">Responses</h3>
-                  <Button onClick={() => setShowResponseDialog(true)}>Add Response</Button>
-                </div>
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="flex justify-between items-center mb-6">
+                    <h3 className="text-xl font-semibold">Responses</h3>
+                    <Button onClick={() => setShowResponseDialog(true)}>
+                      Add Response
+                    </Button>
+                  </div>
 
-                <div className="space-y-4">
-                  {responses.map((response: Response) => (
-                    <Card key={response.id}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-center mb-2">
-                          <Badge>{response.department}</Badge>
-                          <span className="text-sm text-muted-foreground">
-                            {new Date(response.timestamp).toLocaleString()}
-                          </span>
-                        </div>
-                        <p className="mt-2">{response.message}</p>
-                        {response.attachments.length > 0 && (
-                          <div className="mt-2">
-                            <Label>Attachments</Label>
-                            <div className="flex gap-2">
-                              {response.attachments.map((attachment, i) => (
-                                <Badge key={i} variant="outline">{attachment}</Badge>
-                              ))}
-                            </div>
+                  {responsesError ? (
+                    <Alert variant="destructive">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertTitle>Error</AlertTitle>
+                      <AlertDescription>
+                        Failed to load responses. Please try again.
+                      </AlertDescription>
+                    </Alert>
+                  ) : (
+                    <ScrollArea className="h-[400px]">
+                      <div className="space-y-4 pr-4">
+                        {responses.length === 0 ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            No responses yet
                           </div>
+                        ) : (
+                          responses.map((response: Response) => (
+                            <Card key={response.id}>
+                              <CardContent className="p-4">
+                                <div className="flex justify-between items-center mb-2">
+                                  <Badge>{response.department}</Badge>
+                                  <span className="text-sm text-muted-foreground">
+                                    {new Date(response.timestamp).toLocaleString()}
+                                  </span>
+                                </div>
+                                <p className="mt-2 text-sm">{response.message}</p>
+                                {response.attachments.length > 0 && (
+                                  <div className="mt-2">
+                                    <Label className="text-muted-foreground">Attachments</Label>
+                                    <div className="flex gap-2 mt-1">
+                                      {response.attachments.map((attachment, i) => (
+                                        <Badge key={i} variant="outline">{attachment}</Badge>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                                <Badge 
+                                  variant={response.status === 'approved' ? 'default' : 'secondary'}
+                                  className="mt-2"
+                                >
+                                  {response.status}
+                                </Badge>
+                              </CardContent>
+                            </Card>
+                          ))
                         )}
-                        <Badge variant={response.status === 'approved' ? 'success' : 'secondary'} className="mt-2">
-                          {response.status}
-                        </Badge>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
+                      </div>
+                    </ScrollArea>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="blockchain">
               {selectedCase && (
-                <BlockchainNode
-                  caseId={selectedCase.caseId}
-                  timestamp={selectedCase.createdAt}
-                  hash={selectedCase.blockchainHash || ''}
-                  previousHash={selectedCase.previousHash || ''}
-                  nodeId={selectedCase.nodeId || ''}
-                  status={selectedCase.blockchainStatus || 'pending'}
-                />
+                <Card>
+                  <CardContent className="pt-6">
+                    <BlockchainNode
+                      caseId={selectedCase.caseId}
+                      timestamp={selectedCase.createdAt}
+                      hash={selectedCase.blockchainHash || ''}
+                      previousHash={selectedCase.previousHash || ''}
+                      nodeId={selectedCase.nodeId || ''}
+                      status={selectedCase.blockchainStatus || 'pending'}
+                    />
+                  </CardContent>
+                </Card>
               )}
             </TabsContent>
           </Tabs>
@@ -271,40 +360,49 @@ const CaseManagement = () => {
           <DialogHeader>
             <DialogTitle>Add Response</DialogTitle>
           </DialogHeader>
-          <form onSubmit={handleResponseSubmit}>
-            <div className="space-y-4">
-              <div>
-                <Label>Response Message</Label>
-                <Textarea
-                  value={responseMessage}
-                  onChange={(e) => setResponseMessage(e.target.value)}
-                  placeholder="Enter your response..."
-                  className="min-h-[100px]"
-                />
-              </div>
-              <div>
-                <Label>Attachments</Label>
-                <Input
-                  type="file"
-                  multiple
-                  onChange={(e) => setAttachments(Array.from(e.target.files || []))}
-                />
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setShowResponseDialog(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={submitResponseMutation.isPending}>
-                  {submitResponseMutation.isPending ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "Submit Response"
-                  )}
-                </Button>
-              </div>
+          <form onSubmit={handleResponseSubmit} className="space-y-4">
+            <div>
+              <Label>Response Message</Label>
+              <Textarea
+                value={responseMessage}
+                onChange={(e) => setResponseMessage(e.target.value)}
+                placeholder="Enter your response..."
+                className="min-h-[100px]"
+                disabled={submitResponseMutation.isPending}
+              />
+            </div>
+            <div>
+              <Label>Attachments</Label>
+              <Input
+                type="file"
+                multiple
+                onChange={(e) => setAttachments(Array.from(e.target.files || []))}
+                disabled={submitResponseMutation.isPending}
+                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowResponseDialog(false)}
+                disabled={submitResponseMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={submitResponseMutation.isPending}
+              >
+                {submitResponseMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Response"
+                )}
+              </Button>
             </div>
           </form>
         </DialogContent>
