@@ -54,6 +54,22 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
+// Setup WebSocket
+import { WebSocket, WebSocketServer } from 'ws';
+const wss = new WebSocketServer({ server });
+
+wss.on('connection', (ws: WebSocket) => {
+  console.log('Client connected to WebSocket');
+  
+  ws.on('message', (message: string) => {
+    console.log('Received:', message);
+  });
+
+  ws.on('close', () => {
+    console.log('Client disconnected');
+  });
+});
+
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     console.error('Error:', err);

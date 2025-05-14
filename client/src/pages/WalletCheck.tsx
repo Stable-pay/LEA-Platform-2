@@ -42,7 +42,7 @@ export default function WalletCheck() {
         { date: "2024-01-14", type: "Exchange", amount: "₹1,80,000", status: "Completed" },
         { date: "2024-01-13", type: "Mixer", amount: "₹5,00,000", status: "Suspicious" }
       ]);
-      
+
       setConnectedWallets([
         { address: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e", risk: "high" },
         { address: "0x123f681646d4a755815f9cb19e1acc8565a0c2ac", risk: "medium" }
@@ -120,13 +120,13 @@ export default function WalletCheck() {
         setRiskLevel("");
         setAnalysisNotes("");
         setRiskIndicators([]);
-        
+
         // Refresh data
         await Promise.all([
           fetchRecentWallets(),
           fetchWalletDetails()
         ]);
-        
+
         // Reset selected tab
         setSelectedTab("analysis");
       } else {
@@ -171,7 +171,7 @@ export default function WalletCheck() {
             <div className="text-3xl font-bold text-red-500">{walletStats.riskScore}</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Transaction Volume</CardTitle>
@@ -181,7 +181,7 @@ export default function WalletCheck() {
             <p className="text-sm text-gray-500">Last 30 days</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>Mixer Exposure</CardTitle>
