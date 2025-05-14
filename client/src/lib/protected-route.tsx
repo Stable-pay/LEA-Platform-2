@@ -1,24 +1,30 @@
 
-import { FC, ReactNode, useEffect } from 'react';
-import { useLocation } from 'wouter';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'wouter';
 import { useAuth } from '@/hooks/use-auth';
+import { Loader2 } from 'lucide-react';
 
-interface ProtectedRouteProps {
-  children: ReactNode;
-}
-
-export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
-  const [, navigate] = useLocation();
-  const { isAuthenticated } = useAuth();
+export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
+  const [location] = useLocation();
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isLoading && !isAuthenticated) {
       navigate('/', { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, isLoading, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin" />
+      </div>
+    );
+  }
 
   if (!isAuthenticated) {
-    return <div>Redirecting to login...</div>;
+    return null;
   }
 
   return <>{children}</>;
