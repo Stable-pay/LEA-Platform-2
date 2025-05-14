@@ -28,6 +28,21 @@ const CaseManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState("all");
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
+  const [showResponseDialog, setShowResponseDialog] = useState(false);
+  
+  const { data: responses = [], refetch: refetchResponses } = useQuery({
+    queryKey: ['case-responses', selectedCase?.caseId],
+    queryFn: async () => {
+      if (!selectedCase?.caseId) return [];
+      const res = await fetch(`/api/cases/response?caseId=${selectedCase.caseId}`);
+      if (!res.ok) throw new Error('Failed to fetch responses');
+      return res.json();
+    },
+    enabled: !!selectedCase?.caseId,
+  });
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: cases = [], isLoading } = useQuery({
     queryKey: ['cases'],
@@ -82,8 +97,75 @@ const CaseManagement = () => {
     }
   };
 
+  const submitResponse = async (message: string) => {
+    if (!selectedCase) return;
+    
+    try {
+      const response = await fetch('/api/cases/response', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caseId: selectedCase.caseId,
+          message,
+          department: user?.department,
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit response');
+
+      toast({
+        title: "Response Submitted",
+        description: "Your response has been added to the case",
+      });
+
+      setShowResponseDialog(false);
+      refetchResponses();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to submit response",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <Card className="shadow">
+    <>
+      <Dialog open={showResponseDialog} onOpenChange={setShowResponseDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Response</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const form = e.target as HTMLFormElement;
+            const message = (form.elements.namedItem('message') as HTMLTextAreaElement).value;
+            submitResponse(message);
+          }}>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="message">Response Message</Label>
+                <Textarea
+                  id="message"
+                  name="message"
+                  placeholder="Enter your response..."
+                  required
+                />
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setShowResponseDialog(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit">Submit Response</Button>
+              </div>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+      
+      <Card className="shadow">
       <CardHeader className="flex flex-row items-center justify-between py-4 px-6 border-b">
         <CardTitle className="font-semibold">Private Case Explorer</CardTitle>
         <div className="flex items-center text-xs text-muted-foreground">
@@ -97,6 +179,7 @@ const CaseManagement = () => {
           <TabsList>
             <TabsTrigger value="cases">Case Explorer</TabsTrigger>
             <TabsTrigger value="blockchain">Blockchain Verification</TabsTrigger>
+            <TabsTrigger value="responses">Department Responses</TabsTrigger>
           </TabsList>
         </div>
 
@@ -201,6 +284,52 @@ const CaseManagement = () => {
             ) : (
               <div className="text-center text-muted-foreground py-8">
                 Select a case to view blockchain verification details
+              </div>
+            )}
+          </CardContent>
+        </TabsContent>
+
+        <TabsContent value="responses">
+          <CardContent className="p-4">
+            {selectedCase && (
+              <div className="space-y-4">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-lg font-semibold">Responses for Case {selectedCase.caseId}</h3>
+                  <Button onClick={() => setShowResponseDialog(true)} size="sm">
+                    Add Response
+                  </Button>
+                </div>
+                
+                <div className="space-y-3">
+                  {responses?.map((response) => (
+                    <Card key={response.id} className="p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <Badge>{response.department}</Badge>
+                          <span className="text-sm text-muted-foreground ml-2">
+                            {new Date(response.timestamp).toLocaleString()}
+                          </span>
+                        </div>
+                        <Badge variant={response.status === 'pending' ? 'secondary' : 'success'}>
+                          {response.status}
+                        </Badge>
+                      </div>
+                      <p className="text-sm mt-2">{response.message}</p>
+                      {response.attachments?.length > 0 && (
+                        <div className="mt-2">
+                          <div className="text-sm font-medium">Attachments:</div>
+                          <div className="flex gap-2 mt-1">
+                            {response.attachments.map((attachment, i) => (
+                              <Badge variant="outline" key={i}>
+                                {attachment}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </Card>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>
