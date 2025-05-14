@@ -35,5 +35,16 @@ export default defineConfig({
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),
     emptyOutDir: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          'ui-components': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          'analytics': ['@/components/Analytics', '@/components/BlockchainAnalytics'],
+          'charts': ['@/components/ui/chart', '@/components/FraudHeatmap']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   },
 });

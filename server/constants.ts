@@ -280,6 +280,9 @@ export const DEPARTMENT_CASE_EXAMPLES = [
         title: "Undisclosed Crypto Assets",
         description: "Investigation into undeclared cryptocurrency holdings and trading profits",
         status: "active",
+        priority: "medium",
+        estimatedLoss: 45000000
+      },
       {
         caseId: "ED-2024-002",
         title: "VASP Compliance Investigation",
