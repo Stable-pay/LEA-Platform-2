@@ -205,7 +205,6 @@ const CaseManagement = () => {
                 <SelectItem value="I4C">Cyber Security</SelectItem>
               </SelectContent>
             </Select>
-          </div>
 
           <ScrollArea className="h-[600px] pr-4">
             <div className="space-y-4">
