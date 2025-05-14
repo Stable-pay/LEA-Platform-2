@@ -40,7 +40,7 @@ export default defineConfig({
         manualChunks: {
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           'ui-components': ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
-          'analytics': ['@/components/Analytics', '@/components/BlockchainAnalytics'],
+          'analytics': ['@/pages/Analytics', '@/pages/BlockchainAnalytics'],
           'charts': ['@/components/ui/chart', '@/components/FraudHeatmap']
         }
       }
