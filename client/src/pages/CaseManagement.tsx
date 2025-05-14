@@ -21,6 +21,7 @@ interface Case {
   previousHash?: string;
   nodeId?: string;
   blockchainStatus?: string;
+  verificationCount?: number;
 }
 
 const CaseManagement = () => {
@@ -43,6 +44,12 @@ const CaseManagement = () => {
     const matchesDepartment = selectedDepartment === 'all' || case_.assignedTo === selectedDepartment;
     return matchesSearch && matchesDepartment;
   });
+
+  const verifyOnBlockchain = async (caseId: string) => {
+    // Implement your blockchain verification logic here
+    console.log(`Verifying case ${caseId} on blockchain...`);
+    // You might want to call an API endpoint to trigger the verification process
+  };
 
   return (
     <Card className="shadow">
@@ -115,6 +122,32 @@ const CaseManagement = () => {
                         <div>Assigned to: {case_.assignedTo}</div>
                         <div>Created: {new Date(case_.createdAt).toLocaleString()}</div>
                       </div>
+                    </div>
+                    <div className="mt-2 flex items-center justify-between">
+                      <div className="flex items-center">
+                        <Badge 
+                          variant={
+                            case_.blockchainStatus === 'verified' ? 'success' :
+                            case_.blockchainStatus === 'pending' ? 'warning' : 'destructive'
+                          }
+                          className="text-xs"
+                        >
+                          {case_.blockchainStatus || 'pending'} 
+                          {case_.verificationCount ? ` (${case_.verificationCount})` : ''}
+                        </Badge>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-xs"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          verifyOnBlockchain(case_.caseId);
+                        }}
+                        disabled={case_.blockchainStatus === 'verified'}
+                      >
+                        Verify on Blockchain
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
