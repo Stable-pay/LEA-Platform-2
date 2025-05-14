@@ -4,6 +4,11 @@ import { Route, Switch } from 'wouter';
 import { queryClient } from '@/lib/queryClient';
 import { Toaster } from '@/components/ui/toaster';
 import Dashboard from '@/pages/Dashboard';
+import BlockchainAnalytics from '@/pages/BlockchainAnalytics';
+import CrossChainMonitoring from '@/pages/CrossChainMonitoring';
+import IntelligenceHub from '@/pages/IntelligenceHub';
+import RiskAssessment from '@/pages/RiskAssessment';
+import CompliancePortal from '@/pages/CompliancePortal';
 import CaseManagement from '@/pages/CaseManagement';
 import Analytics from '@/pages/Analytics';
 import PatternScan from '@/pages/PatternScan';
@@ -26,7 +31,8 @@ import CompliancePortal from "@/pages/CompliancePortal";
 export default function App() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}/ws`);
+    const port = process.env.NODE_ENV === 'production' ? '' : ':5000';
+    const ws = new WebSocket(`${protocol}//${window.location.hostname}${port}/ws`);
 
     ws.onmessage = (event) => {
       try {
@@ -54,6 +60,7 @@ export default function App() {
         <TooltipProvider>
           <AppShell>
             <Switch>
+              <Route path="/" component={DepartmentLogin} />
               <Route path="/dashboard" component={Dashboard} />
               <Route path="/case-management" component={CaseManagement} />
               <Route path="/case-filing" component={CaseFiling} />
@@ -68,7 +75,6 @@ export default function App() {
               <Route path="/intelligence-hub" component={IntelligenceHub} />
               <Route path="/risk-assessment" component={RiskAssessment} />
               <Route path="/compliance-portal" component={CompliancePortal} />
-              <Route path="/" component={DepartmentLogin} />
               <Route component={NotFound} />
             </Switch>
           </AppShell>
