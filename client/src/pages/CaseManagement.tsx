@@ -164,16 +164,36 @@ const CaseManagement = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 mb-6">
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search cases..."
+                placeholder="Search cases by ID, title, or department..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
               />
             </div>
+            <div className="flex gap-2">
+              <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  <SelectItem value="ED">Enforcement Directorate</SelectItem>
+                  <SelectItem value="FIU">Financial Intelligence Unit</SelectItem>
+                  <SelectItem value="I4C">Cybercrime Coordination</SelectItem>
+                  <SelectItem value="IT">Income Tax Department</SelectItem>
+                  <SelectItem value="VASP">Virtual Asset Provider</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button variant="outline" onClick={() => queryClient.invalidateQueries(['cases'])}>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                Refresh
+              </Button>
+            </div>
+          </div>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Department" />
