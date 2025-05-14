@@ -610,7 +610,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.status(401).json({ message: "Unauthorized" });
   };
 
-  // Blockchain API routes
+  // Blockchain peer network routes
+  app.post("/api/blockchain/peer/verify", isAuthenticated, async (req, res) => {
+    try {
+      const { caseId, nodeId, hash } = req.body;
+
+      // Broadcast to all connected peers
+      if (wss) {
+        wss.clients.forEach(client => {
+          if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+              type: 'PEER_VERIFICATION',
+              nodeId,
+              caseId,
+              hash,
+              timestamp: new Date()
+            }));
+          }
+        });
+      }
+
+      res.status(200).json({ message: "Verification broadcast to peers" });
+    } catch (error) {
+      res.status(500).json({ message: "Failed to broadcast verification" });
+    }
+  });
+
+  // Blockchain API routes  
   app.get("/api/blockchain/nodes", async (req, res) => {
     try {
       const nodeType = req.query.type as string || "all";
@@ -875,6 +901,7 @@ ${department} Department`;
             data.entityId || "all"
           );
 
+          ```text
           ws.send(JSON.stringify({
             type: "BLOCKCHAIN_TRANSACTIONS",
             data: transactions

@@ -1,10 +1,9 @@
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Shield, Link, CheckCircle } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from './ui/card';
-import { Badge } from './ui/badge';
+import { Card, CardContent } from './ui/card';
 import { Progress } from './ui/progress';
+import { Badge } from './ui/badge';
 
 interface BlockchainNodeProps {
   caseId: string;
@@ -18,6 +17,7 @@ interface BlockchainNodeProps {
 export const BlockchainNode = ({ caseId, timestamp, hash, previousHash, nodeId, status }: BlockchainNodeProps) => {
   const [verificationCount, setVerificationCount] = useState(0);
   const [verificationProgress, setVerificationProgress] = useState(0);
+  const [peerNodes, setPeerNodes] = useState<string[]>([]);
 
   const { data: nodeTransactions, isLoading } = useQuery({
     queryKey: ['blockchain-transactions', nodeId],
@@ -30,6 +30,20 @@ export const BlockchainNode = ({ caseId, timestamp, hash, previousHash, nodeId, 
   });
 
   useEffect(() => {
+    const ws = new WebSocket(`${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'PEER_VERIFICATION') {
+        setPeerNodes(prev => [...prev, data.nodeId]);
+        setVerificationCount(prev => prev + 1);
+      }
+    };
+
+    return () => ws.close();
+  }, []);
+
+  useEffect(() => {
     if (nodeTransactions?.length) {
       const verifiedTx = nodeTransactions.filter((tx: any) => tx.status === 'verified');
       setVerificationCount(verifiedTx.length);
@@ -38,50 +52,44 @@ export const BlockchainNode = ({ caseId, timestamp, hash, previousHash, nodeId, 
   }, [nodeTransactions]);
 
   return (
-    <Card className="mb-4">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <Shield className="h-4 w-4" />
-          Case ID: {caseId}
-        </CardTitle>
-        <Badge variant={status === 'verified' ? 'success' : status === 'pending' ? 'warning' : 'destructive'}>
-          {status} ({verificationCount} verifications)
-        </Badge>
-      </CardHeader>
-      <CardContent className="grid gap-2 text-sm">
-        <div className="font-mono break-all bg-muted p-2 rounded">
-          <span className="text-muted-foreground">Case Hash:</span> {hash}
+    <Card className="w-full">
+      <CardContent className="p-4 space-y-4">
+        <div className="flex justify-between items-center">
+          <h3 className="text-sm font-semibold">Node ID: {nodeId}</h3>
+          <Badge variant={status === 'verified' ? 'success' : status === 'pending' ? 'warning' : 'destructive'}>
+            {status}
+          </Badge>
         </div>
-        <div className="font-mono break-all bg-muted p-2 rounded">
-          <span className="text-muted-foreground">Previous Hash:</span> {previousHash}
+
+        <div className="space-y-2 text-sm">
+          <div>Case ID: {caseId}</div>
+          <div className="font-mono text-xs truncate">Hash: {hash}</div>
+          <div className="font-mono text-xs truncate">Previous: {previousHash}</div>
         </div>
-        <div>
-          <span className="text-muted-foreground">Timestamp:</span> {new Date(timestamp).toLocaleString()}
-        </div>
-        <div className="mt-4">
-          <h4 className="font-medium mb-2 flex items-center gap-2">
-            <Link className="h-4 w-4" />
-            Chain Verification Progress
-          </h4>
-          <Progress value={verificationProgress} className="h-2 mb-2" />
-          <div className="space-y-2">
-            {isLoading ? (
-              <div className="text-muted-foreground text-center py-2">Loading transactions...</div>
-            ) : (
-              nodeTransactions?.map((tx: any) => (
-                <div key={tx.txHash} className="bg-muted p-2 rounded text-xs">
-                  <div className="flex items-center justify-between">
-                    <div>TX Hash: {tx.txHash}</div>
-                    <Badge variant={tx.status === 'verified' ? 'success' : 'secondary'}>
-                      {tx.status}
-                    </Badge>
-                  </div>
-                  <div>Action: {tx.action}</div>
-                  <div>Timestamp: {new Date(tx.timestamp).toLocaleString()}</div>
-                </div>
-              ))
-            )}
+
+        <div className="space-y-2">
+          <div className="flex justify-between text-sm">
+            <span>Peer Verification Progress</span>
+            <span>{verificationCount} nodes</span>
           </div>
+          <Progress value={verificationProgress} />
+        </div>
+
+        {peerNodes.length > 0 && (
+          <div className="space-y-1">
+            <div className="text-sm font-medium">Verifying Peers</div>
+            <div className="flex flex-wrap gap-1">
+              {peerNodes.map((peer, i) => (
+                <Badge key={i} variant="outline" className="text-xs">
+                  {peer}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="text-xs text-muted-foreground">
+          Last Updated: {new Date(timestamp).toLocaleString()}
         </div>
       </CardContent>
     </Card>
