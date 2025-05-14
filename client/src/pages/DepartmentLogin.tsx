@@ -25,11 +25,12 @@ export default function DepartmentLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!department || !username || !password) {
+      return;
+    }
     try {
-      const result = await login(department, { username, password });
-      if (result) {
-        navigate('/dashboard');
-      }
+      await login(department, { username, password });
+      navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Login failed:', error);
     }

@@ -13,12 +13,12 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
 
   useEffect(() => {
     if (!isAuthenticated) {
-      navigate('/');
+      navigate('/', { replace: true });
     }
   }, [isAuthenticated, navigate]);
 
   if (!isAuthenticated) {
-    return null;
+    return <div>Redirecting to login...</div>;
   }
 
   return <>{children}</>;
