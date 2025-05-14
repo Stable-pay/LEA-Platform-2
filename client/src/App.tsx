@@ -12,10 +12,8 @@ import ScamHeatmap from '@/pages/ScamHeatmap';
 import StrGenerator from '@/pages/StrGenerator';
 import WalletCheck from '@/pages/WalletCheck';
 import AppShell from '@/components/AppShell';
-import { ProtectedRoute } from "./lib/protected-route";
 import { AuthProvider } from "@/hooks/use-auth";
 import CaseFiling from "@/pages/case-filing";
-import AuthPage from "@/pages/auth-page";
 import NotFound from "@/pages/not-found";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import DepartmentLogin from "@/pages/DepartmentLogin";
@@ -28,8 +26,7 @@ import CompliancePortal from "@/pages/CompliancePortal";
 export default function App() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const port = process.env.NODE_ENV === 'production' ? '' : ':5000';
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}${port}/ws`);
+    const ws = new WebSocket(`${protocol}//${window.location.hostname}/ws`);
 
     ws.onmessage = (event) => {
       try {
@@ -57,48 +54,20 @@ export default function App() {
         <TooltipProvider>
           <AppShell>
             <Switch>
-              <Route path="/dashboard">
-                {() => <ProtectedRoute><Dashboard /></ProtectedRoute>}
-              </Route>
-              <Route path="/case-management">
-                {() => <ProtectedRoute><CaseManagement /></ProtectedRoute>}
-              </Route>
-              <Route path="/case-filing">
-                {() => <ProtectedRoute><CaseFiling /></ProtectedRoute>}
-              </Route>
-              <Route path="/analytics">
-                {() => <ProtectedRoute><Analytics /></ProtectedRoute>}
-              </Route>
-              <Route path="/wallet-check">
-                {() => <ProtectedRoute><WalletCheck /></ProtectedRoute>}
-              </Route>
-              <Route path="/pattern-scan">
-                {() => <ProtectedRoute><PatternScan /></ProtectedRoute>}
-              </Route>
-              <Route path="/str-generator">
-                {() => <ProtectedRoute><StrGenerator /></ProtectedRoute>}
-              </Route>
-              <Route path="/scam-heatmap">
-                {() => <ProtectedRoute><ScamHeatmap /></ProtectedRoute>}
-              </Route>
-              <Route path="/network-graph">
-                {() => <ProtectedRoute><NetworkGraph /></ProtectedRoute>}
-              </Route>
-              <Route path="/blockchain-analytics">
-                {() => <ProtectedRoute><BlockchainAnalytics /></ProtectedRoute>}
-              </Route>
-              <Route path="/cross-chain-monitoring">
-                {() => <ProtectedRoute><CrossChainMonitoring /></ProtectedRoute>}
-              </Route>
-              <Route path="/intelligence-hub">
-                {() => <ProtectedRoute><IntelligenceHub /></ProtectedRoute>}
-              </Route>
-              <Route path="/risk-assessment">
-                {() => <ProtectedRoute><RiskAssessment /></ProtectedRoute>}
-              </Route>
-              <Route path="/compliance-portal">
-                {() => <ProtectedRoute><CompliancePortal /></ProtectedRoute>}
-              </Route>
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/case-management" component={CaseManagement} />
+              <Route path="/case-filing" component={CaseFiling} />
+              <Route path="/analytics" component={Analytics} />
+              <Route path="/wallet-check" component={WalletCheck} />
+              <Route path="/pattern-scan" component={PatternScan} />
+              <Route path="/str-generator" component={StrGenerator} />
+              <Route path="/scam-heatmap" component={ScamHeatmap} />
+              <Route path="/network-graph" component={NetworkGraph} />
+              <Route path="/blockchain-analytics" component={BlockchainAnalytics} />
+              <Route path="/cross-chain-monitoring" component={CrossChainMonitoring} />
+              <Route path="/intelligence-hub" component={IntelligenceHub} />
+              <Route path="/risk-assessment" component={RiskAssessment} />
+              <Route path="/compliance-portal" component={CompliancePortal} />
               <Route path="/" component={DepartmentLogin} />
               <Route component={NotFound} />
             </Switch>
