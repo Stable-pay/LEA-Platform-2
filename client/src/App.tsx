@@ -28,10 +28,12 @@ import CompliancePortal from "@/pages/CompliancePortal";
 export default function App() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const ws = new WebSocket(`${protocol}//${window.location.hostname}:5000/ws`);
+    const port = process.env.NODE_ENV === 'production' ? '' : ':5000';
+    const ws = new WebSocket(`${protocol}//${window.location.hostname}${port}/ws`);
 
     ws.onmessage = (event) => {
-      const data = JSON.parse(event.data);
+      try {
+        const data = JSON.parse(event.data);
       if (data.type === 'BLOCKCHAIN_UPDATE') {
         queryClient.invalidateQueries(['blockchain-transactions']);
       }

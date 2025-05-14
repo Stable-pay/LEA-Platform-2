@@ -96,7 +96,8 @@ wss.on('connection', (ws: WebSocket) => {
   // this serves both the API and the client.
   // It is the only port that is not firewalled.
   const port = 5000;
-  app.listen(5000, '0.0.0.0', () => {
-  console.log('✅ Server running on http://0.0.0.0:5000');
-});
+  const port = process.env.PORT || 5000;
+  app.listen(port, '0.0.0.0', () => {
+    console.log(`✅ Server running on http://0.0.0.0:${port}`);
+  });
 })();
