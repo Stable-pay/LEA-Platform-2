@@ -901,7 +901,6 @@ ${department} Department`;
             data.entityId || "all"
           );
 
-          ```text
           ws.send(JSON.stringify({
             type: "BLOCKCHAIN_TRANSACTIONS",
             data: transactions
