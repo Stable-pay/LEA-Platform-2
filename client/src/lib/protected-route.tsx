@@ -17,9 +17,5 @@ export const ProtectedRoute: FC<ProtectedRouteProps> = ({ children }) => {
     }
   }, [isAuthenticated, navigate]);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  return <>{children}</>;
+  return isAuthenticated ? <>{children}</> : null;
 };

@@ -34,7 +34,7 @@ export default function DepartmentLogin() {
           title: "Login Successful",
           description: `Welcome to ${department} Dashboard`,
         });
-        navigate('/dashboard');
+        navigate('/dashboard', { replace: true });
       }
     } catch (error) {
       toast({
