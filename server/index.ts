@@ -1,4 +1,5 @@
 import express, { type Request, Response, NextFunction } from "express";
+import { WebSocketServer } from 'ws';
 import { registerRoutes } from "./routes";
 import { DataIngestionService } from "./services/DataIngestionService";
 import { AnalyticsEngine } from "./services/AnalyticsEngine";
