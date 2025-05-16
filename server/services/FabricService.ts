@@ -1,7 +1,7 @@
 import { Gateway, Wallets, Network, Contract } from 'fabric-network';
 import { BlockchainTransaction, Case, BlockchainNode } from '@/shared/schema';
 import * as path from 'path';
-import *fs from 'fs';
+import * as fs from 'fs';
 
 export class FabricService {
   private static instance: FabricService;
