@@ -55,20 +55,7 @@ app.use((req, res, next) => {
 (async () => {
   const server = await registerRoutes(app);
 
-// Setup WebSocket
-const wss = new WebSocketServer({ server, path: '/ws' });
-
-wss.on('connection', (ws: WebSocket) => {
-  console.log('Client connected to WebSocket');
-
-  ws.on('message', (message: string) => {
-    console.log('Received:', message);
-  });
-
-  ws.on('close', () => {
-    console.log('Client disconnected');
-  });
-});
+// WebSocket server is initialized in routes.ts
 
   // Global error handler
   app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {

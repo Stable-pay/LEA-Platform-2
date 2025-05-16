@@ -860,8 +860,15 @@ ${department} Department`;
 
   // Setup WebSocket Server for real-time blockchain updates
   const wss = new WebSocketServer({
-    server: httpServer,
-    path: '/ws'
+    noServer: true
+  });
+
+  httpServer.on('upgrade', (request, socket, head) => {
+    if (request.url === '/ws') {
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request);
+      });
+    }
   });
 
   // WebSocket connection handling
