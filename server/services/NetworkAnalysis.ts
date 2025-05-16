@@ -1,112 +1,71 @@
-import * as tf from '@tensorflow/tfjs-node';
-import { WebSocket } from 'ws';
-import graphlib from 'graphlib';
-import FabricService from './FabricService';
+import { BlockchainTransaction, Wallet } from '@/shared/schema';
+import { FabricService } from './FabricService';
 
 export class NetworkAnalysis {
-  private static instance: NetworkAnalysis;
-  private graph: any;
-  private model: tf.LayersModel | null = null;
+  private fabricService: FabricService;
 
-  private constructor() {
-    this.graph = new graphlib.Graph();
-    this.initializeModel();
+  constructor() {
+    this.fabricService = FabricService.getInstance();
   }
 
-  public static getInstance(): NetworkAnalysis {
-    if (!NetworkAnalysis.instance) {
-      NetworkAnalysis.instance = new NetworkAnalysis();
+  async analyzeTransactionFlow(walletAddress: string): Promise<{nodes: any[], edges: any[]}> {
+    try {
+      const transactions = await this.fabricService.queryCaseHistory(walletAddress);
+      return this.buildNetworkGraph(transactions);
+    } catch (error) {
+      console.error('Failed to analyze transaction flow:', error);
+      throw error;
     }
-    return NetworkAnalysis.instance;
   }
 
-  private async initializeModel() {
-    this.model = tf.sequential({
-      layers: [
-        tf.layers.dense({ inputShape: [20], units: 128, activation: 'relu' }),
-        tf.layers.dropout({ rate: 0.3 }),
-        tf.layers.dense({ units: 64, activation: 'relu' }),
-        tf.layers.dense({ units: 1, activation: 'sigmoid' })
-      ]
+  private buildNetworkGraph(transactions: BlockchainTransaction[]) {
+    const nodes = new Map();
+    const edges = new Set();
+
+    transactions.forEach(tx => {
+      if (tx.entityType === 'transaction') {
+        const metadata = tx.metadata as any;
+
+        // Add nodes
+        nodes.set(metadata.fromWallet, {
+          id: metadata.fromWallet,
+          type: 'wallet',
+          risk: metadata.fromRisk || 'unknown'
+        });
+
+        nodes.set(metadata.toWallet, {
+          id: metadata.toWallet,
+          type: 'wallet',
+          risk: metadata.toRisk || 'unknown'
+        });
+
+        // Add edge
+        edges.add({
+          source: metadata.fromWallet,
+          target: metadata.toWallet,
+          value: metadata.amount,
+          timestamp: tx.timestamp
+        });
+      }
     });
 
-    this.model.compile({
-      optimizer: tf.train.adam(0.001),
-      loss: 'binaryCrossentropy',
-      metrics: ['accuracy']
-    });
-  }
-
-  public async analyzeTransactionPattern(transactions: any[]) {
-    const features = this.extractFeatures(transactions);
-    const prediction = await this.model?.predict(tf.tensor2d([features])) as tf.Tensor;
-    const riskScore = (await prediction.data())[0];
-    
-    // Log suspicious transactions to Fabric
-    if (riskScore > 0.7) {
-      await FabricService.getInstance().submitTransaction({
-        txHash: `risk-${Date.now()}`,
-        entityType: 'risk_assessment',
-        entityId: transactions[0]?.id,
-        action: 'flag_suspicious',
-        status: 'pending',
-        metadata: {
-          riskScore,
-          transactions: transactions.map(t => t.txHash)
-        }
-      });
-    }
-    
-    return riskScore;
-  }
-
-  public addNode(nodeId: string, metadata: any) {
-    this.graph.setNode(nodeId, metadata);
-  }
-
-  public addEdge(fromNode: string, toNode: string, metadata: any) {
-    this.graph.setEdge(fromNode, toNode, metadata);
-  }
-
-  public findConnectedComponents(): string[][] {
-    return graphlib.alg.components(this.graph);
-  }
-
-  public detectCommunities(): Map<string, number> {
-    const communities = new Map<string, number>();
-    const nodes = this.graph.nodes();
-    nodes.forEach((node: string, index: number) => {
-      communities.set(node, index % 5); // Simple community detection
-    });
-    return communities;
-  }
-
-  public calculateCentrality(): Map<string, number> {
-    const centrality = new Map<string, number>();
-    const nodes = this.graph.nodes();
-    nodes.forEach((node: string) => {
-      const degree = this.graph.nodeEdges(node).length;
-      centrality.set(node, degree);
-    });
-    return centrality;
-  }
-
-  private extractFeatures(transactions: any[]): number[] {
-    // Feature extraction implementation
-    return new Array(20).fill(0);
-  }
-
-  public getGraphSnapshot(): any {
     return {
-      nodes: this.graph.nodes().map((node: string) => ({
-        id: node,
-        metadata: this.graph.node(node)
-      })),
-      edges: this.graph.edges().map((edge: any) => ({
-        source: edge.v,
-        target: edge.w,
-        metadata: this.graph.edge(edge)
-      }))
+      nodes: Array.from(nodes.values()),
+      edges: Array.from(edges)
+    };
+  }
+
+  async detectCommunities(transactions: BlockchainTransaction[]) {
+    // Implement community detection algorithm
+    return [];
+  }
+
+  async calculateRiskMetrics(wallet: Wallet) {
+    // Implement risk scoring based on network metrics
+    return {
+      centralityScore: 0,
+      riskScore: 0,
+      communityRisk: 0
     };
   }
 }

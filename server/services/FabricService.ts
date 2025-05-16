@@ -1,82 +1,46 @@
-
-import { Gateway, Wallets, X509Identity } from 'fabric-network';
-import { ConnectionProfile } from '@hyperledger/fabric-gateway';
-import * as fs from 'fs';
+import { Gateway, Wallets, Network, Contract } from 'fabric-network';
+import { BlockchainTransaction, Case, BlockchainNode } from '@/shared/schema';
 import * as path from 'path';
-import { BlockchainTransaction } from '@/shared/schema';
-import { DEPARTMENT_DETAILS } from '../constants';
+import *fs from 'fs';
 
 export class FabricService {
   private static instance: FabricService;
   private gateway: Gateway;
-  private networkName = 'cryptofraud-net';
-  private channelName = 'fraudchannel';
-  private chaincodeName = 'fraudcc';
-  private mspId = 'RegulatorMSP';
+  private network: Network;
+  private contract: Contract;
 
-  private constructor() {}
+  private constructor() {
+    this.gateway = new Gateway();
+  }
 
-  public static getInstance(): FabricService {
+  static getInstance(): FabricService {
     if (!FabricService.instance) {
       FabricService.instance = new FabricService();
     }
     return FabricService.instance;
   }
 
-  private async getWallet() {
-    const walletPath = path.join(process.cwd(), 'wallet');
-    return await Wallets.newFileSystemWallet(walletPath);
-  }
-
-  private async enrollAdmin() {
+  async connect() {
     try {
-      const wallet = await this.getWallet();
-      const identity = await wallet.get('admin');
-      
-      if (identity) {
-        console.log('Admin identity already exists');
-        return;
-      }
+      // Load connection profile
+      const ccpPath = path.resolve(__dirname, '../../crypto/connection.json');
+      const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
 
-      const enrollment = await this.caClient.enroll({
-        enrollmentID: 'admin',
-        enrollmentSecret: process.env.FABRIC_ADMIN_SECRET
-      });
+      // Create wallet instance
+      const walletPath = path.join(process.cwd(), 'wallet');
+      const wallet = await Wallets.newFileSystemWallet(walletPath);
 
-      const x509Identity: X509Identity = {
-        credentials: {
-          certificate: enrollment.certificate,
-          privateKey: enrollment.key.toBytes(),
-        },
-        mspId: this.mspId,
-        type: 'X.509',
-      };
-
-      await wallet.put('admin', x509Identity);
-    } catch (error) {
-      console.error('Failed to enroll admin:', error);
-      throw error;
-    }
-  }
-
-  public async connect() {
-    try {
-      const wallet = await this.getWallet();
-      await this.enrollAdmin();
-
-      const identity = await wallet.get('admin');
-      if (!identity) {
-        throw new Error('Admin identity not found');
-      }
-
-      const gateway = new Gateway();
-      
-      await gateway.connect(this.getConnectionProfile(), {
-        identity: identity,
+      // Connect to gateway
+      await this.gateway.connect(ccp, {
+        wallet,
+        identity: 'admin',
         discovery: { enabled: true, asLocalhost: false }
       });
 
-      this.gateway = gateway;
+      // Get network and contract
+      this.network = await this.gateway.getNetwork('mychannel');
+      this.contract = this.network.getContract('casemgmt');
+
       console.log('Connected to Fabric network');
     } catch (error) {
       console.error('Failed to connect to Fabric network:', error);
@@ -84,110 +48,92 @@ export class FabricService {
     }
   }
 
-  private getConnectionProfile(): ConnectionProfile {
-    return {
-      name: 'crypto-fraud-network',
-      version: '2.0.0',
-      client: {
-        organization: 'RegulatorOrg',
-        connection: {
-          timeout: {
-            peer: {
-              endorser: '300'
-            },
-            orderer: '300'
-          }
-        }
-      },
-      organizations: {
-        RegulatorOrg: {
-          mspid: this.mspId,
-          peers: ['peer0.regulator.example.com'],
-          certificateAuthorities: ['ca.regulator.example.com']
-        }
-      },
-      peers: {
-        'peer0.regulator.example.com': {
-          url: process.env.FABRIC_PEER_URL,
-          tlsCACerts: {
-            path: path.resolve(__dirname, '../../crypto/peer-cert.pem')
-          },
-          grpcOptions: {
-            'ssl-target-name-override': 'peer0.regulator.example.com',
-            hostnameOverride: 'peer0.regulator.example.com'
-          }
-        }
-      },
-      certificateAuthorities: {
-        'ca.regulator.example.com': {
-          url: process.env.FABRIC_CA_URL,
-          caName: 'ca.regulator.example.com',
-          tlsCACerts: {
-            path: path.resolve(__dirname, '../../crypto/ca-cert.pem')
-          },
-          httpOptions: {
-            verify: false
-          }
-        }
-      }
-    };
-  }
-
-  public async submitTransaction(txData: BlockchainTransaction) {
+  async recordCase(caseData: Case): Promise<string> {
     try {
-      const network = await this.gateway.getNetwork(this.networkName);
-      const contract = network.getContract(this.chaincodeName);
-
-      const result = await contract.submitTransaction(
-        'createTransaction',
-        JSON.stringify(txData)
+      const result = await this.contract.submitTransaction(
+        'createCase',
+        caseData.caseId,
+        JSON.stringify({
+          title: caseData.title,
+          description: caseData.description,
+          status: caseData.status,
+          priority: caseData.priority,
+          estimatedLoss: caseData.estimatedLoss,
+          assignedTo: caseData.assignedTo,
+          walletAddress: caseData.walletAddress,
+          transactionHash: caseData.transactionHash
+        })
       );
-
-      return JSON.parse(result.toString());
+      return result.toString();
     } catch (error) {
-      console.error('Failed to submit transaction:', error);
+      console.error('Failed to record case:', error);
       throw error;
     }
   }
 
-  public async queryTransaction(txId: string) {
+  async queryCaseHistory(caseId: string): Promise<BlockchainTransaction[]> {
     try {
-      const network = await this.gateway.getNetwork(this.networkName);
-      const contract = network.getContract(this.chaincodeName);
-
-      const result = await contract.evaluateTransaction(
-        'queryTransaction',
-        txId
-      );
-
+      const result = await this.contract.evaluateTransaction('getCaseHistory', caseId);
       return JSON.parse(result.toString());
     } catch (error) {
-      console.error('Failed to query transaction:', error);
+      console.error('Failed to query case history:', error);
       throw error;
     }
   }
 
-  public async getTransactionHistory(entityId: string) {
+  async recordTransaction(txData: BlockchainTransaction): Promise<string> {
     try {
-      const network = await this.gateway.getNetwork(this.networkName);
-      const contract = network.getContract(this.chaincodeName);
-
-      const result = await contract.evaluateTransaction(
-        'getTransactionHistory',
-        entityId
+      const result = await this.contract.submitTransaction(
+        'recordTransaction',
+        txData.txHash,
+        JSON.stringify({
+          blockHash: txData.blockHash,
+          entityType: txData.entityType,
+          entityId: txData.entityId,
+          action: txData.action,
+          metadata: txData.metadata,
+          stakeholderId: txData.stakeholderId,
+          stakeholderType: txData.stakeholderType
+        })
       );
-
-      return JSON.parse(result.toString());
+      return result.toString();
     } catch (error) {
-      console.error('Failed to get transaction history:', error);
+      console.error('Failed to record transaction:', error);
       throw error;
     }
   }
 
-  public async disconnect() {
-    if (this.gateway) {
-      await this.gateway.disconnect();
+  async registerNode(node: BlockchainNode): Promise<void> {
+    try {
+      await this.contract.submitTransaction(
+        'registerNode',
+        node.nodeId,
+        JSON.stringify({
+          name: node.name,
+          nodeType: node.nodeType,
+          organization: node.organization,
+          publicKey: node.publicKey,
+          accessLevel: node.accessLevel
+        })
+      );
+    } catch (error) {
+      console.error('Failed to register node:', error);
+      throw error;
     }
+  }
+
+  async validateTransaction(txHash: string): Promise<boolean> {
+    try {
+      const result = await this.contract.evaluateTransaction('validateTransaction', txHash);
+      return JSON.parse(result.toString()).valid;
+    } catch (error) {
+      console.error('Failed to validate transaction:', error);
+      throw error;
+    }
+  }
+
+  async disconnect(): Promise<void> {
+    this.gateway.disconnect();
   }
 }
 
