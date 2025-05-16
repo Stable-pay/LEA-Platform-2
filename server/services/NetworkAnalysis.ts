@@ -1,6 +1,7 @@
 import * as tf from '@tensorflow/tfjs-node';
 import { WebSocket } from 'ws';
 import graphlib from 'graphlib';
+import FabricService from './FabricService';
 
 export class NetworkAnalysis {
   private static instance: NetworkAnalysis;
@@ -39,7 +40,24 @@ export class NetworkAnalysis {
   public async analyzeTransactionPattern(transactions: any[]) {
     const features = this.extractFeatures(transactions);
     const prediction = await this.model?.predict(tf.tensor2d([features])) as tf.Tensor;
-    return (await prediction.data())[0];
+    const riskScore = (await prediction.data())[0];
+    
+    // Log suspicious transactions to Fabric
+    if (riskScore > 0.7) {
+      await FabricService.getInstance().submitTransaction({
+        txHash: `risk-${Date.now()}`,
+        entityType: 'risk_assessment',
+        entityId: transactions[0]?.id,
+        action: 'flag_suspicious',
+        status: 'pending',
+        metadata: {
+          riskScore,
+          transactions: transactions.map(t => t.txHash)
+        }
+      });
+    }
+    
+    return riskScore;
   }
 
   public addNode(nodeId: string, metadata: any) {
