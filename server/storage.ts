@@ -76,6 +76,11 @@ export interface IStorage {
   getBlockchainNodesByType(type: string): Promise<BlockchainNode[]>;
   createKycInformation(kyc: InsertKycInformation): Promise<KycInformation>;
   createCourtExport(export_data: InsertCourtExport): Promise<CourtExport>;
+
+  // News feed methods
+  getLawEnforcementNews(): Promise<any>;
+  getRegulatoryNews(): Promise<any>;
+  getCryptoNews(): Promise<any>;
 }
 
 export class MemStorage implements IStorage {
@@ -499,7 +504,7 @@ export class MemStorage implements IStorage {
       ...stat, 
       dateRecorded: new Date() 
     };
-    this.stateFraudStats.set(id, updatedStat);
+    this.stateFraudStats.set(id, newStat);
     return updatedStat;
   }
 
@@ -594,6 +599,50 @@ export class MemStorage implements IStorage {
 
     this.courtExports.set(id, newExport);
     return newExport;
+  }
+
+   // News feed methods
+   async getLawEnforcementNews() {
+    // Simulated data for now
+    return [
+      {
+        id: '1',
+        title: 'New Cryptocurrency Enforcement Framework Released',
+        description: 'Law enforcement agencies announce new guidelines for investigating crypto crimes',
+        source: 'Law Enforcement Bulletin',
+        date: new Date().toISOString(),
+        url: '#'
+      },
+      // Add more sample news items
+    ];
+  }
+
+  async getRegulatoryNews() {
+    return [
+      {
+        id: '1',
+        title: 'Updated Regulatory Guidelines for Virtual Assets',
+        description: 'New compliance requirements for cryptocurrency exchanges and VASPs',
+        source: 'Regulatory Updates',
+        date: new Date().toISOString(),
+        url: '#'
+      },
+      // Add more sample news items
+    ];
+  }
+
+  async getCryptoNews() {
+    return [
+      {
+        id: '1',
+        title: 'Major Cryptocurrency Exchange Enhances Security Measures',
+        description: 'Implementation of advanced fraud detection systems',
+        source: 'Crypto News Network',
+        date: new Date().toISOString(),
+        url: '#'
+      },
+      // Add more sample news items
+    ];
   }
 }
 

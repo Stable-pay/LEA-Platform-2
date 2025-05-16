@@ -537,12 +537,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Crypto news endpoint
-  app.get("/api/crypto-news", async (_req, res) => {
+  // News feed endpoints
+  app.get("/api/news/enforcement", async (_req, res) => {
     try {
-      const news = CRYPTO_NEWS_FEED.sort((a, b) => 
-        new Date(b.date).getTime() - new Date(a.date).getTime()
-      );
+      const news = await storage.getLawEnforcementNews();
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch law enforcement news" });
+    }
+  });
+
+  app.get("/api/news/regulatory", async (_req, res) => {
+    try {
+      const news = await storage.getRegulatoryNews();
+      res.json(news);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch regulatory news" });
+    }
+  });
+
+  app.get("/api/news/crypto", async (_req, res) => {
+    try {
+      const news = await storage.getCryptoNews();
       res.json(news);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch crypto news" });
