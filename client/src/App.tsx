@@ -27,7 +27,8 @@ export default function App() {
   useEffect(() => {
     const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
     const host = window.location.hostname;
-    const ws = new WebSocket(`${protocol}//${host}:5000/ws`);
+    const port = process.env.NODE_ENV === 'production' ? '' : ':5000';
+    const ws = new WebSocket(`${protocol}//${host}${port}/ws`);
 
     ws.onmessage = (event) => {
       try {
