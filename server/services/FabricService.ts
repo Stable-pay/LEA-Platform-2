@@ -20,11 +20,24 @@ export class FabricService {
     return FabricService.instance;
   }
 
-  async connect() {
+  private async connect() {
     try {
       // Load connection profile
       const ccpPath = path.resolve(__dirname, '../../crypto/connection.json');
-      const ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+      let ccp;
+      try {
+        ccp = JSON.parse(fs.readFileSync(ccpPath, 'utf8'));
+      } catch (error) {
+        console.warn('Could not load connection profile, using default config');
+        ccp = {
+          peers: [{
+            url: 'grpc://0.0.0.0:7051',
+            'grpcOptions': {
+              'ssl-target-name-override': 'peer0'
+            }
+          }]
+        };
+      }
 
       // Create wallet instance
       const walletPath = path.join(process.cwd(), 'wallet');
